@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>damwidi</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+        <!-- JS -->
+        <!-- jquery -->
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+
+        <!-- bootstrap: Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+        <!--numeral.js: javascript library for formatting and manipulating numbers -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
+        <!--moment.js: Parse, validate, manipulate, and display dates -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+
+        <!-- moment-timezone.js: Parse and display moments in any timezone. -->
+        <script src="./js/moment-timezone-with-data.js"></script>
+
+        <!-- Chart.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"></script>
+
+        <!-- datatables  -->
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
+
+        <!-- CSS  -->
+        <!-- bootstrap: CSS stylesheet -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+        <!-- fontawesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+
+        <!-- google font CSS -->
+        <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400i,600i" rel="stylesheet">
+
+        <!-- datatables CSS, CDN -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css"/>
+
+        <!-- app CSS -->
+        <link rel="stylesheet" href="./css/styles.css">
+
+        <!-- app scripts -->
+        <script src="./js/main.js"></script>
+
+    </head>
+
+    <body>
+
+        <nav class="navbar navbar-expand-md navbar-light bg-light">
+            <span class="navbar-brand logo" href="">DAMWIDI</span>
+
+            <div class="collapse navbar-collapse" id="mainMenu">
+                <ul class="navbar-nav mr-auto">
+                    <li id="heatMap" class="nav-item active">
+                        <a class="nav-link" id="heatMap" href="#">Intraday</a>
+                    </li>
+
+                    <li id="sectorAllocation" class="nav-item">
+                        <a class="nav-link" id="sectorAllocation" href="#">Sector Allocation</a>
+                    </li>
+
+                    <li id="tradeHistory" class="nav-item">
+                        <a class="nav-link" id="tradeHistory" href="#">Trade History</a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">Charts</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" id="sectorTimeframe" href="#">Sector-Timeframe</a>
+                            <a class="dropdown-item" href="#">Technical</a>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+        </nav>
+
+        <div id='realtime' class="container-fluid"></div>
+
+    </body>
+
+</html>

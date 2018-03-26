@@ -1,0 +1,49 @@
+.logo {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size:   22px;
+    font-weight: 600;
+    font-style:  italic;
+    text-shadow: 1px 1px 1px #aaa;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+.rowDAM {
+    border-top: 2pt solid black;
+}
+
+.rowSPY {
+    border-bottom: 2pt solid black;
+}
+
+.heatMapGraph {
+    padding-bottom: 100px;
+    padding-top: 0px;
+}
+
+.sectorAllocation {
+    padding-bottom: 2px;
+    padding-top: 20px;
+    padding-right: 50px;
+    padding-left: 50px;
+}
+
+.tradeHistory {
+    padding-bottom: 2px;
+    padding-top: 20px;
+    padding-right: 50px;
+    padding-left: 50px;
+}
+
+.allocationButton {
+    float: right;
+    margin-bottom: 10px;
+}
+
+#mainMenu .navbar-nav li.active > a {
+	color: rgb(119, 13, 13);
+}

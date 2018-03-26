@@ -1,0 +1,43 @@
+<div class='sectorAllocation'>
+
+    <h6 id="intraDayTitle" class="text-center" style="padding-bottom: 0px; padding-top: 10px;"></h6>
+
+    <button data-mode="absolute" id="btnAllocation" type="button" class="allocationButton btn btn-outline-secondary btn-sm">absolute</button>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr class="thead-light">
+                <th class="text-center">ticker</th>
+                <th class="text-left"  >description</th>
+                <th class="text-right" >shares</th>
+                <th class="text-right" >current value</th>
+                <th class="text-right" >change</th>
+                <th class="text-right" >allocation</th>
+                <th class="text-right" >mkt weight</th>
+                <th class="text-right" >implied</th>
+                <th class="text-right" >over/under</th>
+            </tr>
+        </thead>
+        <tbody id="allocation"></tbody>
+    </table>
+    <h6><small>Open position data current as of: <span id='openPositionData'>xx/xx/xx</span></small></h6>
+    <h6><small>Sector weight data effective as of: <span id='effectiveDate'>xx/xx/xx</span>, fetched on: <span id='fetchedDate'>xx/xx/xx</span> </small></h6>
+    <h6><small>Sector weight data <a href="http://us.spindices.com/indices/equity/sp-500" target="_blank">source</a>    </small></h6>
+</div>
+
+
+<script>
+    $("#btnAllocation").click(function (event) {
+        event.preventDefault();
+        var mode = $(this).data('mode');
+
+        if (mode == 'relative'){
+            $(this).data('mode','absolute');
+            $("#btnAllocation").html('absolute');
+        } else {
+            $(this).data('mode','relative');
+            $("#btnAllocation").html('relative');
+        }
+        updateAllocationTable(allocationData, mode);
+    });
+</script>

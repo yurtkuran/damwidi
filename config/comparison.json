@@ -1,0 +1,8 @@
+{
+    "1wk" :{"period":"1wk",  "lengthWeeks":1, "lengthDays":5 },
+    "2wk" :{"period":"2wk",  "lengthWeeks":2, "lengthDays":10 },
+    "4wk" :{"period":"4wk",  "lengthWeeks":4, "lengthDays":20 },
+    "8wk" :{"period":"8wk",  "lengthWeeks":8, "lengthDays":40 },
+    "1qtr":{"period":"1qtr", "lengthWeeks":13, "lengthDays":65 },
+    "1yr" :{"period":"1yr",  "lengthWeeks":52, "lengthDays":260 }
+}
