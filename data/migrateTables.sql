@@ -28,6 +28,7 @@ ALTER TABLE `data_performance` MODIFY `fetchedDate`   DATE NOT NULL;
 
 -- remove columns no longer needed
 ALTER TABLE `data_transactions` DROP COLUMN `shares_running`;
+ALTER TABLE `data_history`      DROP COLUMN `volume`;
 
 ALTER TABLE `data_value` DROP COLUMN `positions`;
 

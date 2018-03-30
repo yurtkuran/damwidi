@@ -29,6 +29,26 @@ function saveCashBalance($amount, $asof){
     $stmt->execute();
 }
 
+// save historical data for each sector and indeo to `data_history` table
+function saveHistoricalData($historicalData){
+    $dbc = connect();
+
+    // prepare sql and bind parameters
+    $stmt = $dbc->prepare("INSERT INTO `data_history` (symbol, date, open, high, low, close) VALUES (:symbol, :date, :open, :high, :low, :close)");
+
+    foreach($historicalData as $sector => $dataSet){
+        foreach($dataSet as $date => $data){
+            $stmt->bindParam(':symbol', $sector);
+            $stmt->bindParam(':date',   $date);
+            $stmt->bindParam(':open',   $data['open']);
+            $stmt->bindParam(':high',   $data['high']);
+            $stmt->bindParam(':low',    $data['low']);
+            $stmt->bindParam(':close',  $data['close']);
+            $stmt->execute();
+        }
+    }
+}
+
 // saves performance (return) data for each sector and index for the given timeframes
 function savePerformanceData($performanceData){
     $dbc = connect();

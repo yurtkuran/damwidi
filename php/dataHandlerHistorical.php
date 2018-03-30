@@ -24,10 +24,10 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
             foreach($dataProviders as $provider){
                 switch($provider){
                     case 'alphaVantage':
-                        $historicalData   = retrievePriceDataAlpha($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+                        $historicalData  = retrievePriceDataAlpha($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
                         break;
                     case 'barChart':
-                        $historicalData   = retrievePriceDataBarChart($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+                        $historicalData  = retrievePriceDataBarChart($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
                         break;
                 }
                 foreach($historicalData['seriesData'] as $candle => $data){

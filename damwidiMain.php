@@ -29,12 +29,16 @@ if (isset($_GET['mode'])){
             updateBivioTransactions($verbose);
             break;
 
-        case 'updateValueTable':
-            updateValueTable($verbose, $debug);
+        case 'updateHistoryTable':
+            updateHistoryTable($verbose, $debug);
             break;
 
         case 'updatePerformanceData':
             updatePerformanceData($verbose, $debug);
+            break;
+
+        case 'updateValueTable':
+            updateValueTable($verbose, $debug);
             break;
 
         case 'returnDetails':

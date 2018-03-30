@@ -1,0 +1,8 @@
+.DS_Store
+.vscode/*
+
+archieve/*
+tmp/*
+cookies/*
+
+php-includes/definedConstants.php
