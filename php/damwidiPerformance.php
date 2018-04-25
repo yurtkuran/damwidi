@@ -162,7 +162,7 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
         'datasets' => [$dataset]
     );
 
-    if ($verbose) show($data);
+    if ($verbose)show($data);
     if(!$verbose)echo json_encode($data);
 }
 ?>

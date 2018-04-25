@@ -66,13 +66,14 @@ function newHeatMapChart(){
                 categoryPercentage: 1.0,
                 barPercentage: 0.4,
                 ticks: {
-                    fontSize: 12,
+                    fontSize: 10,
                     }
             }],
             yAxes: [{
                 ticks: {
                     beginAtZero: true,
-                    fontSize: 12,
+                    maxTicksLimit: 5,
+                    fontSize: 10,
                     callback: function(value) {
                         return value.toFixed(1)+"%";
                     }

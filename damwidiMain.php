@@ -20,9 +20,11 @@ if (isset($_GET['mode'])){
             // 1. updateBivioTransactions
             // 2. updateValueTable
             // 3. updatePerformanceData
+            // 4. updateHistoryTable
             updateBivioTransactions($verbose);
             updateValueTable($verbose, $debug);
             updatePerformanceData($verbose, $debug);
+            updateHistoryTable($verbose, $debug);
             break;
 
         case 'updateBivioTransactions':
@@ -87,9 +89,10 @@ if (isset($_GET['mode'])){
             break;
 
         case 'test':
-            // include_once('./php/damwidiIntraDay.2.php');
-            // returnHeatMapData($verbose, $debug);
-            show(loadSectors());
+            // $ch = bivioLogin($verbose);
+            // returnBivioValue($ch, '2018/04/02', $verbose);
+
+            testScrape($verbose, $debug);
             break;
 
     }

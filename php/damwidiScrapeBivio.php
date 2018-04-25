@@ -183,4 +183,57 @@ function parseTransaction($transaction){
     return $parse;
 }
 
+function testScrape($verbose){
+    // https://gist.github.com/anchetaWern/6150297
+    // https://www.the-art-of-web.com/php/html-xpath-query/
+    // http://php.net/manual/en/class.domnode.php#domnode.props.nodevalue
+
+    libxml_use_internal_errors(TRUE); // disable libxml errors
+
+    $html = file_get_contents('./tmp/response.html');
+    $doc  = new DOMDocument();
+    $doc->loadHTML($html);
+
+    libxml_clear_errors(); //remove errors for yucky html
+
+    $xpath = new DOMXpath($doc);
+
+    // save headers
+    $headers = $xpath->query("//div[@class='main_body']/table[1]/tr[1]/th");
+    $dataHeaders = array();
+    foreach($headers as $header){
+        $dataHeaders[] = $header->nodeValue;
+    }
+    $dataHeaders[0]='sector';
+
+    $currnetRow = 1;
+    $rows = $xpath->query("//div[@class='main_body']/table[1]/tr[position()>1]");
+    foreach($rows as $row){
+        if(strpos($row->getAttribute('class'),'b_footer_row')!==0){
+            $bivioData[$currnetRow] = array();
+            $cells = $xpath->query("td", $row);
+            $i=0;
+            foreach($cells as $cell){
+                // show($cell->nodeValue);
+                $bivioData[$currnetRow][$dataHeaders[$i]] = $cell->nodeValue;
+                $i++;
+            }
+            $currnetRow++;
+        } else {
+            break;
+        }
+    }
+
+    show($bivioData);
+
+    // retrieve cash
+    $cashRow = $xpath->query("//div[@class='main_body']/table[1]/tr[position()>".$currnetRow." and contains(@class,'b_data_row')]")[0];
+    $cash = noComma($xpath->query("td[4]", $cashRow)[0]->nodeValue);
+    show('cash: $'.$cash);
+
+    // retrieve share value
+    $shareValue = $xpath->query("//div[@class='main_body']/table[2]/tr[3]/td[4]")[0]->nodeValue;
+    show('share value: $'.$shareValue);
+}
+
 ?>

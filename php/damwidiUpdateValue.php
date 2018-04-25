@@ -19,7 +19,7 @@ function updateValueTable($verbose = false, $debug = false){
         // start with first date in transaction table
         $stmt = $dbc->prepare("SELECT `transaction_date` FROM `data_transactions` ORDER BY `transaction_date` ASC LIMIT 1");
         $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);   
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $startDate   = $result['transaction_date'];
         $firstRecord = true;
         $shareValue  = initialShareValue;
@@ -63,7 +63,6 @@ function updateValueTable($verbose = false, $debug = false){
             $valueData['account_value'] = $valueData['cash'] + $valueData['market_value'];
             $valueData['payments']      = returnPayments($date);
             $valueData['bivio_value']   = returnBivioValue($ch, $date);
-           
 
             if ($firstRecord) {
                 $firstRecord = false;
@@ -86,7 +85,7 @@ function updateValueTable($verbose = false, $debug = false){
         }
 
         $date = date('Y-m-d',strtotime($date . "+1 days"));
-        
+
         if ($debug){
             show($valueData);
             break;
@@ -153,7 +152,7 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
     $dbc = connect();
     $stmt = $dbc->prepare("SELECT * FROM `data_transactions`
                            WHERE    `transaction_date` <= :date
-                           AND      `ticker` IS NOT NULL 
+                           AND      `ticker` IS NOT NULL
                            AND      `ticker` <> ''
                            ORDER BY `transaction_date` ASC");
     $stmt->bindParam(':date', $date);
@@ -181,12 +180,12 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
             case 'S':
                 $openPositions[$transaction['ticker']]['shares']   += $transaction['shares'];
                 $openPositions[$transaction['ticker']]['purchase'] += $transaction['amount'];
-                if ($openPositions[$transaction['ticker']]['shares'] == 0) unset($openPositions[$transaction['ticker']]);   
+                if ($openPositions[$transaction['ticker']]['shares'] == 0) unset($openPositions[$transaction['ticker']]);
                 break;
             case 'D':
                 if (array_key_exists ( $transaction['ticker'] , $openPositions )){
                     $openPositions[$transaction['ticker']]['dividend'] += $transaction['amount'];
-                } 
+                }
                 break;
             default:
                 break;

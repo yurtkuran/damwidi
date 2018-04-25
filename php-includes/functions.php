@@ -49,6 +49,10 @@ function i($code){
     return $icon;
 }
 
+function noComma($var){
+    return floatval(preg_replace('/[^\d.]/', '', $var));
+}
+
 function priceGain($priceData, $index0, $index1, $roundDigits = 2){
     $priceGain = array();
 
