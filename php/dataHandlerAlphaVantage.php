@@ -1,4 +1,4 @@
-<?
+<?php
 function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = true, $saveData = false, $verbose = false, $debug = false){
     //
     // use https://httpstat.us/ to test the HTML response

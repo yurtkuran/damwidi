@@ -1,4 +1,4 @@
-<?
+<?php
 // returns data from data_SPDR table based on mask
 // C=cash, I=index, S=sector, F=fund (i.e. damwidi)
 function loadSectors($mask = 'CISF'){
@@ -52,6 +52,7 @@ function saveHistoricalData($historicalData){
 // saves performance (return) data for each sector and index for the given timeframes
 function savePerformanceData($performanceData){
     $dbc = connect();
+    $dbc->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // prepare sql and bind parameters
     $stmt = $dbc->prepare("UPDATE `data_performance`

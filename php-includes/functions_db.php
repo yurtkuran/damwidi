@@ -1,4 +1,4 @@
-<?
+<?php
 # Connect to the Database:
 function connect(){
     try {

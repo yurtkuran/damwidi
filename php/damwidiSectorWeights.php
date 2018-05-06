@@ -1,4 +1,4 @@
-<?
+<?php
 function retrieveSectorWeights($verbose = false, $debug = false, $loadNewData = true, $saveData = false){
 
     $filename = './tmp/spindices.txt';

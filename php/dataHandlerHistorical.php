@@ -1,10 +1,10 @@
-<?
+<?php
 // function will accept a single symbol as a string or multiple symbols as an array
 function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = false){
     if ($verbose) show("get historical data \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     // list of data providers
-    $dataProviders = array('alphaVantage', 'barChart');
+    $dataProviders = array('alphaVantage');
 
     // convert to array if single symbol
     $symbols = (is_array($symbols) ? $symbols : array($symbols));

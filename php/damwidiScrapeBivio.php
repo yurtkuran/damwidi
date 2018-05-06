@@ -1,4 +1,4 @@
-<?
+<?php
 // log into bivio.com
 function bivioLogin($verbose){
     // options
@@ -40,6 +40,24 @@ function bivioLogin($verbose){
         if ($verbose) show("Bivio login successful");
     }
     return $ch;
+}
+
+// retrieve transactions from bivio.com
+function retrieveBivioTransactions($verbose){
+
+    // open cURL session to scrape damwidi value from Bivio
+    $ch = bivioLogin($verbose);
+
+    // retrieve latest transactions
+    $URL = "https://www.bivio.com/get-csv/damwidi/accounting/account/detail.csv?p=16580800007";
+    curl_setopt($ch, CURLOPT_URL, $URL);
+    curl_setopt($ch, CURLOPT_HEADER, FALSE);
+    $response = explode( "\n", curl_exec($ch));
+    unset($response[count($response)-1]);  // remove last empty line
+    if ($verbose) show($response);
+
+    // close cURL session
+    curl_close($ch);
 }
 
 // retrieve damwidi value from bivio.com

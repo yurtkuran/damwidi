@@ -1,4 +1,4 @@
-<?
+<?php
 // update fields in the `data_performance` table for sectors, index and cash
 function updatePerformanceData($verbose, $debug){
     // load previous 2 years of data
@@ -13,7 +13,7 @@ function updatePerformanceData($verbose, $debug){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $barChartData  = retrievePriceDataBarChart($sector['sector'], 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+            $barChartData  = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
             $priceData     = $barChartData['seriesData'];
             $lastRefreshed = $barChartData['lastRefreshed'];
         } else {
@@ -22,9 +22,10 @@ function updatePerformanceData($verbose, $debug){
         }
 
         // init array
+        $previous = array_slice($priceData, 0, 1);
         $performanceData[$sector['sector']] = array(
             'as-of'         => $lastRefreshed,
-            'previous'      => reset(array_slice($priceData, 0, 1))['close'],
+            'previous'      => current($previous)['close'],
 
             // sector weights data
             'weight'            => $sector['weight'],

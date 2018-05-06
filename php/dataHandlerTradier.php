@@ -1,10 +1,10 @@
-<?
+<?php
 function retrieveMarketCalendar($year, $month, $verbose = false, $debug = false){
 
     $url = 'https://sandbox.tradier.com/v1/markets/calendar?';
-    $url .= 'year='.$year; 
+    $url .= 'year='.$year;
     $url .= '&month='.$month;
-    
+
     $ch = curl_init($url);
 
     // Headers

@@ -1,4 +1,4 @@
-<?
+<?php
 include_once('./php-includes/init.php');
 
 if (isset($_GET['verbose'])){
@@ -63,7 +63,9 @@ if (isset($_GET['mode'])){
             $symbols='SPY,XLB,XLE,XLF,XLI,XLK,XLP,XLU,XLV,XLY';
             retrieveBatchDataAlpha($symbols, $loadNewData = true, $saveData = true, $verbose, $debug);
             break;
-
+        case 'retrieveBivioTransactions':
+            retrieveBivioTransactions($verbose);
+            break;
         case 'retrievePriceDataAlpha':
             $startDate = date('Y-m-d', strtotime('-1 years'));
             $startDate = date('Y-m-d', strtotime('1/1/2018'));
@@ -71,8 +73,8 @@ if (isset($_GET['mode'])){
             break;
 
         case 'retrievePriceDataBarChart':
-            $startDate = date('Y-m-d', strtotime('-1 years'));
-            $startDate = date('Y-m-d', strtotime('1/1/2018'));
+            $startDate = date('Y-m-d', strtotime('-2 years'));
+            // $startDate = date('Y-m-d', strtotime('1/1/2018'));
             retrievePriceDataBarChart('SPY', 'daily', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
             break;
 
@@ -91,8 +93,7 @@ if (isset($_GET['mode'])){
         case 'test':
             // $ch = bivioLogin($verbose);
             // returnBivioValue($ch, '2018/04/02', $verbose);
-
-            testScrape($verbose, $debug);
+            // testScrape($verbose, $debug);
             break;
 
     }

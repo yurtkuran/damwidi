@@ -1,4 +1,4 @@
-<?
+<?php
 
 // update `data_history` table
 function updateHistoryTable($verbose = false, $debug = false){

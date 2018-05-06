@@ -1,4 +1,4 @@
-<?
+<?php
 
 function retrievePriceDataBarChart($symbol, $interval, $startDate, $loadNewData = true, $saveData = false, $verbose = false, $debug = false){
 

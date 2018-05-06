@@ -1,4 +1,4 @@
-<?
+<?php
 
 // return details 1) sector weights fetch and and effective dates 2) position data as-of date
 function returnDetails($verbose, $debug){
@@ -261,7 +261,7 @@ function buildPortfolioTable(){
                 <td class="text-right"  id="value<?=$sector['sector']?>"> <?=($sector['sector']=='CASH' ? number_format($sector['previous'],2) : "")?></td>
                 <td class="text-right"  id="valueChange<?=$sector['sector']?>"></td>
             </tr>
-            <?
+            <?php
             $damwidiPrevious += $sector['shares'] * $sector['previous'];
         }
     }
@@ -277,7 +277,7 @@ function buildPortfolioTable(){
         <td class="text-right"  id="valueDAM"></td>
         <td class="text-right"  id="valueChangeDAM"></td>
     </tr>
-    <?
+    <?php
 }
 
 // complete the allocation table
@@ -298,7 +298,7 @@ function buildAllocationTable(){
             <td class="text-right"  id="implied<?=$sector['sector']?>"></td>
             <td class="text-right"  id="impliedOverUnder<?=$sector['sector']?>"></td>
         </tr>
-        <?
+        <?php
         $damwidiPrevious += $sector['shares'] * $sector['previous'];
         $damwidiBasis    += $sector['shares'] * $sector['basis'];
     }
@@ -314,6 +314,6 @@ function buildAllocationTable(){
         <td class="text-center" > </td>
         <td class="text-center" > </td>
     </tr>
-    <?
+    <?php
 }
 ?>

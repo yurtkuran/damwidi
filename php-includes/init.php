@@ -1,4 +1,4 @@
-<?
+<?php
 date_default_timezone_set('America/New_York');
 
 // error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);

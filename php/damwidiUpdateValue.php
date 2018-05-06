@@ -1,4 +1,4 @@
-<?
+<?php
 
 // update cash, SPY fields in `data_value` table
 function updateValueTable($verbose = false, $debug = false){
@@ -36,11 +36,11 @@ function updateValueTable($verbose = false, $debug = false){
     $marketHolidays = getMarketCalendar($startDate, $endDate, false); // loadNewData, saveData, verbose, debug
 
     // get historical SPY data
-    $historicalSPYData = getHistory('SPY', $startDate, $endDate)['alphaVantage']['SPY'];
+    $historicalSPYData = getHistory('SPY', $startDate, $endDate, false, false)['alphaVantage']['SPY']; //verbose, debug
 
     // calculate damwidi market value
     $allPositions   = returnAllPositions($startDate, $endDate); // get list of all postions (open or closed) within start/end dates
-    $historicalData = getHistory($allPositions, $startDate, $endDate); // get historical prices from alphaVantage
+    $historicalData = getHistory($allPositions, $startDate, $endDate, false, false); // get historical prices from alphaVantage and barChart -- verbose, debug
 
     // open cURL session to scrape damwidi value from Bivio
     $ch = bivioLogin($verbose);
