@@ -76,6 +76,7 @@ function save($filename, $data){
     $json = json_encode($data);
     $file = fopen($filename, "w");
     fwrite($file, $json);
+    fclose($file);
 }
 
 function show($data){

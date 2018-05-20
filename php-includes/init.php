@@ -16,6 +16,7 @@ include_once('./php/damwidiPerformance.php');
 include_once('./php/damwidiScrapeBivio.php');
 include_once('./php/damwidiSectorWeights.php');
 include_once('./php/damwidiUpdateValue.php');
+include_once('./php/damwidiUtilities.php');
 
 include_once('./php/dataHandlerAlphaVantage.php');
 include_once('./php/dataHandlerBarChart.php');

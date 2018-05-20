@@ -23,7 +23,9 @@ if (isset($_GET['mode'])){
             // 4. updateHistoryTable
             updateBivioTransactions($verbose);
             updateValueTable($verbose, $debug);
+            sleep(30);
             updatePerformanceData($verbose, $debug);
+            sleep(30);
             updateHistoryTable($verbose, $debug);
             break;
 
@@ -63,6 +65,7 @@ if (isset($_GET['mode'])){
             $symbols='SPY,XLB,XLE,XLF,XLI,XLK,XLP,XLU,XLV,XLY';
             retrieveBatchDataAlpha($symbols, $loadNewData = true, $saveData = true, $verbose, $debug);
             break;
+
         case 'retrieveBivioTransactions':
             retrieveBivioTransactions($verbose);
             break;
@@ -82,6 +85,14 @@ if (isset($_GET['mode'])){
             retrieveSectorWeights($verbose, $debug);
             break;
 
+        case 'bivioUnstick':
+            bivioUnstick($verbose);
+            break;
+
+        case 'displayUnstickLog':
+            displayUnstickLog();
+            break;
+
         case 'buildPortfolioTable':
             buildPortfolioTable();
             break;
@@ -91,9 +102,8 @@ if (isset($_GET['mode'])){
             break;
 
         case 'test':
-            // $ch = bivioLogin($verbose);
-            // returnBivioValue($ch, '2018/04/02', $verbose);
-            // testScrape($verbose, $debug);
+            show('this is a test');
+            // sendSMS("damwidi unstick", "2018-05-07");
             break;
 
     }

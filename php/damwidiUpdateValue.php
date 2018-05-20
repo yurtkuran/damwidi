@@ -3,6 +3,9 @@
 // update cash, SPY fields in `data_value` table
 function updateValueTable($verbose = false, $debug = false){
 
+    // open data log file
+    $dataLog = returnUnstickLogData();
+
     //determine starting date
     $dbc = connect();
     $stmt = $dbc->prepare("SELECT * FROM `data_value` ORDER BY `date` DESC LIMIT 1");
@@ -62,7 +65,7 @@ function updateValueTable($verbose = false, $debug = false){
             $valueData['market_value']  = $marketValue['close'];
             $valueData['account_value'] = $valueData['cash'] + $valueData['market_value'];
             $valueData['payments']      = returnPayments($date);
-            $valueData['bivio_value']   = returnBivioValue($ch, $date);
+            $valueData['bivio_value']   = round(returnBivioValue($ch, $date),6);
 
             if ($firstRecord) {
                 $firstRecord = false;
@@ -71,17 +74,29 @@ function updateValueTable($verbose = false, $debug = false){
             } else {
                 $totalShares += $valueData['payments']/$shareValue;
                 $shareValue   = $valueData['account_value']/$totalShares;
-
                 $valueData['total_shares'] = $totalShares;
             }
-            $valueData['share_value']   = $shareValue;
+            $valueData['share_value']   = round($shareValue,6);
             $valueData['open']          = ($valueData['cash'] + $marketValue['open'])  / $totalShares;
             $valueData['high']          = ($valueData['cash'] + $marketValue['high'])  / $totalShares;
             $valueData['low']           = ($valueData['cash'] + $marketValue['low'])   / $totalShares;
             $valueData['close']         = ($valueData['cash'] + $marketValue['close']) / $totalShares;
 
             saveValueData($valueData); // write data to database
-            // if ($verbose) show($valueData);
+
+            // determine if unstick condition exists
+            if($valueData['bivio_value'] <> $valueData['share_value'] or $debug){
+
+                // save data to array
+                if (array_key_exists($date, $dataLog)){
+                    // key already exists, replace data
+                    $dataLog[$date] = $valueData;
+                } else {
+                    // key does not exist, append data
+                    $dataLog = array_merge(array($date => $valueData), $dataLog);
+                }
+                sendSMS("damwidi unstick", $date); // send SMS via IFTTT web service
+            }
         }
 
         $date = date('Y-m-d',strtotime($date . "+1 days"));
@@ -91,6 +106,9 @@ function updateValueTable($verbose = false, $debug = false){
             break;
         }
     }
+
+    // save unstick log data
+    if(!empty($dataLog)) save(UNSTICK_LOG, $dataLog);
 
     // close cURL session
     curl_close($ch);

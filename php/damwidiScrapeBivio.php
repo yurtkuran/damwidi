@@ -58,6 +58,8 @@ function retrieveBivioTransactions($verbose){
 
     // close cURL session
     curl_close($ch);
+
+    return $response;
 }
 
 // retrieve damwidi value from bivio.com
@@ -98,12 +100,7 @@ function updateBivioTransactions($verbose){
     $ch = bivioLogin($verbose);
 
     // retrieve latest transactions
-    $URL = "https://www.bivio.com/get-csv/damwidi/accounting/account/detail.csv?p=16580800007";
-    curl_setopt($ch, CURLOPT_URL, $URL);
-    curl_setopt($ch, CURLOPT_HEADER, FALSE);
-    $response = explode( "\n", curl_exec($ch));
-    unset($response[count($response)-1]);  // remove last empty line
-    if ($verbose) show($response);
+    $bivioTransactions = retrieveBivioTransactions($verbose);
 
     // determine latest detail date
     $dbc = connect();
@@ -115,9 +112,9 @@ function updateBivioTransactions($verbose){
 
     // parse CSV file
     $firstline = true;
-    for ($i=0; $i<= count($response)-1; $i++){
+    for ($i=0; $i<= count($bivioTransactions)-1; $i++){
         $transaction = array();
-        $data = str_getcsv($response[$i]);
+        $data = str_getcsv($bivioTransactions[$i]);
         $date = date('Y-m-d', strtotime($data['0']));
 
         if(!$firstline and $date > $startDate){
@@ -194,7 +191,7 @@ function parseTransaction($transaction){
     if (strpos("BS", $parse['type']) !== FALSE) {
         $start = strpos( $transaction, " ");
         $end   = strpos( $transaction, "SHARES");
-        $parse['shares'] =  substr( $transaction, $start+1, $end-$start-1 ) * ($parse['type'] == 'S' ? -1 : 1);
+        $parse['shares'] =  (int)substr( $transaction, ($start+1), ($end-$start-1) ) * ($parse['type'] == 'S' ? -1 : 1);
     }
 
     // show($parse);
