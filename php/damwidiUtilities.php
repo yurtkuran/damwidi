@@ -14,17 +14,17 @@ function bivioUnstick($verbose) {
         show($date);
 
         // calculate damwidi market value
-        $allPositions   = returnAllPositions($date, $date); // get list of all postions (open or closed) within start/end dates
-        $historicalData = getHistory($allPositions, $date, $date, false, false); // get historical prices from alphaVantage and barChart -- verbose, debug
+        // $allPositions   = returnAllPositions($date, $date); // get list of all postions (open or closed) within start/end dates
+        // $historicalData = getHistory($allPositions, $date, $date, false, false); // get historical prices from alphaVantage and barChart -- verbose, debug
 
-        foreach($allPositions as $position){
-            show($position.' '.$historicalData['alphaVantage'][$position][$date]['close']);
-        }
+        // foreach($allPositions as $position){
+        //     show($position.' '.$historicalData['alphaVantage'][$position][$date]['close']);
+        // }
 
-        show($historicalData);
+        // show($historicalData);
 
-        show(returnOpenPositions($unstick['date']));
-        break;
+        // show(returnOpenPositions($unstick['date']));
+        // break;
     }
 }
 

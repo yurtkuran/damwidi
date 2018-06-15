@@ -71,7 +71,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
         $dataSet['status'] = 'fail';
     }
 
-    if ($verbose) show($dataSet);
+    // if ($verbose) show($dataSet);
     return $dataSet;
 }
 

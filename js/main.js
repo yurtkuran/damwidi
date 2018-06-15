@@ -2,10 +2,12 @@ var allocationData;
 
 $(document).ready(function(){
 
-    var intraDayTimer = 0;
-    displayIntraday(function(timer){                                // load intraday page, graph and table
-        intraDayTimer = timer;
-    });
+    displayTechnicalCharts();
+
+    // var intraDayTimer = 0;
+    // displayIntraday(function(timer){                                // load intraday page, graph and table
+    //     intraDayTimer = timer;
+    // });
 
     $('a[href="#"]').click(function (event) {
         event.preventDefault();
@@ -35,6 +37,11 @@ $(document).ready(function(){
             case 'sectorTimeframe':
                 clearInterval(intraDayTimer);
                 displaySectorTimeframeCharts();
+                break;
+
+            case 'technicalCharts':
+                clearInterval(intraDayTimer);
+                displayTechnicalCharts();
                 break;
         }
     });
@@ -364,6 +371,194 @@ function displayTradeHistory(){
                 { className: "text-right",  targets: [ 3, 4 ] },
             ]
         } );
+    });
+}
+
+//
+// technical charts
+
+// load and display technical chart template
+function displayTechnicalCharts(){
+    $("#realtime").load("./pages/technicalCharts.html", function(){
+        retrievePriceDataAlpha();
+    });
+}
+
+function retrievePriceDataAlpha(){
+
+    var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SPY&apikey=WWQO&outputsize=full";
+    var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SPY&apikey=WWQO&outputsize=compact";
+    $.getJSON( url, function( data ) {
+        data = data['Time Series (Daily)'];
+
+        var ohlc = [];
+        var sma3 = [];
+        var dataLength = Object.keys(data).length;
+        var groupingUnits = [
+            ['week', [1]],
+            ['month',[1, 2, 3, 4, 6]]
+        ];
+        var i = 0;
+
+        $.each(data, function(key, value){
+            ohlc.push([
+                Date.parse(key),                // date
+                parseFloat(value['1. open']),   // open
+                parseFloat(value['2. high']),   // high
+                parseFloat(value['3. low']),    // low
+                parseFloat(value['4. close'])   // close
+            ]);
+            sma3.push([
+                Date.parse(key),
+                279
+            ]);
+            // return false;
+        });
+
+        var key
+        var test = [];
+        for (i = 0; i < dataLength; i++) {
+            key = Object.keys(data)[i];
+            value = data[key];
+            test.push([
+                Date.parse(key),                // date
+                parseFloat(value['1. open']),   // open
+                parseFloat(value['2. high']),   // high
+                parseFloat(value['3. low']),    // low
+                parseFloat(value['4. close'])   // close
+            ]);
+
+        }
+        // console.log(test);
+
+
+        // console.log(ohlc.slice(1,3));
+
+        // ohlc = test;
+        ohlc.sort(function(a,b){
+            return a[0]-b[0];
+        });
+
+        console.log(ohlc);
+        // ohlc = test;
+        console.log(test);
+
+         // create the chart
+        Highcharts.stockChart('chartPrice', {
+
+            rangeSelector: {
+                selected: 2
+            },
+
+            title: {
+                text: 'SPY Historical'
+            },
+
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: {
+                    second: '%Y-%m-%d<br/>%H:%M:%S',
+                    minute: '%Y-%m-%d<br/>%H:%M',
+                    hour: '%Y-%m-%d<br/>%H:%M',
+                    day: '%Y<br/>%m-%d',
+                    week: '%Y<br/>%m-%d',
+                    month: '%Y-%m',
+                    year: '%Y'
+                }
+            },
+
+            yAxis: [{
+                labels: {
+                    align: 'right',
+                    x: -3
+                },
+                title: {
+                    text: 'OHLC'
+                },
+                height: '100%',
+                lineWidth: 2,
+                resize: {
+                    enabled: true
+                }
+            }],
+
+            tooltip: {
+                split: true
+            },
+
+            plotOptions: {
+                candlestick: {
+                    color: '#ff0000',
+                },
+                bb: {
+                    color: '#0040ff',
+                    lineWidth: 1,
+                    dashStyle: 'ShortDash',
+                    bottomLine: {
+                        styles: {
+                            lineWidth: 3
+                        }
+                    },
+                    topLine: {
+                        styles: {
+                            lineWidth: 3
+                        }
+                    },
+                    enableMouseTracking: false
+                },
+                sma: {
+                    index: 3,
+                    enableMouseTracking: false,
+                    lineWidth: 3,
+                    marker: {
+                        enabled: false
+                    },
+                }
+            },
+
+            series: [{
+                type: 'candlestick',
+                name: 'AAPL',
+                id: 'aapl',
+                data: ohlc,
+                dataGrouping: {
+                    units: groupingUnits
+                },
+                pointRange: 5
+            },{
+                type: 'bb',
+                linkedTo: 'aapl'
+            },{
+                type: 'sma',
+                linkedTo: 'aapl',
+                color: '#FF8040',
+                params: {
+                    period: 50,
+                    index: 3
+                }
+            },{
+                type: 'sma',
+                linkedTo: 'aapl',
+                color: '#000000',
+                params: {
+                    period: 200,
+                    index: 3
+                }
+            },{
+                type: 'sma',
+                linkedTo: 'aapl',
+                color: '#ff0000',
+                params: {
+                    period: 2,
+                    index: 3
+                }
+            },{
+                type: 'line',
+                data: sma3,
+                color: '#26a833',
+                lineWidth: 3,
+            }]
+        });
     });
 }
 
