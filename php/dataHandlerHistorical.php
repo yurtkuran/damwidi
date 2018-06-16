@@ -30,9 +30,11 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                         $historicalData  = retrievePriceDataBarChart($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
                         break;
                 }
-                foreach($historicalData['seriesData'] as $candle => $data){
-                    if ( $candle >= $startDate and $candle <= $endDate  ) {
-                        $dataset[$provider][$symbol][$candle] = $data;
+                if (array_key_exists('seriesData', $historicalData)) { // determine if seriesData exists
+                    foreach($historicalData['seriesData'] as $candle => $data){
+                        if ( $candle >= $startDate and $candle <= $endDate  ) {
+                            $dataset[$provider][$symbol][$candle] = $data;
+                        }
                     }
                 }
             }

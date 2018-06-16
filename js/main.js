@@ -37,6 +37,11 @@ $(document).ready(function(){
                 displaySectorTimeframeCharts();
                 break;
 
+            case 'aboveBelow':
+                clearInterval(intraDayTimer);
+                displayAboveBelow();
+                break;
+
             case 'technicalCharts':
                 clearInterval(intraDayTimer);
                 displayTechnicalCharts();
@@ -378,7 +383,6 @@ function displayTradeHistory(){
 // load and display technical chart template
 // https://icons8.com/preloaders/en/filtered-search/all/free/
 function displayTechnicalCharts(){
-
     $("#realtime").load("./pages/technicalCharts.php", function(){
     });
 }
@@ -576,6 +580,15 @@ function displayCandleChart(data, title){
     });
 }
 
+
+//
+// above the below
+
+// load and display page template
+function displayAboveBelow(){
+    $("#realtime").load("./pages/sectorAboveBelow.html", function(){
+    });
+}
 
 //
 // ajax data handlers

@@ -3,44 +3,58 @@
 // update `data_history` table
 function updateHistoryTable($verbose = false, $debug = false){
 
-    //determine starting date
+    // determine opening date of fund
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT * FROM `data_history` ORDER BY `date` DESC LIMIT 1");
+    $stmt = $dbc->prepare("SELECT `transaction_date` FROM `data_transactions` ORDER BY `transaction_date` ASC LIMIT 1");
+    $stmt->execute();
+    $result    = $stmt->fetch(PDO::FETCH_ASSOC);
+    $firstDate = $result['transaction_date'];
+
+    // load all sectors, index and fund
+    $sectors = loadSectors('SI');
+
+    $endDate = date('Y-m-d',  strtotime(date('Y-m-d') . "-1 days"));
+
+    // loop through sectors
+    foreach($sectors as $sector){
+        $symbol = $sector['sector'];
+        $startDate = determineStartDate($sector['sector'], $firstDate);
+
+        // retrieve and save historical data
+        $count = 0;
+        if ($endDate >= $startDate) {
+            $historicalData = getHistory($sector['sector'], $startDate, $endDate, false, false);  // verbose, debug
+            if (!empty($historicalData)) {
+                $historicalData = $historicalData['alphaVantage'];
+                saveHistoricalData($historicalData);
+                $count = count($historicalData[$symbol]);
+            }
+        }
+
+        if ($verbose) show($sector['sector'].": update data_history table \n"."start date: ".$startDate."\n"."end date:   ".$endDate."\n"."added ".$count." record".($count <> 1 ?'s':''));
+
+        // sleep for a random amount of time to prevent rate limiting from AlphaVantage
+        sleep(rand(2,5));
+    }
+
+    show(date('Y-m-d H:m:s')." - Complete: Update history table");
+}
+
+function determineStartDate($sector, $firstDate){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC LIMIT 1");
+    $stmt->bindParam(':symbol', $sector);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!empty($result)){
-        // start at the last record in the value table
-        $firstRecord = false;
-        $startDate   = $result['date'];
+        $startDate = $result['date'];
+        $startDate = date('Y-m-d',  strtotime($result['date'] . "+1 days"));
     } else {
-        // start with first date in transaction table
-        $stmt = $dbc->prepare("SELECT `transaction_date` FROM `data_transactions` ORDER BY `transaction_date` ASC LIMIT 1");
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $startDate   = $result['transaction_date'];
+        $startDate = $firstDate;
     }
-    $endDate = date('Y-m-d',  strtotime(date('Y-m-d') . "-1 days"));
 
-    // temp override - remove later
-    // $startDate = "2018-03-28";
-    // $endDate   = "2018-03-29";
-
-    if ($verbose) show("update data_value table \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
-
-    // get list of sectors and index
-    $sectors = loadSectors('SI');
-
-    // create array of symbols
-    $symbols = array();
-    foreach($sectors as $sector){
-        array_push($symbols, $sector['sector']);
-    }
-    $historicalData = getHistory($symbols, $startDate, $endDate, false, false)['alphaVantage'];  // verbose, debug
-    // show($historicalData);
-    saveHistoricalData($historicalData);
-
-    show(date('Y-m-d H:m:s')." - Complete: Update history table");
+    return $startDate;
 }
 
 ?>

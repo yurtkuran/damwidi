@@ -102,8 +102,7 @@ if (isset($_GET['mode'])){
             break;
 
         case 'test':
-            show('this is a test');
-            // sendSMS("damwidi unstick", "2018-05-07");
+            returnAboveBelow($verbose);
             break;
 
     }
