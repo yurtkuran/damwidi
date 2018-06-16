@@ -30,11 +30,22 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
 
     $filename = "./data/data_price_alpha_".$interval."_".$symbol.".json";
 
+    $attempts = 1;
+    $dataOK = false;
     if ($loadNewData) {
-        $json     = file_get_contents($URL);  //retrieve data
-        $response = $http_response_header[0]; //http response information
-        $url      = $URL;                     //alphavantage URL
-        $data     = json_decode($json,1);
+        do {
+            $json     = file_get_contents($URL);  //retrieve data
+            $response = $http_response_header[0]; //http response information
+            $url      = $URL;                     //alphavantage URL
+            $data     = json_decode($json,1);
+
+            if (array_key_exists('Information', $data)){
+                $attempts++;
+                sleep(rand(2,10));
+            } else {
+                $dataOK = true;
+            }
+        } while (!$dataOK);
 
         if ($saveData) save($filename, $data);
         if ($debug) save(  "./tmp/data_price_alpha_".$symbol."_".date('YmdHis').".json", $data);
@@ -45,18 +56,19 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
     }
     $seriesData = json_decode($json,1);
 
-    if ($verbose) show($http_response_header);
+    // if ($verbose) show($http_response_header);
 
-    $dataSet = array(
+    $dataSet['Meta Data'] = array(
         'symbol'    => $symbol,
         'url'       => $url,
+        'attempts'  => $attempts,
         'response'  => $response,
         'startTome' => $startDate,
     );
 
     if ( !(strpos($response,'200') === false) or !$loadNewData ) {
-        $dataSet['lastRefreshed'] = $seriesData['Meta Data']['3. Last Refreshed'];
-        $dataSet['status']        = 'success';
+        $dataSet['lastRefreshed']       = $seriesData['Meta Data']['3. Last Refreshed'];
+        $dataSet['Meta Data']['status'] = 'success';
         foreach($seriesData[$key] as $candle => $data){
             if ($candle >= $startDate ) {
                 $dataSet['seriesData'][$candle] = array(
@@ -71,7 +83,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
         $dataSet['status'] = 'fail';
     }
 
-    // if ($verbose) show($dataSet);
+    if ($verbose) show($dataSet['Meta Data']);
     return $dataSet;
 }
 

@@ -13,9 +13,9 @@ function updatePerformanceData($verbose, $debug){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $barChartData  = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
-            $priceData     = $barChartData['seriesData'];
-            $lastRefreshed = $barChartData['lastRefreshed'];
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+            $priceData     = $chartData['seriesData'];
+            $lastRefreshed = $chartData['lastRefreshed'];
         } else {
             $priceData     = returnDamwidiData();
             $lastRefreshed = array_keys($priceData)[0];
@@ -39,11 +39,17 @@ function updatePerformanceData($verbose, $debug){
             $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3)['gain'];
         }
         if($debug) break;
+
+        // add YTD data
+        $performanceData = returnYTDData($lastRefreshed, $performanceData);
+
+        // sleep for a random amount of time to prevent rate limiting from AlphaVantage
+        sleep(rand(2,5));
     }
 
     $performanceData = returnBasisData($lastRefreshed, $performanceData); // add basis & share data
 
-    $performanceData = returnYTDData($lastRefreshed, $performanceData); // add YTD data
+    // $performanceData = returnYTDData($lastRefreshed, $performanceData); // add YTD data
 
     $performanceData = returnSectorWeights($performanceData); // add sector weights
 
