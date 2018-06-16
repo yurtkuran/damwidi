@@ -55,3 +55,30 @@ canvas {
 #mainMenu .navbar-nav li.active > a {
 	color: rgb(119, 13, 13);
 }
+
+#progress {
+    z-index: 1;
+    position: absolute;
+    padding-top: 15%;
+
+}
+
+#progressImage {
+    text-align: center;
+    display: block;
+    margin-left: auto;
+    margin-right: auto
+}
+
+.candleChart {
+    padding-top: 20px;
+    z-index: 3;
+}
+
+#form-new {
+    padding-top: 20px;
+}
+
+.errorMessage {
+    color: red;
+}

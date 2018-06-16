@@ -2,12 +2,10 @@ var allocationData;
 
 $(document).ready(function(){
 
-    displayTechnicalCharts();
-
-    // var intraDayTimer = 0;
-    // displayIntraday(function(timer){                                // load intraday page, graph and table
-    //     intraDayTimer = timer;
-    // });
+    var intraDayTimer = 0;
+    displayIntraday(function(timer){                                // load intraday page, graph and table
+        intraDayTimer = timer;
+    });
 
     $('a[href="#"]').click(function (event) {
         event.preventDefault();
@@ -378,184 +376,203 @@ function displayTradeHistory(){
 // technical charts
 
 // load and display technical chart template
+// https://icons8.com/preloaders/en/filtered-search/all/free/
 function displayTechnicalCharts(){
-    $("#realtime").load("./pages/technicalCharts.html", function(){
-        retrievePriceDataAlpha();
+
+    $("#realtime").load("./pages/technicalCharts.php", function(){
     });
 }
 
-function retrievePriceDataAlpha(){
+function retrievePriceDataAlpha(symbol){
+    var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+symbol+"&apikey=WWQO&outputsize=full";
 
-    var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SPY&apikey=WWQO&outputsize=full";
-    // var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SPY&apikey=WWQO&outputsize=compact";
-    $.getJSON( url, function( data ) {
-        data = data['Time Series (Daily)'];
+    $("#progressImage").html('<img id="progress" src="progress.svg"/>');
 
-        var ohlc = [];
-        var sma3 = [];
-        var dataLength = Object.keys(data).length;
-        var groupingUnits = [
-            ['week', [1]],
-            ['month',[1, 2, 3, 4, 6]]
-        ];
-        var i, j, sum;
-
-        $.each(data, function(key, value){
-            ohlc.push([
-                Date.parse(key),                // date
-                parseFloat(value['1. open']),   // open
-                parseFloat(value['2. high']),   // high
-                parseFloat(value['3. low']),    // low
-                parseFloat(value['4. close'])   // close
-            ]);
-        });
-
-        // calculate sma(3,3)
-        for (i = 0; i < dataLength-4; i++) {
-            sum = 0;
-            for(j=0; j<3; j++){
-                sum += ohlc.slice(i+j+2,i+j+3)[0][4];
-            }
-            sma3.push([
-                ohlc.slice(i,i+1)[0][0],
-                sum/3
-            ]);
+    $.getJSON(url, function(data) {
+    }).fail(function() {
+        console.log("error");
+    }).done(function(data) {
+        if ("Error Message" in data){
+            $(".errorMessage").text('symbol not found');
+        } else {
+            displayCandleChart(data['Time Series (Daily)'], symbol);
         }
+    }).always(function() {
+        // hide progress spinner
+        $('#progress').hide();
+        $("#progressImage").empty();
+    });
+}
 
-        // reverse order
-        ohlc.sort(function(a,b){
-            return a[0]-b[0];
-        });
+function displayCandleChart(data, title){
+    var ohlc = [];
+    var sma3 = [];
+    var dataLength = Object.keys(data).length;
+    var groupingUnits = [
+        ['week', [1]],
+        ['month',[1, 2, 3, 4, 6]]
+    ];
+    var i, j, sum;
 
-        sma3.sort(function(a,b){
-            return a[0]-b[0];
-        });
+    $.each(data, function(key, value){
+        ohlc.push([
+            Date.parse(key),                // date
+            parseFloat(value['1. open']),   // open
+            parseFloat(value['2. high']),   // high
+            parseFloat(value['3. low']),    // low
+            parseFloat(value['4. close'])   // close
+        ]);
+    });
 
-         // create the chart
-        Highcharts.stockChart('chartPrice', {
+    // calculate sma(3,3)
+    for (i = 0; i < dataLength-4; i++) {
+        sum = 0;
+        for(j=0; j<3; j++){
+            sum += ohlc.slice(i+j+2,i+j+3)[0][4];
+        }
+        sma3.push([
+            ohlc.slice(i,i+1)[0][0],
+            sum/3
+        ]);
+    }
 
-            rangeSelector: {
-                selected: 2
+    // reverse order
+    ohlc.sort(function(a,b){
+        return a[0]-b[0];
+    });
+
+    sma3.sort(function(a,b){
+        return a[0]-b[0];
+    });
+
+        // create the chart
+    Highcharts.stockChart('chartPrice', {
+        chart: {
+            className: 'candleChart'
+        },
+
+        rangeSelector: {
+            selected: 2
+        },
+
+        title: {
+            text: title,
+            margin: 0
+        },
+
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                second: '%Y-%m-%d<br/>%H:%M:%S',
+                minute: '%Y-%m-%d<br/>%H:%M',
+                hour: '%Y-%m-%d<br/>%H:%M',
+                day: '%Y<br/>%m-%d',
+                week: '%Y<br/>%m-%d',
+                month: '%Y-%m',
+                year: '%Y'
             },
+            crosshair: {
+                snap: true
+            }
+        },
 
+        yAxis: [{
+            labels: {
+                align: 'right',
+                x: -3
+            },
             title: {
-                text: 'SPY Historical'
+                text: 'OHLC'
             },
-
-            xAxis: {
-                type: 'datetime',
-                dateTimeLabelFormats: {
-                    second: '%Y-%m-%d<br/>%H:%M:%S',
-                    minute: '%Y-%m-%d<br/>%H:%M',
-                    hour: '%Y-%m-%d<br/>%H:%M',
-                    day: '%Y<br/>%m-%d',
-                    week: '%Y<br/>%m-%d',
-                    month: '%Y-%m',
-                    year: '%Y'
-                },
-                crosshair: {
-                    snap: true
-                }
+            height: '100%',
+            lineWidth: 2,
+            resize: {
+                enabled: true
             },
+            crosshair: {
+                snap: false,
+                color: '#5b5b5b'
+            }
+        }],
 
-            yAxis: [{
-                labels: {
-                    align: 'right',
-                    x: -3
-                },
-                title: {
-                    text: 'OHLC'
-                },
-                height: '100%',
-                lineWidth: 2,
-                resize: {
-                    enabled: true
-                },
-                crosshair: {
-                    snap: false,
-                    color: '#5b5b5b'
-                }
-            }],
+        tooltip: {
+            split: true
+        },
 
-            tooltip: {
-                split: true
-            },
-
-            plotOptions: {
-                candlestick: {
-                    color: '#ff0000',
-                },
-                bb: {
-                    color: '#0040ff',
-                    lineWidth: 1,
-                    dashStyle: 'ShortDash',
-                    bottomLine: {
-                        styles: {
-                            lineWidth: 3
-                        }
-                    },
-                    topLine: {
-                        styles: {
-                            lineWidth: 3
-                        }
-                    },
-                    enableMouseTracking: false
-                },
-                sma: {
-                    index: 3,
-                    enableMouseTracking: false,
-                    lineWidth: 3,
-                    marker: {
-                        enabled: false
-                    },
-                }
-            },
-
-            series: [{
-                type: 'candlestick',
-                name: 'TEST',
-                id: 'aapl',
-                data: ohlc,
-                dataGrouping: {
-                    units: groupingUnits
-                },
-                pointRange: 5
-            },{
-                type: 'bb',
-                linkedTo: 'aapl'
-            },{
-                type: 'sma',
-                linkedTo: 'aapl',
-                color: '#FF8040',
-                params: {
-                    period: 50,
-                    index: 3
-                }
-            },{
-                type: 'sma',
-                linkedTo: 'aapl',
-                color: '#000000',
-                params: {
-                    period: 200,
-                    index: 3
-                }
-            },{
-                type: 'sma',
-                linkedTo: 'aapl',
+        plotOptions: {
+            candlestick: {
                 color: '#ff0000',
-                params: {
-                    period: 2,
-                    index: 3
-                }
-            },{
-                type: 'line',
-                linkedTo: 'aapl',
-                data: sma3,
-                color: '#26a833',
-                lineWidth: 3,
+            },
+            bb: {
+                color: '#0040ff',
+                lineWidth: 1,
+                dashStyle: 'ShortDash',
+                bottomLine: {
+                    styles: {
+                        lineWidth: 3
+                    }
+                },
+                topLine: {
+                    styles: {
+                        lineWidth: 3
+                    }
+                },
                 enableMouseTracking: false
-            }]
-        });
+            },
+            sma: {
+                index: 3,
+                enableMouseTracking: false,
+                lineWidth: 3,
+                marker: {
+                    enabled: false
+                },
+            }
+        },
+
+        series: [{
+            type: 'candlestick',
+            name: title,
+            id: 'aapl',
+            data: ohlc,
+            dataGrouping: {
+                units: groupingUnits
+            },
+            pointRange: 5
+        },{
+            type: 'bb',
+            linkedTo: 'aapl'
+        },{
+            type: 'sma',
+            linkedTo: 'aapl',
+            color: '#FF8040',
+            params: {
+                period: 50,
+                index: 3
+            }
+        },{
+            type: 'sma',
+            linkedTo: 'aapl',
+            color: '#000000',
+            params: {
+                period: 200,
+                index: 3
+            }
+        },{
+            type: 'sma',
+            linkedTo: 'aapl',
+            color: '#ff0000',
+            params: {
+                period: 2,
+                index: 3
+            }
+        },{
+            type: 'line',
+            linkedTo: 'aapl',
+            data: sma3,
+            color: '#26a833',
+            lineWidth: 3,
+            enableMouseTracking: false
+        }]
     });
 }
 

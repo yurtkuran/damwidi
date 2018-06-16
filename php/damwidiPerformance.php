@@ -34,22 +34,34 @@ function updatePerformanceData($verbose, $debug){
             'sectorDescription' => $sector['sectorDescription']
         );
 
-        // loop through all timeframes
+        // loop through all timeframes, add gain data
+        $priceGain = array();
         foreach($timeFrames as $timeFrame){
+
             $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3)['gain'];
+
+            $priceGain[$timeFrame['period']] = array_merge(array(
+                'startDate' => array_keys($priceData)[$timeFrame['lengthDays']-1],
+                'endDate'   => array_keys($priceData)[0],
+            ), priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3));
         }
-        if($debug) break;
+
+        // add placeholder for YTD data
+        $performanceData[$sector['sector']]['YTD'] = 0;
+
+        // insert priceGain data
+        $performanceData[$sector['sector']]['priceGain'] = $priceGain;
 
         // add YTD data
-        $performanceData = returnYTDData($lastRefreshed, $performanceData);
+        $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
         sleep(rand(2,5));
+
+        if($debug) break;
     }
 
     $performanceData = returnBasisData($lastRefreshed, $performanceData); // add basis & share data
-
-    // $performanceData = returnYTDData($lastRefreshed, $performanceData); // add YTD data
 
     $performanceData = returnSectorWeights($performanceData); // add sector weights
 
@@ -83,7 +95,7 @@ function returnBasisData($lastRefreshed, $performanceData){
 
 // return damwidi data properly formatted
 function returnDamwidiData($startDate = null){
-    $data = loadDamdidiValue(260);
+    $data = loadDamdidiValue(265);
 
     foreach($data as $candle){
         if ($startDate == null or $candle['date'] >= $startDate ) {
@@ -118,20 +130,30 @@ function returnSectorWeights($performanceData){
 }
 
 // return YTD detail in `data_performance` table
-function returnYTDData($lastRefreshed, $performanceData){
+function returnYTDData($sector, $lastRefreshed, $performanceData, $data, $verbose){
 
     // determine starting date
     $startDate = date('Y', strtotime($lastRefreshed)).'-01-01';
 
-    // loop through all sectors
-    foreach($performanceData as $sector => $data){
-        if ($sector <> 'DAM' ){
-            $priceData = retrievePriceDataAlpha($sector, 'daily', $startDate, true, false, false, false)['seriesData'];  // loadNewData, saveData, verbose, debug
-        } else {
-            $priceData = returnDamwidiData($startDate);
+    // truncate price data
+    foreach($data as $candle => $ohlc){
+        if ($startDate == null or $candle >= $startDate ) {
+            $priceData[$candle] = array(
+                'open'  => $ohlc['open'],
+                'high'  => $ohlc['high'],
+                'low'   => $ohlc['low'],
+                'close' => $ohlc['close'],
+            );
         }
-        $performanceData[$sector]['YTD']  = priceGain($priceData, 0, sizeof($priceData)-1, 3)['gain'];
     }
+
+    $priceGain = array_merge(array(
+        'startDate' => $startDate,
+        'endDate'   => array_keys($priceData)[0],
+    ), priceGain($priceData, 0, sizeof($priceData)-1, 3));
+
+    $performanceData[$sector]['YTD'] = $priceGain['gain'];
+    $performanceData[$sector]['priceGain']['YTD'] = $priceGain;
 
     return $performanceData;
 }
