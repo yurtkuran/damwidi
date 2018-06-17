@@ -1,5 +1,4 @@
-<div class="form-group col-1">
-    <label for="sel1">Timeframe:</label>
+<div class="form-group col-1" id="form-new">
     <select class="form-control" id="sel1">
         <option>1wk</option>
         <option>2wk</option>
@@ -12,29 +11,29 @@
 </div>
 <div class="row">
     <div class="col-12" id="aboveChart">
-        <canvas id="chartA" height="500" width="1500"></canvas>
+        <canvas id="above" height="500" width="1500"></canvas>
     </div>
 </div>
 <br>
 <div class="row">
     <div class="col-12" id="belowChart">
-        <canvas id="chartB" height="500" width="1500"></canvas>
+        <canvas id="below" height="500" width="1500"></canvas>
     </div>
 </div>
 <br>
 <div class="row">
     <div class="col-12" id="rsChart">
-        <canvas id="chartC" height="500" width="1500"></canvas>
+        <canvas id="rs" height="500" width="1500"></canvas>
     </div>
 </div>
 
 <script>
     $(document).ready(function(){
-    // buildLineChart('1wk');
+        loadChartData('1wk');
 
-    $('#sel1').change(function(event) {
-        event.preventDefault();
-        buildLineChart(this.value, true);
+        $('#sel1').change(function(event) {
+            event.preventDefault();
+            loadChartData(this.value, true);
+        });
     });
-});
 </script>

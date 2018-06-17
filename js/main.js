@@ -388,7 +388,11 @@ function displayTechnicalCharts(){
 }
 
 function retrievePriceDataAlpha(symbol){
-    var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+symbol+"&apikey=WWQO&outputsize=full";
+    if (symbol != 'DAM') {
+        var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+symbol+"&apikey=WWQO&outputsize=full";
+    } else {
+        var url = "./damwidiMain.php?mode=returnDamwidiOHLC";
+    }
 
     $("#progressImage").html('<img id="progress" src="progress.svg"/>');
 
@@ -582,12 +586,132 @@ function displayCandleChart(data, title){
 
 
 //
-// above the below
+// above the below and RS charts
 
 // load and display page template
 function displayAboveBelow(){
     $("#realtime").load("./pages/sectorAboveBelow.html", function(){
     });
+}
+
+function loadChartData(timeframe, update){
+    var url = "./damwidiMain.php?mode=returnAboveBelow&timeframe="+timeframe;
+    $.getJSON(url, function(data){
+        // console.log(data);
+        displayLineCharts(data, update);
+    }).fail(function() {
+        console.log("error");
+    });
+}
+
+function displayLineCharts(data, update){
+
+    var options = {
+        scales: {
+            xAxes: [{
+                ticks: {
+                    fontSize: 10,
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                    max: 1.02,
+                    min: 0.98,
+                    beginAtZero: true,
+                    fontSize: 10
+                }
+            }]
+        },
+        title: {
+            position: 'top',
+            display: true,
+            text: "Above The Line",
+        },
+        legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+                boxWidth: 15
+            },
+        },
+        tooltips: {
+            titleFontSize: 0,
+            titleMarginBottom: 0,
+            titleFontStyle: 'normal',
+            backgroundColor: 'rgba(0,0,0,0)',
+            titleFontColor: '#000',
+            bodyFontColor: '#000',
+            displayColors: false,
+            callbacks: {
+                label: function(tooltipItem, data) {
+                    var i = tooltipItem.datasetIndex;
+                    return  data.datasets[tooltipItem.datasetIndex].label;
+                }
+            }
+        },
+        animation: {
+            duration: 0
+        }
+    };
+
+    var charts = {
+        'above' : {
+            'div'   : "aboveChart",
+            'html'  : '<canvas id="above" height="500" width="1500"></canvas>',
+            'title' : 'Above the Line'
+        },
+        'below' : {
+            'div'   : "belowChart",
+            'html'  : '<canvas id="below" height="500" width="1500"></canvas>',
+            'title' : 'Below the Line'
+        },
+        'rs' : {
+            'div'   : "rsChart",
+            'html'  : '<canvas id="rs" height="500" width="1500"></canvas>',
+            'title' : 'Relative Strength'
+        }
+    };
+
+    $.each(charts, function(type, value){
+
+        if (update){ //remove previus chart
+            $('#'+value.div).html('');
+            $('#'+value.div).html(value.html);
+        }
+
+        options.title.text = value.title;
+        var ctx = $("#"+type);
+
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                'labels'   : data['labels'],
+                'datasets' : data[type]
+            },
+            options: options
+        });
+
+        //autoscale
+        var min= (type != 'rs' ?1:100);
+        var max= (type != 'rs' ?1:100);
+        $(data[type]).each(function(i, val) {
+            max = Math.max(max, Math.max.apply(Math, val.data));
+            min = Math.min(min, Math.min.apply(Math, val.data));
+        });
+        if (type != 'rs') {
+            max = roundTo(max,2)+0.01
+            min = roundTo(min,2)-0.01
+        } else {
+            max = roundTo(max,0)+1;
+            min = roundTo(min,0)-1;
+        }
+
+        lineChart.options.scales.yAxes[0].ticks.max = max;
+        lineChart.options.scales.yAxes[0].ticks.min = min;
+        lineChart.update();
+
+    });
+
 }
 
 //
@@ -636,6 +760,17 @@ function formatTime(time){
     };
     return moment(time).format(formatTime)
 };
+
+function roundTo(n, digits) {
+    if (digits === undefined) {
+        digits = 0;
+    }
+
+    var multiplicator = Math.pow(10, digits);
+    n = parseFloat((n * multiplicator).toFixed(11));
+    var test =(Math.round(n) / multiplicator);
+    return +(test.toFixed(2));
+}
 
 function test(){
     console.log('this is a test');

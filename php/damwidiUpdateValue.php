@@ -231,4 +231,25 @@ function returnPayments($date){
     return  (!is_null($result['payments']) ? $result['payments'] : 0); //return 0 if no payments were made that day
 }
 
+// return damwidi OHLC data in alphavantage format
+function returnDamwidiOHLC($verbose, $debug){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT `date`, `open`, `high`, `low`, `close` FROM `data_value` ORDER BY `date` DESC");
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+
+    $damwidiOHLC = array();
+    foreach($result as $candle){
+        $damwidiOHLC['Time Series (Daily)'][$candle['date']] = array(
+            "1. open"  => round($candle['open'],2),
+            "2. high"  => round($candle['high'],2),
+            "3. low"   => round($candle['low'],2),
+            "4. close" => round($candle['close'],2),
+        );
+    }
+
+    if ($verbose) show($damwidiOHLC);
+    if (!$verbose) echo json_encode($damwidiOHLC);
+}
+
 ?>

@@ -45,6 +45,14 @@ if (isset($_GET['mode'])){
             updateValueTable($verbose, $debug);
             break;
 
+        case 'returnAboveBelow':
+            returnAboveBelow($verbose, $debug);
+            break;
+
+        case 'returnDamwidiOHLC':
+            returnDamwidiOHLC($verbose, $debug);
+            break;
+
         case 'returnDetails':
             returnDetails($verbose, $debug);
             break;
@@ -102,7 +110,6 @@ if (isset($_GET['mode'])){
             break;
 
         case 'test':
-            returnAboveBelow($verbose);
             break;
 
     }

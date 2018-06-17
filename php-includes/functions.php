@@ -8,8 +8,11 @@ function calcSMA($array, $field){
     return $sum/count($array);
 }
 
-function calculateGain($current, $previous, $roundDigits = 2){
-    return round(100*($current - $previous)/$previous, $roundDigits);
+function calculateGain($current, $previous, $roundDigits = 2, $percentage = true){
+    $gain = ($current - $previous)/$previous;
+    $gain = $percentage ? 100*$gain : 1+$gain;
+    return round($gain, $roundDigits);
+    // return round(100*($current - $previous)/$previous, $roundDigits);
 }
 
 function consoleLog( $data ) {

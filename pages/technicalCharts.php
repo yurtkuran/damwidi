@@ -32,6 +32,7 @@
         if (symbol) {
             $(".errorMessage").empty();
             retrievePriceDataAlpha(symbol.toUpperCase())
+            $("#symbol").blur();
         }
     });
 </script>
