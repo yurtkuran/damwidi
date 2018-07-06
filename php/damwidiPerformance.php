@@ -70,8 +70,12 @@ function updatePerformanceData($verbose, $debug){
     saveCashBalance(returnCashBalance($lastRefreshed), $lastRefreshed); // write to MySQL database
 
     if ($verbose) show($performanceData);
+    save("./data/performanceData.json", $performanceData);
 
-    show(date('Y-m-d H:m:s')." - Complete: Update performnace table");
+    // create notifications
+    $message = date('Y-m-d H:i:s')." - Complete: Update performnace table";
+    show($message);
+    writeAirTableRecord($message);
 }
 
 // return shares and basis detail in `data_performance` table
@@ -193,5 +197,10 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
 
     if ($verbose)show($data);
     if(!$verbose)echo json_encode($data);
+}
+
+function viewPerformanceData(){
+    $json = file_get_contents("./data/performanceData.json"); //load data from file
+    show(json_decode($json,1));
 }
 ?>

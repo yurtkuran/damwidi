@@ -113,7 +113,10 @@ function updateValueTable($verbose = false, $debug = false){
     // close cURL session
     curl_close($ch);
 
-    show(date('Y-m-d H:m:s')." - Complete: Update Damwidi value");
+    // create notifications
+    $message = date('Y-m-d H:i:s')." - Complete: Update Damwidi value";
+    show($message);
+    writeAirTableRecord($message);
 }
 
 // query `data_transaction` table to return a list of all positions (open or closed) between two dates

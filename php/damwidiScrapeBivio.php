@@ -137,7 +137,10 @@ function updateBivioTransactions($verbose){
     // close cURL session
     curl_close($ch);
 
-    show(date('Y-m-d H:m:s')." - Complete: Update Bivio transactions");
+    // create notifications
+    $message = date('Y-m-d H:i:s')." - Complete: Update Bivio transactions";
+    show($message);
+    writeAirTableRecord($message);
 }
 
 function parseTransaction($transaction){

@@ -37,7 +37,10 @@ function updateHistoryTable($verbose = false, $debug = false){
         sleep(rand(2,5));
     }
 
-    show(date('Y-m-d H:m:s')." - Complete: Update history table");
+    // create notifications
+    $message = date('Y-m-d H:i:s')." - Complete: Update history table";
+    show($message);
+    writeAirTableRecord($message);
 }
 
 function determineStartDate($sector, $firstDate){

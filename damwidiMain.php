@@ -1,5 +1,5 @@
 <?php
-include_once('./php-includes/init.php');
+include_once 'php-includes/init.php';
 
 if (isset($_GET['verbose'])){
     $verbose = $_GET['verbose']==1 ? TRUE : FALSE;
@@ -23,10 +23,11 @@ if (isset($_GET['mode'])){
             // 4. updateHistoryTable
             updateBivioTransactions($verbose);
             updateValueTable($verbose, $debug);
-            sleep(30);
+            sleep(10);
             updatePerformanceData($verbose, $debug);
-            sleep(30);
+            sleep(10);
             updateHistoryTable($verbose, $debug);
+            writeAirTableRecord(date('Y-m-d H:i:s')." - Complete: Update Damwidi");
             break;
 
         case 'updateBivioTransactions':
@@ -93,6 +94,10 @@ if (isset($_GET['mode'])){
             retrieveSectorWeights($verbose, $debug);
             break;
 
+        case 'viewPerformanceData':
+            viewPerformanceData();
+            break;
+
         case 'bivioUnstick':
             bivioUnstick($verbose);
             break;
@@ -110,8 +115,10 @@ if (isset($_GET['mode'])){
             break;
 
         case 'test':
+            $message = date('Y-m-d H:i:s').' - test';
+            show($message);
+            writeAirTableRecord($message);
             break;
-
     }
 }
 ?>

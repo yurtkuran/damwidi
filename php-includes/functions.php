@@ -1,4 +1,6 @@
 <?php
+// initialize airtable class
+use TANIOS\Airtable\Airtable;
 
 function calcSMA($array, $field){
     $sum = 0;
@@ -102,6 +104,22 @@ function stDev($array) {
     }
 
     return (float) sqrt($fVariance/count($array));
+}
+
+function writeAirTableRecord($message){
+    $airtable = new Airtable(array(
+        'api_key'   => AIRTABLEAPI_KEY,
+        'base'      => AIRTABLEBASE_ID,
+    ));
+
+    // Create an array with all the fields you want
+    $details = array(
+        'description' => $message,
+        'datetime'    => date('Y-m-d H:i')
+    );
+
+    // Save to Airtable
+    $record = $airtable->saveContent("damwidi", $details);
 }
 
 ?>

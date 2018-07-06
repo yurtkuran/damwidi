@@ -3,6 +3,8 @@
 function connect(){
     try {
         $host = MySQLHOST;      // Host name
+
+        // local server
         $name = 'damwidi_v2';   // Database name
         $user = MySQLUSERNAME;  // Username
         $pass = MySQLPASSWORD;  // Password
