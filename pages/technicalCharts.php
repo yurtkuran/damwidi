@@ -31,7 +31,7 @@
         var symbol = document.getElementById("symbol").value;
         if (symbol) {
             $(".errorMessage").empty();
-            retrievePriceDataAlpha(symbol.toUpperCase())
+            processSymbol(symbol.toUpperCase())
             $("#symbol").blur();
         }
     });

@@ -387,32 +387,74 @@ function displayTechnicalCharts(){
     });
 }
 
-function retrievePriceDataAlpha(symbol){
+function processSymbol(symbol) {
+    $("#progressImage").html('<img id="progress" src="progress.svg"/>');
+    retrievePriceDataAlpha(symbol).then(function (data) {
+        retrieveSymbolDescription(symbol).then(function (description) {
+            displayCandleChart(data, symbol, description);
+        }).catch(function (error) {
+            description = (symbol == 'DAM' ? 'damwidi investments' : symbol);
+            displayCandleChart(data, symbol, description);
+        });
+    }).catch(function (error) {
+        $(".errorMessage").text('symbol not found');
+    }).finally(function () {
+        $('#progress').hide();
+        $("#progressImage").empty();
+    });
+}
+
+function retrievePriceDataAlpha(symbol) {
     if (symbol != 'DAM') {
-        var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+symbol+"&apikey=WWQO&outputsize=full";
+        var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=WWQO&outputsize=full";
     } else {
         var url = "./damwidiMain.php?mode=returnDamwidiOHLC";
     }
 
     $("#progressImage").html('<img id="progress" src="progress.svg"/>');
 
-    $.getJSON(url, function(data) {
-    }).fail(function() {
-        console.log("error");
-    }).done(function(data) {
-        if ("Error Message" in data){
-            $(".errorMessage").text('symbol not found');
-        } else {
-            displayCandleChart(data['Time Series (Daily)'], symbol);
-        }
-    }).always(function() {
-        // hide progress spinner
-        $('#progress').hide();
-        $("#progressImage").empty();
+    return new Promise(function (resolve, reject) {
+        $.getJSON(url, function (data) {
+        }).fail(function () {
+            reject('error loading data');
+        }).done(function (data) {
+            if(!data.hasOwnProperty('Error Message') ){
+                resolve(data['Time Series (Daily)']);
+                // displayCandleChart(data['Time Series (Daily)'], description);
+            } else {
+                // $(".errorMessage").text('symbol not found');
+                reject('symbol not found');
+            }
+        }).always(function () {
+            // hide progress spinner
+            $('#progress').hide();
+            $("#progressImage").empty();
+        });
     });
 }
 
-function displayCandleChart(data, title){
+function retrieveSymbolDescription(symbol){
+    return new Promise(function (resolve, reject) {
+        $.ajax({
+            url: 'https://sandbox.tradier.com/v1/markets/quotes?symbols=' + symbol,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Accept", "application/json"),
+                    xhr.setRequestHeader("Authorization", "Bearer ata5xeDkGRVybQMZbiSn0rQH8IgR")
+            }, success: function (data) {
+                if(!data.quotes.hasOwnProperty('unmatched_symbols') ){
+                    resolve(data.quotes.quote.description);
+                } else {
+                    reject('symbol not found');
+                }
+            }
+        }).always(function(){
+        }).fail(function(){
+            reject('error loading data');
+        });
+    });
+}
+
+function displayCandleChart(data, symbol, title){
     var ohlc = [];
     var sma3 = [];
     var dataLength = Object.keys(data).length;
@@ -453,7 +495,7 @@ function displayCandleChart(data, title){
         return a[0]-b[0];
     });
 
-        // create the chart
+    // create the chart
     Highcharts.stockChart('chartPrice', {
         chart: {
             className: 'candleChart'
@@ -504,7 +546,7 @@ function displayCandleChart(data, title){
         }],
 
         tooltip: {
-            split: true
+            split: true,
         },
 
         plotOptions: {
@@ -539,7 +581,7 @@ function displayCandleChart(data, title){
 
         series: [{
             type: 'candlestick',
-            name: title,
+            name: symbol,
             id: 'aapl',
             data: ohlc,
             dataGrouping: {

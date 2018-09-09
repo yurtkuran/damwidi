@@ -115,10 +115,11 @@ if (isset($_GET['mode'])){
             break;
 
         case 'test':
-            $message = date('Y-m-d H:i:s').' - test';
-            show($message);
-            writeAirTableRecord($message);
+            $dbc = connect();
+            // $message = date('Y-m-d H:i:s').' - test';
+            // show($message);
+            // writeAirTableRecord($message);
             break;
-    }
+    } 
 }
 ?>
