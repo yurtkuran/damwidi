@@ -4,25 +4,27 @@
 
     <button data-mode="absolute" id="btnAllocation" type="button" class="allocationButton btn btn-outline-secondary btn-sm">absolute</button>
 
-    <table class="table table-bordered">
+    <table class="table table-bordered" id="sectorAllocationTable">
         <thead>
             <tr class="thead-light">
-                <th class="text-center">ticker</th>
-                <th class="text-left"  >description</th>
-                <th class="text-right" >shares</th>
-                <th class="text-right" >current value</th>
-                <th class="text-right" >change</th>
-                <th class="text-right" >allocation</th>
-                <th class="text-right" >mkt weight</th>
-                <th class="text-right" >implied</th>
-                <th class="text-right" >over/under</th>
+                <th class="text-center"> <a id="current" class="text-danger allocation-link" field="sector"         href="#sort">ticker</a> </th>
+                <th class="text-left"  > <a class="text-dark allocation-link" field="description"      href="#sort">description</a> </th>
+                <th class="text-right" > <div class="text-dark">shares</div></th>
+                <th class="text-right" > <div class="text-dark">current value</div></th>
+                <th class="text-right" > <div class="text-dark">change</div></th>
+                <th class="text-right" > <div class="text-dark">allocation</div></th>
+                <th class="text-right" > <a class="text-dark allocation-link" field="weight"           href="#sort">mkt weight</a> </th>
+                <th class="text-right" > <a class="text-dark allocation-link" field="implied"          href="#sort">implied</a> </th>
+                <th class="text-right" > <a class="text-dark allocation-link" field="impliedOverUnder" href="#sort">over/under</a> </th>
             </tr>
         </thead>
         <tbody id="allocation"></tbody>
     </table>
+
     <h6><small>Open position data current as of: <span id='openPositionData'>xx/xx/xx</span></small></h6>
     <h6><small>Sector weight data effective as of: <span id='effectiveDate'>xx/xx/xx</span>, fetched on: <span id='fetchedDate'>xx/xx/xx</span> </small></h6>
     <h6><small>Sector weight data <a href="http://us.spindices.com/indices/equity/sp-500" target="_blank">source</a>    </small></h6>
+    
 </div>
 
 
@@ -39,5 +41,45 @@
             $("#btnAllocation").html('relative');
         }
         updateAllocationTable(allocationData, mode);
+    });
+
+    $('a[href="#sort"]').click(function (event) {
+        event.preventDefault();
+        console.clear(); // clear console
+        sortSectorData($(this).attr('field')); // sort data
+        
+        // change color or previous and current column sort header
+        $("#current").removeClass("text-danger").addClass("text-dark");
+        $("#current").attr("id","");
+        $(this).removeClass("text-dark").addClass("text-danger");
+        $(this).attr("id","current");
+        
+        var mode = $("#btnAllocation").data('mode');
+        for(i=3; i < $('#sectorAllocationTable tr').length-1; i++) {
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(0)').html(sectorData[i-3].sector);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(1)').html(sectorData[i-3].description);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(2)').html(sectorData[i-3].shares);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(3)').html(sectorData[i-3].currentValue);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(4)').html(sectorData[i-3].change);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(4)').css("color",changeColor( numeral(sectorData[i-3].change).value())); 
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(5)').html(sectorData[i-3].allocation);
+            
+            if (mode != 'relative') {
+                $('#sectorAllocationTable tr:eq('+i+') > td:eq(6)').html(sectorData[i-3].weightPercent);
+                $('#sectorAllocationTable tr:eq('+i+') > td:eq(7)').html(sectorData[i-3].impliedPercent);
+                $('#sectorAllocationTable tr:eq('+i+') > td:eq(8)').html(sectorData[i-3].impliedOverUnderPercent);
+            } else {
+                $('#sectorAllocationTable tr:eq('+i+') > td:eq(6)').html(sectorData[i-3].weight);
+                $('#sectorAllocationTable tr:eq('+i+') > td:eq(7)').html(sectorData[i-3].implied);
+                $('#sectorAllocationTable tr:eq('+i+') > td:eq(8)').html(sectorData[i-3].impliedOverUnder);
+            }
+
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(3)').attr("id","value"+sectorData[i-3].sector);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(4)').attr("id","change"+sectorData[i-3].sector);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(5)').attr("id","allocation"+sectorData[i-3].sector);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(6)').attr("id","weight"+sectorData[i-3].sector);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(7)').attr("id","implied"+sectorData[i-3].sector);
+            $('#sectorAllocationTable tr:eq('+i+') > td:eq(8)').attr("id","impliedOverUnder"+sectorData[i-3].sector);
+        }
     });
 </script>

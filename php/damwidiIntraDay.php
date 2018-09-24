@@ -121,12 +121,12 @@ function createAllocationData($heatMapData, $verbose){
     foreach($sectors as $sectorData){
         $sector = $sectorData['sector'];
 
-        $allocationData[$sector]['sector'] = $sector;
-        $allocationData[$sector]['type']   = $sectorData['type'];
-
-        $allocationData[$sector]['shares'] = $sectorData['shares'];
-        $allocationData[$sector]['basis']  = $sectorData['basis'];
-        $damwidiBasis                     += $sectorData['shares'] * $sectorData['basis'];
+        $allocationData[$sector]['sector']       = $sector;
+        $allocationData[$sector]['description']  = $sectorData['Description'];
+        $allocationData[$sector]['type']         = $sectorData['type'];
+        $allocationData[$sector]['shares']       = $sectorData['shares'];
+        $allocationData[$sector]['basis']        = $sectorData['basis'];
+        $damwidiBasis                           += $sectorData['shares'] * $sectorData['basis'];
 
         if ($sectorData['type'] == 'C') {
             $allocationData[$sector]['last']          = $sectorData['basis'];
@@ -154,6 +154,7 @@ function createAllocationData($heatMapData, $verbose){
     // add DAM data
     $sector = 'DAM';
     $allocationData[$sector]['sector']       = $sector;
+    $allocationData[$sector]['description']  = "Damwidi";
     $allocationData[$sector]['type']         = 'F';
     $allocationData[$sector]['shares']       = damwidiShareCount;
     $allocationData[$sector]['basis']        = $damwidiBasis;

@@ -1,4 +1,5 @@
 var allocationData;
+var sectorData;
 
 $(document).ready(function(){
 
@@ -22,6 +23,7 @@ $(document).ready(function(){
             case 'sectorAllocation':
                 $(".navbar-nav li#sectorAllocation").addClass('active');
                 clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
                 displaySectorAllocation();
                 updateAllocationDetails();
                 break;
@@ -29,21 +31,25 @@ $(document).ready(function(){
             case 'tradeHistory':
                 $(".navbar-nav li#tradeHistory").addClass('active');
                 clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
                 displayTradeHistory();
                 break;
 
             case 'sectorTimeframe':
                 clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
                 displaySectorTimeframeCharts();
                 break;
 
             case 'aboveBelow':
                 clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
                 displayAboveBelow();
                 break;
 
             case 'technicalCharts':
                 clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
                 displayTechnicalCharts();
                 break;
         }
@@ -143,6 +149,10 @@ function updateIntraday(heatMapChart, callback){
         heatMapChart.data = heatMapData['graphHeatMap'];                        // load data into graph
         heatMapChart.update();                                                  // redraw graph
         updatePortfolioTable(heatMapData['portfolioTable']);                    // update portfolio table
+
+        profit = heatMapData.intraDay.DAM.gain>=0;
+        ahead  = heatMapData.intraDay.DAM.gain>=heatMapData.intraDay.SPY.gain;
+        changeFavIcon(profit, ahead, false);
     });
 };
 
@@ -201,6 +211,7 @@ function displaySectorAllocation(){
             loadIntraDayData(function(heatMapData) {
                 $("#intraDayTitle").html( formatTime(heatMapData['time']));
                 allocationData = heatMapData['allocationTable'];
+                sectorData = parseSectorData(allocationData);
                 updateAllocationTable(allocationData);
             });
         });
@@ -208,11 +219,14 @@ function displaySectorAllocation(){
 }
 
 // add data to allocation table
-function updateAllocationTable(data, mode = 'relative'){
+function updateAllocationTable(data, mode){
+    if (mode === undefined) mode = 'relative';
     Object.keys(data).forEach(function(symbol){
+
         $("#value"+symbol).text(data[symbol]['currentValue']);
         $("#change"+symbol).text(data[symbol]['change']);
         $("#allocation"+symbol).text(data[symbol]['allocation']);
+
         if (mode == 'relative') {
             $("#weight"+symbol).text(data[symbol]['weightPercent']);
             $("#implied"+symbol).text(data[symbol]['impliedPercent']);
@@ -224,19 +238,7 @@ function updateAllocationTable(data, mode = 'relative'){
         }
 
         // format change text color based on value
-        var change = parseFloat(data[symbol]['change'].replace(/,/g, ''));  // remove comma from number
-        switch (true) {
-            case (change == 0):
-                var changeColor = 'black';
-                break;
-            case (change > 0):
-                var changeColor = 'green';
-                break;
-            case (change < 0):
-                var changeColor = 'red';
-                break;
-        };
-        $("#change"+symbol).css("color",changeColor);
+        $("#change"+symbol).css("color",changeColor( numeral(data[symbol]['change']).value() ));
     });
 }
 
@@ -336,8 +338,14 @@ function buildSectorTimeframeCharts(){
 
 // create timeframe-vs-sector bar chart
 function newTimeframeChart(ctx, data, chartOptions, period){
+    
     var chartData = JSON.parse(data);
-    chartOptions.title.text = period; //change title
+
+    console.log(period+': '+(chartData['datasets'][0]['data'][0]>chartData['datasets'][0]['data'][1] ? 'true' : 'false'  ));
+    console.log(data);
+    chartOptions.title.fontColor = '#228B22';
+
+    chartOptions.title.text = [period,"test"]; //change title
     chartOptions.annotation.annotations[0].value = chartData['SPY']; //change marker line
     window.myChart = new Chart(ctx, {
         type: 'horizontalBar',
@@ -784,14 +792,103 @@ function loadDateDetails(callback){
 //
 // helper functions
 
+// return color based on based value
+function changeColor(value){
+    switch (true) {
+        case (value == 0):
+            var changeColor = 'black';
+            break;
+        case (value > 0):
+            var changeColor = 'green';
+            break;
+        case (value < 0):
+            var changeColor = 'red';
+            break;
+    };
+    return changeColor;
+}
+
+function changeFavIcon(profit, ahead, defaultIcon){
+    if (defaultIcon === undefined) defaultIcon = false;
+    // profit (boolean):      true = DAM making money, false = DAM losing money
+    // ahead (boolean):       true = DAM beating SPY,  false = DAM lagging SPY
+    // defaultIcon (boolean): true = use default Icon
+    // 
+    // profit ahead  favicon
+    // true   true   green up arrow
+    // true   false  green down arrow   
+    // false  true   red up arrow
+    // false  false  red down arrow
+
+    var favicon;
+
+    if(!defaultIcon) {
+
+        if(profit && ahead) {
+            favicon = "./faviconGreenUp.ico"
+        } else if(profit && !ahead) {
+            favicon = "./faviconGreenDown.ico"
+        } else if(!profit && ahead) {
+            favicon = "./faviconRedUp.ico"
+        } else if(!profit && !ahead) {
+            favicon = "./faviconRedDown.ico"
+        }
+
+    } else {
+        favicon = "./faviconDefault.ico"
+    }
+
+    $("#favicon").attr("href",favicon);
+    
+}
+
 // display time is human readible format
-function niceTime(label = '', today = new Date()){
+// function niceTime(label = '', today = new Date()){
+function niceTime(label, today){
+    if(label === undefined) label = '';
+    if(today === undefined) today = new Date();
     // var today = new Date();
     var h = numeral(today.getHours()).format('00');
     var m = numeral(today.getMinutes()).format('00');
     var s = numeral(today.getSeconds()).format('00');
     console.log(label+h+":"+m+":"+s);
 }
+
+// crate array of only sectors
+function parseSectorData(data){
+    var sectorData = [];
+
+    Object.keys(data).forEach(function(symbol, index){
+        if(data[symbol].type == 'S') {  
+            sectorData.push(data[symbol]);
+        }
+    });
+    return sectorData;
+}
+
+// sort sector data
+function sortSectorData(field){
+
+    switch(field){
+        case 'description':
+        case 'sector':
+            // alpha sort ascending
+            sectorData.sort(function(a,b){
+                return a[field].localeCompare(b[field]);
+            });
+            break;
+        case 'implied':
+        case 'impliedOverUnder':
+        case 'weight':
+            // numeric sort descending
+            sectorData.sort(function(a,b){
+                return (numeral(b[field]).value() - numeral(a[field]).value());
+            });
+            break;
+        default:
+            console.log('default');
+    }
+};
 
 // format time used in heatMap title
 function formatTime(time){

@@ -56,11 +56,14 @@ canvas {
 	color: rgb(119, 13, 13);
 }
 
+a.allocation-link:hover  {
+    text-decoration: none;
+}
+
 #progress {
     z-index: 1;
     position: absolute;
     padding-top: 15%;
-
 }
 
 #progressImage {

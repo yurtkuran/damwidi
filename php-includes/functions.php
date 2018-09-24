@@ -62,11 +62,16 @@ function priceGain($priceData, $index0, $index1, $roundDigits = 2){
     $priceGain = array();
 
     $t0 = array_slice($priceData, $index0, 1);
-    $t1 = array_slice($priceData ,$index1, 1);
-
     $last      = $t0[key($t0)]['close'];
-    $prevClose = $t1[key($t1)]['close'];
-    $gain      = round(100*($last-$prevClose)/$prevClose, $roundDigits);
+
+    if (count($priceData) >= $index1){
+        $t1 = array_slice($priceData ,$index1, 1);
+        $prevClose = $t1[key($t1)]['close'];
+        $gain      = round(100*($last-$prevClose)/$prevClose, $roundDigits);
+    } else {
+        $prevClose = 0;
+        $gain      = 0;
+    }
 
     $priceGain = array(
         "last"      => $last,

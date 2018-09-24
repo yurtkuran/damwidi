@@ -40,8 +40,10 @@ function updatePerformanceData($verbose, $debug){
 
             $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3)['gain'];
 
+
+
             $priceGain[$timeFrame['period']] = array_merge(array(
-                'startDate' => array_keys($priceData)[$timeFrame['lengthDays']-1],
+                'startDate' => (count($priceData) >= $timeFrame['lengthDays']-1 ? array_keys($priceData)[$timeFrame['lengthDays']-1] : '0'),
                 'endDate'   => array_keys($priceData)[0],
             ), priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3));
         }
@@ -123,7 +125,7 @@ function returnSectorWeights($performanceData){
     // loop through all sectors
     if ($sectorWeights['status']) {
         foreach($performanceData as $sector => $data){
-            if ($sector <> 'DAM' and $sector <> 'SPY'){
+            if ($sector <> 'DAM' and $sector <> 'SPY' and array_key_exists($data['sectorDescription'],$sectorWeights['sectorWeights'])){
                 $performanceData[$sector]['weight']        = $sectorWeights['sectorWeights'][$data['sectorDescription']]['sectorWeight']*100;
                 $performanceData[$sector]['effectiveDate'] = $sectorWeights['effectiveDate'];
                 $performanceData[$sector]['fetchedDate']   = $sectorWeights['fetchedDate'];
@@ -152,7 +154,7 @@ function returnYTDData($sector, $lastRefreshed, $performanceData, $data, $verbos
     }
 
     $priceGain = array_merge(array(
-        'startDate' => $startDate,
+        'startDate' => array_keys($priceData)[count($priceData)-1],
         'endDate'   => array_keys($priceData)[0],
     ), priceGain($priceData, 0, sizeof($priceData)-1, 3));
 
