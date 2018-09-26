@@ -23,12 +23,14 @@ function returnAboveBelow($verbose = false, $debug = false){
         $symbol = $sector['sector'];
         $historicalData = returnHistoricalData($symbol, $length);
 
-        for ($i=0; $i < $length; $i++){
-            if ($i==0) {
-                $data[$symbol]['gain'][$i] = 1;
-            } else {
-                $gain = $data[$symbol]['gain'][$i-1] * calculateGain($historicalData[$i]['close'], $historicalData[$i-1]['close'], 6, false);
-                $data[$symbol]['gain'][$i] = round($gain, 4);
+        if (count($historicalData) >= $length){
+            for ($i=0; $i < $length; $i++){
+                if ($i==0) {
+                    $data[$symbol]['gain'][$i] = 1;
+                } else {
+                    $gain = $data[$symbol]['gain'][$i-1] * calculateGain($historicalData[$i]['close'], $historicalData[$i-1]['close'], 6, false);
+                    $data[$symbol]['gain'][$i] = round($gain, 4);
+                }
             }
         }
     }
@@ -36,8 +38,11 @@ function returnAboveBelow($verbose = false, $debug = false){
     //calculate RS (relative strength)
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
-        for ($i=0; $i < $length; $i++ ){
-            $data[$symbol]['rs'][$i] = round(100*($data[$symbol]['gain'][$i] / $data['SPY']['gain'][$i]),4);
+
+        if(array_key_exists($symbol, $data)){
+            for ($i=0; $i < $length; $i++ ){
+                $data[$symbol]['rs'][$i] = round(100*($data[$symbol]['gain'][$i] / $data['SPY']['gain'][$i]),4);
+            }
         }
     }
 
@@ -53,11 +58,13 @@ function returnAboveBelow($verbose = false, $debug = false){
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
 
-        $dataSummary[$i]['sector']   = $symbol;
-        $dataSummary[$i]['name']     = $sector['Name'];
-        $dataSummary[$i]['type']     = $sector['type'];
-        $dataSummary[$i]['rs']       = $data[$symbol]['rs'][$length-1];
-        $dataSummary[$i++]['gain']   = $data[$symbol]['gain'][$length-1];
+        if(array_key_exists($symbol, $data)){
+            $dataSummary[$i]['sector']   = $symbol;
+            $dataSummary[$i]['name']     = $sector['Name'];
+            $dataSummary[$i]['type']     = $sector['type'];
+            $dataSummary[$i]['rs']       = $data[$symbol]['rs'][$length-1];
+            $dataSummary[$i++]['gain']   = $data[$symbol]['gain'][$length-1];
+        }
     }
 
     // build 'above the line' dataset
