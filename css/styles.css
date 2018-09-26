@@ -85,3 +85,11 @@ a.allocation-link:hover  {
 .errorMessage {
     color: red;
 }
+
+#arrowUp {
+    color: green;
+}
+
+#arrowDown {
+    color: red;
+}

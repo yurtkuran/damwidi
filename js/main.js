@@ -265,7 +265,23 @@ function displaySectorTimeframeCharts(){
 function buildSectorTimeframeCharts(){
     var periods = ['1wk', '2wk', '4wk', '1qtr', 'ytd', '1yr'];
 
-    var options = {
+    $(periods).each(function(i, val) {
+        var ctx = $("#chart"+i);
+        $.ajax({
+            type: "POST",
+            url: "./damwidiMain.php?mode=returnSectorTimeframePerformanceData&timeframe="+val,
+        }).done(function(data){
+            // newTimeframeChart(ctx, data, val);
+            newTimeframeHighChart("chart"+(i),data, val);
+        });
+    });
+};
+
+// create timeframe-vs-sector bar chart
+function newTimeframeChart(ctx, data, period){
+    var chartData = JSON.parse(data);
+
+    var chartOptions = {
         scales: {
             xAxes: [{
                 ticks: {
@@ -288,7 +304,7 @@ function buildSectorTimeframeCharts(){
         title: {
             position: 'top',
             display: true,
-            text: "1wk",
+            text: period,
         },
         legend: {
             display: false
@@ -317,36 +333,14 @@ function buildSectorTimeframeCharts(){
                 type:    'line',
                 mode:    'vertical',
                 scaleID: 'x-axis-0',
-                value:   0,
+                value:   chartData['SPY'],
                 borderColor: 'rgba(0, 0, 0, 0.5)',
                 borderWidth:  1,
                 borderDash:   [2, 2],
             }]
         }
     };
-
-    $(periods).each(function(i, val) {
-        var ctx = $("#chart"+i);
-        $.ajax({
-            type: "POST",
-            url: "./damwidiMain.php?mode=returnSectorTimeframePerformanceData&timeframe="+val,
-        }).done(function(data){
-            newTimeframeChart(ctx, data, options, val);
-        });
-    });
-};
-
-// create timeframe-vs-sector bar chart
-function newTimeframeChart(ctx, data, chartOptions, period){
     
-    var chartData = JSON.parse(data);
-
-    console.log(period+': '+(chartData['datasets'][0]['data'][0]>chartData['datasets'][0]['data'][1] ? 'true' : 'false'  ));
-    console.log(data);
-    chartOptions.title.fontColor = '#228B22';
-
-    chartOptions.title.text = [period,"test"]; //change title
-    chartOptions.annotation.annotations[0].value = chartData['SPY']; //change marker line
     window.myChart = new Chart(ctx, {
         type: 'horizontalBar',
         data: chartData,
@@ -354,6 +348,96 @@ function newTimeframeChart(ctx, data, chartOptions, period){
     });
 
 };
+
+// create timeframe-vs-sector bar chart using HighCharts API
+function newTimeframeHighChart(chart, data, period){
+    data = JSON.parse(data);
+
+    chartOptions = {
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: period + " " + (data.datasets[0].data[0] > data.datasets[0].data[1] ? "<span class='fa fa-arrow-circle-up fa-lg' id='arrowUp'></span>" : "<span class='fa fa-arrow-circle-down fa-lg' id='arrowDown'></span>" ),
+            useHTML: true,
+            align: "center",
+            x: 20,
+            style: {
+                color: '#666',
+                fontSize: '12px',
+                fontWeight: 'bold',
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        tooltip: {
+            animation: false,
+            backgroundColor: 'rgba(255,255,255,0)',
+            borderWidth: 0,
+            headerFormat: '',
+            pointFormat: '<b>{point.y:.2f}%</b><br/>',
+            shadow: false,
+        },
+        credits: {
+            enabled: false
+        },
+        xAxis: {
+            categories: data.labels,
+            gridLineWidth: 1,
+            labels: {
+                style: {
+                    fontSize: "10px"
+                },
+            },
+        },
+        yAxis: {
+            title:{
+                text: null,
+            },
+            labels: {
+                format: '{value}%',
+                style: {
+                    fontSize: "10px"
+                },
+            },
+            plotLines: [{
+                // color: '#FF0000',
+                color: 'rgba(0,0,0,0.5)',
+                dashStyle: 'ShortDash',
+                width: 1,
+                value: data.SPY,
+                zIndex: 4
+            },{
+                color: 'rgba(0,0,0,0.5)',
+                // dashStyle: 'ShortDash',
+                width: 1,
+                value: 0,
+                zIndex: 4
+            }]
+        },
+        plotOptions: {
+            series: {
+                animation: false
+            }
+        },
+        series: [{
+            data: [],
+            maxPointWidth: 14
+        }]
+    };
+
+    $.each(data.datasets[0].data, function(i,value){
+        chartOptions.series[0].data[i] = {
+            y:              parseFloat(value),
+            color:          data.datasets[0].backgroundColor[i],
+            borderColor:    data.datasets[0].borderColor[i],
+        };
+    })
+    Highcharts.chart(chart, chartOptions);
+    // console.log(data);
+}
+
 
 
 //
