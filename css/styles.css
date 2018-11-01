@@ -86,10 +86,10 @@ a.allocation-link:hover  {
     color: red;
 }
 
-#arrowUp {
+#arrowGreen {
     color: green;
 }
 
-#arrowDown {
+#arrowRed {
     color: red;
 }

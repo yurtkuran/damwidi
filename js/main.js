@@ -352,13 +352,17 @@ function newTimeframeChart(ctx, data, period){
 // create timeframe-vs-sector bar chart using HighCharts API
 function newTimeframeHighChart(chart, data, period){
     data = JSON.parse(data);
+    valueDAM = numeral(data.datasets[0].data[0]).value();
+    valueSPY = numeral(data.datasets[0].data[1]).value();
+    arrowType  = (valueDAM > valueSPY ? 'fa-arrow-circle-up' : 'fa-arrow-circle-down');
+    arrowColor = (valueDAM >= 0 ? 'arrowGreen' : 'arrowRed' );
 
     chartOptions = {
         chart: {
             type: 'bar'
         },
         title: {
-            text: period + " " + (data.datasets[0].data[0] > data.datasets[0].data[1] ? "<span class='fa fa-arrow-circle-up fa-lg' id='arrowUp'></span>" : "<span class='fa fa-arrow-circle-down fa-lg' id='arrowDown'></span>" ),
+            text: period + " " + "<span class='fa " + arrowType +  " fa-lg' id='" + arrowColor + "'></span>",
             useHTML: true,
             align: "center",
             x: 20,

@@ -34,7 +34,7 @@ function updateHistoryTable($verbose = false, $debug = false){
         if ($verbose) show($sector['sector'].": update data_history table \n"."start date: ".$startDate."\n"."end date:   ".$endDate."\n"."added ".$count." record".($count <> 1 ?'s':''));
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        sleep(rand(2,5));
+        sleep(rand(12,15));
     }
 
     // create notifications

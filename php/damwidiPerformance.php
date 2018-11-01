@@ -58,7 +58,7 @@ function updatePerformanceData($verbose, $debug){
         $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        sleep(rand(2,5));
+        sleep(rand(12,15));
 
         if($debug) break;
     }
