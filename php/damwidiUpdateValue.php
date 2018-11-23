@@ -2,6 +2,8 @@
 
 // update cash, SPY fields in `data_value` table
 function updateValueTable($verbose = false, $debug = false){
+    // store start time used to determine function duration
+    $start = date('Y-m-d H:i:s');
 
     // open data log file
     $dataLog = returnUnstickLogData();
@@ -114,9 +116,13 @@ function updateValueTable($verbose = false, $debug = false){
     curl_close($ch);
 
     // create notifications
-    $message = date('Y-m-d H:i:s')." - Complete: Update Damwidi value";
-    show($message);
-    writeAirTableRecord($message);
+    $end      = date('Y-m-d H:i:s');
+    $duration = strtotime($end)-strtotime($start);
+    $table    = "value";
+
+    if ($verbose) show($start." start");
+    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+    writeAirTableRecord($table, $start, $duration);
 }
 
 // query `data_transaction` table to return a list of all positions (open or closed) between two dates

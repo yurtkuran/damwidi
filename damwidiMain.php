@@ -1,125 +1,147 @@
 <?php
+// previous cron job: wget -q http://www.damwidi.com/damwidiMain.php?mode=updateDatabases  (as of 23-Nov-18)
+
 include_once 'php-includes/init.php';
 
-if (isset($_GET['verbose'])){
-    $verbose = $_GET['verbose']==1 ? TRUE : FALSE;
+// setup environment defaults
+$verbose = FALSE; 
+$debug   = FALSE;
+
+if (defined('STDIN')) {
+    // command line
+    $mode    = isset($argv[1]) ? $argv[1] : NULL;
+    $verbose = (isset($argv[2]) and $argv[2]) == 1 ? TRUE : FALSE;
+    $debug   = (isset($argv[3]) and $argv[3]) == 1 ? TRUE : FALSE;
 } else {
-    $verbose = FALSE;
+    // web call
+    $mode    = isset($_GET['mode']) ? $_GET['mode'] : NULL;
+    $verbose = (isset($_GET['verbose']) and $_GET['verbose']) == 1 ? TRUE : FALSE;
+    $debug   = (isset($_GET['debug']) and $_GET['debug']) == 1 ? TRUE : FALSE;
 }
 
-if (isset($_GET['debug'])){
-    $debug = $_GET['debug']==1 ? TRUE : FALSE;
-} else {
-    $debug = FALSE;
-}
+switch($mode){
+    case 'updateDatabases':
+        // correct order of operation:
+        // 1. updateBivioTransactions
+        // 2. updateValueTable
+        // 3. updatePerformanceData
+        // 4. updateHistoryTable
+        $start = date('Y-m-d H:i:s');               // store start time used to determine function duration
+        updateBivioTransactions($verbose);
+        updateValueTable($verbose, $debug);
+        sleep(10);
+        updatePerformanceData($verbose, $debug);
+        sleep(10);
+        updateHistoryTable($verbose, $debug);
 
-if (isset($_GET['mode'])){
-    switch($_GET['mode']){
-        case 'updateDatabases':
-            // correct order of operation:
-            // 1. updateBivioTransactions
-            // 2. updateValueTable
-            // 3. updatePerformanceData
-            // 4. updateHistoryTable
-            updateBivioTransactions($verbose);
-            updateValueTable($verbose, $debug);
-            sleep(10);
-            updatePerformanceData($verbose, $debug);
-            sleep(10);
-            updateHistoryTable($verbose, $debug);
-            writeAirTableRecord(date('Y-m-d H:i:s')." - Complete: Update Damwidi");
-            break;
+        // create notifications
+        $end      = date('Y-m-d H:i:s');
+        $duration = strtotime($end)-strtotime($start);
+        $table    = "complete update";
 
-        case 'updateBivioTransactions':
-            updateBivioTransactions($verbose);
-            break;
+        if ($verbose) show($start." start");
+        show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, $duration)));
+        writeAirTableRecord($table, $start, $duration);
+        break;
 
-        case 'updateHistoryTable':
-            updateHistoryTable($verbose, $debug);
-            break;
+    case 'updateBivioTransactions':
+        updateBivioTransactions($verbose);
+        break;
 
-        case 'updatePerformanceData':
-            updatePerformanceData($verbose, $debug);
-            break;
+    case 'updateHistoryTable':
+        updateHistoryTable($verbose, $debug);
+        break;
 
-        case 'updateValueTable':
-            updateValueTable($verbose, $debug);
-            break;
+    case 'updatePerformanceData':
+        updatePerformanceData($verbose, $debug);
+        break;
 
-        case 'returnAboveBelow':
-            returnAboveBelow($verbose, $debug);
-            break;
+    case 'updateValueTable':
+        updateValueTable($verbose, $debug);
+        break;
 
-        case 'returnDamwidiOHLC':
-            returnDamwidiOHLC($verbose, $debug);
-            break;
+    case 'returnAboveBelow':
+        returnAboveBelow($verbose, $debug);
+        break;
 
-        case 'returnDetails':
-            returnDetails($verbose, $debug);
-            break;
+    case 'returnDamwidiOHLC':
+        returnDamwidiOHLC($verbose, $debug);
+        break;
 
-        case 'returnIntraDayData':
-            returnIntraDayData($verbose, $debug);
-            break;
+    case 'returnDetails':
+        returnDetails($verbose, $debug);
+        break;
 
-        case 'returnSectorTimeframePerformanceData':
-            returnSectorTimeframePerformanceData($verbose, $debug);
-            break;
+    case 'returnIntraDayData':
+        returnIntraDayData($verbose, $debug);
+        break;
 
-        case 'returnTransactions':
-            returnTransactions($verbose, $debug);
-            break;
+    case 'returnSectorTimeframePerformanceData':
+        returnSectorTimeframePerformanceData($verbose, $debug);
+        break;
 
-        case 'retrieveBatchDataAlpha':
-            $symbols='SPY,XLB,XLE,XLF,XLI,XLK,XLP,XLU,XLV,XLY';
-            retrieveBatchDataAlpha($symbols, $loadNewData = true, $saveData = true, $verbose, $debug);
-            break;
+    case 'returnTransactions':
+        returnTransactions($verbose, $debug);
+        break;
 
-        case 'retrieveBivioTransactions':
-            retrieveBivioTransactions($verbose);
-            break;
-        case 'retrievePriceDataAlpha':
-            $startDate = date('Y-m-d', strtotime('-1 years'));
-            $startDate = date('Y-m-d', strtotime('1/1/2018'));
-            retrievePriceDataAlpha('SPY', 'daily', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
-            break;
+    case 'retrieveBatchDataAlpha':
+        $symbols='SPY,XLB,XLE,XLF,XLI,XLK,XLP,XLU,XLV,XLY';
+        retrieveBatchDataAlpha($symbols, $loadNewData = true, $saveData = true, $verbose, $debug);
+        break;
 
-        case 'retrievePriceDataBarChart':
-            $startDate = date('Y-m-d', strtotime('-2 years'));
-            // $startDate = date('Y-m-d', strtotime('1/1/2018'));
-            retrievePriceDataBarChart('SPY', 'daily', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
-            break;
+    case 'retrieveBivioTransactions':
+        retrieveBivioTransactions($verbose);
+        break;
+    case 'retrievePriceDataAlpha':
+        $startDate = date('Y-m-d', strtotime('-1 years'));
+        $startDate = date('Y-m-d', strtotime('1/1/2018'));
+        retrievePriceDataAlpha('SPY', 'daily', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
+        break;
 
-        case 'retrieveSectorWeights':
-            retrieveSectorWeights($verbose, $debug);
-            break;
+    case 'retrievePriceDataBarChart':
+        $startDate = date('Y-m-d', strtotime('-2 years'));
+        // $startDate = date('Y-m-d', strtotime('1/1/2018'));
+        retrievePriceDataBarChart('SPY', 'daily', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
+        break;
 
-        case 'viewPerformanceData':
-            viewPerformanceData();
-            break;
+    case 'retrieveSectorWeights':
+        retrieveSectorWeights($verbose, $debug);
+        break;
 
-        case 'bivioUnstick':
-            bivioUnstick($verbose);
-            break;
+    case 'viewPerformanceData':
+        viewPerformanceData();
+        break;
 
-        case 'displayUnstickLog':
-            displayUnstickLog();
-            break;
+    case 'bivioUnstick':
+        bivioUnstick($verbose);
+        break;
 
-        case 'buildPortfolioTable':
-            buildPortfolioTable();
-            break;
+    case 'displayUnstickLog':
+        displayUnstickLog();
+        break;
 
-        case 'buildAllocationTable':
-            buildAllocationTable();
-            break;
+    case 'buildPortfolioTable':
+        buildPortfolioTable();
+        break;
 
-        case 'test':
-            $dbc = connect();
-            // $message = date('Y-m-d H:i:s').' - test';
-            // show($message);
-            // writeAirTableRecord($message);
-            break;
-    } 
-}
+    case 'buildAllocationTable':
+        buildAllocationTable();
+        break;
+
+    case 'test':
+        $start = date('Y-m-d H:i:s');
+        sleep(1);
+        $end   = date('Y-m-d H:i:s');
+        $duration = strtotime($end)-strtotime($start);
+
+        show($duration);
+        writeAirTableRecord("test", $start, $duration);
+        writeAirTableRecord("test", $start, 67);
+        writeAirTableRecord("test");
+        
+        break;
+
+    default:
+        // no valid mode supplied
+} 
 ?>

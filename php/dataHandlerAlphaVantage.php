@@ -120,6 +120,7 @@ function retrieveBatchDataAlpha($symbols, $loadNewData = true, $saveData = false
     $seriesData = json_decode($json,1);
 
     if ($verbose) show($http_response_header);
+    if ($verbose) show($seriesData);
 
     $dataSet = array(
         'symbol'   => $symbols,

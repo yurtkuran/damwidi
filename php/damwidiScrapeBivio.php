@@ -95,6 +95,8 @@ function returnTransactions($verbose, $debug){
 
 // retrieve recent transactions from bivio.com and add to `data_transactions` table
 function updateBivioTransactions($verbose){
+    // store start time used to determine function duration
+    $start = date('Y-m-d H:i:s');
 
     // open cURL session to scrape damwidi value from Bivio
     $ch = bivioLogin($verbose);
@@ -138,9 +140,13 @@ function updateBivioTransactions($verbose){
     curl_close($ch);
 
     // create notifications
-    $message = date('Y-m-d H:i:s')." - Complete: Update Bivio transactions";
-    show($message);
-    writeAirTableRecord($message);
+    $end      = date('Y-m-d H:i:s');
+    $duration = strtotime($end)-strtotime($start);
+    $table    = "bivio transactions";
+
+    if ($verbose) show($start." start");
+    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+    writeAirTableRecord($table, $start, $duration);
 }
 
 function parseTransaction($transaction){

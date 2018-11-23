@@ -82,6 +82,11 @@ function priceGain($priceData, $index0, $index1, $roundDigits = 2){
     return $priceGain;
 }
 
+function rateLimit(){
+    // sleep for a random amount of time to prevent rate limiting from AlphaVantage
+    sleep(rand(12,15));
+}
+
 function save($filename, $data){
     $json = json_encode($data);
     $file = fopen($filename, "w");
@@ -111,7 +116,7 @@ function stDev($array) {
     return (float) sqrt($fVariance/count($array));
 }
 
-function writeAirTableRecord($message){
+function writeAirTableRecord($table, $start = NULL, $duration = NULL){
     $airtable = new Airtable(array(
         'api_key'   => AIRTABLEAPI_KEY,
         'base'      => AIRTABLEBASE_ID,
@@ -119,8 +124,10 @@ function writeAirTableRecord($message){
 
     // Create an array with all the fields you want
     $details = array(
-        'description' => $message,
-        'datetime'    => date('Y-m-d H:i')
+        'table'     => $table,
+        'datetime'  => date('Y-m-d H:i'),
+        'start'     => $start,
+        'duration'  => $duration
     );
 
     // Save to Airtable

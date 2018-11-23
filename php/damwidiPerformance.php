@@ -1,6 +1,9 @@
 <?php
 // update fields in the `data_performance` table for sectors, index and cash
 function updatePerformanceData($verbose, $debug){
+    // store start time used to determine function duration
+    $start = date('Y-m-d H:i:s');
+
     // load previous 2 years of data
     $startDate = date('Y-m-d', strtotime('-2 years'));
 
@@ -58,7 +61,7 @@ function updatePerformanceData($verbose, $debug){
         $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        sleep(rand(12,15));
+        rateLimit();
 
         if($debug) break;
     }
@@ -75,9 +78,13 @@ function updatePerformanceData($verbose, $debug){
     save("./data/performanceData.json", $performanceData);
 
     // create notifications
-    $message = date('Y-m-d H:i:s')." - Complete: Update performnace table";
-    show($message);
-    writeAirTableRecord($message);
+    $end      = date('Y-m-d H:i:s');
+    $duration = strtotime($end)-strtotime($start);
+    $table    = "performance";
+
+    if ($verbose) show($start." start");
+    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+    writeAirTableRecord($table, $start, $duration);
 }
 
 // return shares and basis detail in `data_performance` table

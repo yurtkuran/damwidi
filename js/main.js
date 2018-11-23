@@ -67,10 +67,10 @@ function displayIntraday(callback){
         heatMapChart = newHeatMapChart();                                       // create new chart
         updateIntraday(heatMapChart);                                           // update heat map chart with latest data
 
-        var intraDayTimer = setInterval(function(){                             // refresh data every 60 sec
-            updateIntraday(heatMapChart);
-        },60000);
-        callback(intraDayTimer);
+        // var intraDayTimer = setInterval(function(){                             // refresh data every 60 sec
+        //     updateIntraday(heatMapChart);
+        // },60000);
+        // callback(intraDayTimer);
     });
 };
 
@@ -749,6 +749,10 @@ function displayLineCharts(data, update){
             xAxes: [{
                 ticks: {
                     fontSize: 10,
+                },
+                gridLines: { 
+
+                    zeroLineColor: "#ff0000"
                 }
             }],
             yAxes: [{
@@ -789,6 +793,17 @@ function displayLineCharts(data, update){
         },
         animation: {
             duration: 0
+        }, 
+        annotation: {
+            annotations: [{
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
+                value: 1,
+                borderColor: '#000000',
+                borderWidth: 2,
+                borderDash: [4, 2],
+            }]
         }
     };
 

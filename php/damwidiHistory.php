@@ -2,6 +2,9 @@
 
 // update `data_history` table
 function updateHistoryTable($verbose = false, $debug = false){
+    // store start time used to determine function duration
+    $start = date('Y-m-d H:i:s');
+    
 
     // determine opening date of fund
     $dbc = connect();
@@ -34,13 +37,17 @@ function updateHistoryTable($verbose = false, $debug = false){
         if ($verbose) show($sector['sector'].": update data_history table \n"."start date: ".$startDate."\n"."end date:   ".$endDate."\n"."added ".$count." record".($count <> 1 ?'s':''));
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        sleep(rand(12,15));
+        rateLimit();
     }
 
     // create notifications
-    $message = date('Y-m-d H:i:s')." - Complete: Update history table";
-    show($message);
-    writeAirTableRecord($message);
+    $end      = date('Y-m-d H:i:s');
+    $duration = strtotime($end)-strtotime($start);
+    $table    = "history";
+
+    if ($verbose) show($start." start");
+    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+    writeAirTableRecord($table, $start, $duration);
 }
 
 function determineStartDate($sector, $firstDate){

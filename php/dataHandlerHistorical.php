@@ -39,6 +39,8 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                 }
             }
         }
+        // sleep for a random amount of time to prevent rate limiting from AlphaVantage
+        rateLimit();
     }
 
     if ($verbose) show($dataset);
