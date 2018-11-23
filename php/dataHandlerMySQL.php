@@ -19,6 +19,20 @@ function loadDamdidiValue($limit = 1){
     return $result;
 }
 
+// save damwidi basket details
+function saveDamwidiBasket($symbol, $exists = FALSE){
+    $dbc = connect();
+    if ($exists){
+        $stmt = $dbc->prepare("UPDATE `data_basket` SET dateLastVisited = :dateLastVisited, visitCount = visitCount+1 WHERE symbol = :symbol");
+    } else {
+        $stmt = $dbc->prepare("INSERT INTO `data_basket` (symbol, dateAdded, dateLastVisited, visitCount) VALUES (:symbol, :dateAdded, :dateLastVisited, 1)");
+        $stmt->bindValue(':dateAdded', date('Y-m-d H:i:s') );        
+    }
+    $stmt->bindParam(':symbol',          $symbol);
+    $stmt->bindValue(':dateLastVisited', date('Y-m-d H:i:s') );
+    $stmt->execute();
+}
+
 // saves cash balance to `data_performance`table in both the basis and previous columns
 function saveCashBalance($amount, $asof){
     $dbc = connect();

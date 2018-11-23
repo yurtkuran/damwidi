@@ -128,17 +128,15 @@ switch($mode){
         buildAllocationTable();
         break;
 
-    case 'test':
-        $start = date('Y-m-d H:i:s');
-        sleep(1);
-        $end   = date('Y-m-d H:i:s');
-        $duration = strtotime($end)-strtotime($start);
+    case 'updateDamwidiBasket':
+        updateDamwidiBasket($_GET['symbol']);
+        break;
 
-        show($duration);
-        writeAirTableRecord("test", $start, $duration);
-        writeAirTableRecord("test", $start, 67);
-        writeAirTableRecord("test");
-        
+    case 'viewBasketData':
+        viewBasketData();
+        break;
+
+    case 'test':
         break;
 
     default:

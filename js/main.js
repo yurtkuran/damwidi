@@ -488,6 +488,7 @@ function processSymbol(symbol) {
     retrievePriceDataAlpha(symbol).then(function (data) {
         retrieveSymbolDescription(symbol).then(function (description) {
             displayCandleChart(data, symbol, description);
+            saveBasket(symbol);
         }).catch(function (error) {
             description = (symbol == 'DAM' ? 'damwidi investments' : symbol);
             displayCandleChart(data, symbol, description);
@@ -888,6 +889,13 @@ function loadDateDetails(callback){
         success: function(data){
             callback(JSON.parse(data));
         },
+    });
+}
+
+function saveBasket(symbol){
+    $.ajax({
+        type: "POST",
+        url: "./damwidiMain.php?mode=updateDamwidiBasket&symbol="+symbol
     });
 }
 
