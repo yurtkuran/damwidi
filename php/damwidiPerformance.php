@@ -41,14 +41,12 @@ function updatePerformanceData($verbose, $debug){
         $priceGain = array();
         foreach($timeFrames as $timeFrame){
 
-            $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3)['gain'];
-
-
+            $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays'], 3)['gain'];
 
             $priceGain[$timeFrame['period']] = array_merge(array(
-                'startDate' => (count($priceData) >= $timeFrame['lengthDays']-1 ? array_keys($priceData)[$timeFrame['lengthDays']-1] : '0'),
+                'startDate' => (count($priceData) >= $timeFrame['lengthDays'] ? array_keys($priceData)[$timeFrame['lengthDays']] : '0'),
                 'endDate'   => array_keys($priceData)[0],
-            ), priceGain($priceData, 0, $timeFrame['lengthDays']-1, 3));
+            ), priceGain($priceData, 0, $timeFrame['lengthDays'], 3));
         }
 
         // add placeholder for YTD data
@@ -68,7 +66,7 @@ function updatePerformanceData($verbose, $debug){
 
     $performanceData = returnBasisData($lastRefreshed, $performanceData); // add basis & share data
 
-    $performanceData = returnSectorWeights($performanceData); // add sector weights
+    // $performanceData = returnSectorWeights($performanceData); // add sector weights
 
     savePerformanceData($performanceData, $verbose); // write to MySQL database
 
@@ -143,28 +141,24 @@ function returnSectorWeights($performanceData){
 }
 
 // return YTD detail in `data_performance` table
-function returnYTDData($sector, $lastRefreshed, $performanceData, $data, $verbose){
+function returnYTDData($sector, $lastRefreshed, $performanceData, $priceData, $verbose){
 
     // determine starting date
     $startDate = date('Y', strtotime($lastRefreshed)).'-01-01';
 
-    // truncate price data
-    foreach($data as $candle => $ohlc){
-        if ($startDate == null or $candle >= $startDate ) {
-            $priceData[$candle] = array(
-                'open'  => $ohlc['open'],
-                'high'  => $ohlc['high'],
-                'low'   => $ohlc['low'],
-                'close' => $ohlc['close'],
-            );
-        }
+    // determine previous close index in array
+    $i = 0;
+    while(array_keys($priceData)[$i] >= $startDate){
+        $i++;
     }
 
+    // calculate YTD price gain
     $priceGain = array_merge(array(
-        'startDate' => array_keys($priceData)[count($priceData)-1],
+        'startDate' => array_keys($priceData)[$i],
         'endDate'   => array_keys($priceData)[0],
-    ), priceGain($priceData, 0, sizeof($priceData)-1, 3));
+    ), priceGain($priceData, 0, $i, 3));
 
+    // add data to array
     $performanceData[$sector]['YTD'] = $priceGain['gain'];
     $performanceData[$sector]['priceGain']['YTD'] = $priceGain;
 
@@ -208,8 +202,10 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
     if(!$verbose)echo json_encode($data);
 }
 
-function viewPerformanceData(){
+function returnPerformanceData($verbose, $debug){
     $json = file_get_contents("./data/performanceData.json"); //load data from file
-    show(json_decode($json,1));
+
+    if($verbose) show($json);
+    if(!$verbose) echo $json;
 }
 ?>

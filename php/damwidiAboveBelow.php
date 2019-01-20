@@ -104,12 +104,14 @@ function returnHistoricalData($symbol, $length){
 }
 
 function determineYTDlength(){
+    $startDate = date('Y').'-01-01';
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT COUNT(*) FROM `data_history` WHERE `symbol` = 'SPY' AND `date` >= '2018-01-01'");
+    $stmt = $dbc->prepare("SELECT COUNT(*) FROM `data_history` WHERE `symbol` = 'SPY' AND `date` >= :date");
+    $stmt->bindParam(':date', $startDate);
     $stmt->execute();
 
     $result = $stmt->fetch(PDO::FETCH_NUM);
-    return (int)$result[0];
+    return (int)$result[0]+1;
 }
 
 function buildDataSet($data, $dataSummary, $type){

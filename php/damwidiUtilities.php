@@ -1,31 +1,11 @@
 <?php
 
-// show value DB records whese the calculatte share value does not equal the bivio share value
-function bivioUnstick($verbose) {
+// show value DB records where the calculated share value does not equal the bivio share value
+function bivioUnstick() {
     $dbc = connect();
     $stmt = $dbc->prepare("SELECT `date`, `share_value`, `bivio_value` FROM `data_value` WHERE `share_value` <> `bivio_value` ORDER BY `date` DESC");
     $stmt->execute();
-    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
-    // if ($verbose) show($result);
-
-    foreach($result as $unstick){
-        $date = $unstick['date'];
-
-        show($date);
-
-        // calculate damwidi market value
-        // $allPositions   = returnAllPositions($date, $date); // get list of all postions (open or closed) within start/end dates
-        // $historicalData = getHistory($allPositions, $date, $date, false, false); // get historical prices from alphaVantage and barChart -- verbose, debug
-
-        // foreach($allPositions as $position){
-        //     show($position.' '.$historicalData['alphaVantage'][$position][$date]['close']);
-        // }
-
-        // show($historicalData);
-
-        // show(returnOpenPositions($unstick['date']));
-        // break;
-    }
+    show($stmt->fetchall(PDO::FETCH_ASSOC));
 }
 
 // display contents of unstick log

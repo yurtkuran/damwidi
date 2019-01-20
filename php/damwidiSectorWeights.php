@@ -1,5 +1,5 @@
 <?php
-function retrieveSectorWeights($verbose = false, $debug = false, $loadNewData = true, $saveData = false){
+function retrieveSectorWeights($verbose = false, $debug = false, $loadNewData = true, $saveData = true){
 
     $filename = './tmp/spindices.txt';
     if($loadNewData){

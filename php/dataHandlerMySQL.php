@@ -19,16 +19,26 @@ function loadDamdidiValue($limit = 1){
     return $result;
 }
 
+function loadDamwidiBasket(){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT * FROM `data_basket` WHERE 1");
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+
+    return $result;
+}
+
 // save damwidi basket details
-function saveDamwidiBasket($symbol, $exists = FALSE){
+function saveDamwidiBasket($symbol, $description, $exists = FALSE){
     $dbc = connect();
     if ($exists){
-        $stmt = $dbc->prepare("UPDATE `data_basket` SET dateLastVisited = :dateLastVisited, visitCount = visitCount+1 WHERE symbol = :symbol");
+        $stmt = $dbc->prepare("UPDATE `data_basket` SET description = :description, dateLastVisited = :dateLastVisited, visitCount = visitCount+1 WHERE symbol = :symbol");
     } else {
-        $stmt = $dbc->prepare("INSERT INTO `data_basket` (symbol, dateAdded, dateLastVisited, visitCount) VALUES (:symbol, :dateAdded, :dateLastVisited, 1)");
+        $stmt = $dbc->prepare("INSERT INTO `data_basket` (symbol, description, dateAdded, dateLastVisited, visitCount) VALUES (:symbol, :description, :dateAdded, :dateLastVisited, 1)");
         $stmt->bindValue(':dateAdded', date('Y-m-d H:i:s') );        
     }
-    $stmt->bindParam(':symbol',          $symbol);
+    $stmt->bindParam(':symbol', $symbol);
+    $stmt->bindParam(':description', $description); 
     $stmt->bindValue(':dateLastVisited', date('Y-m-d H:i:s') );
     $stmt->execute();
 }

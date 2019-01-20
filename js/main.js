@@ -35,29 +35,52 @@ $(document).ready(function(){
                 displayTradeHistory();
                 break;
 
+            case 'earningsToday':
+                $(".navbar-nav li#earningsToday").addClass('active');
+                clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
+                displayEarnings();
+                break;
+
             case 'sectorTimeframe':
+                $(".navbar-nav li#charts").addClass('active');
                 clearInterval(intraDayTimer);
                 changeFavIcon(true, true, true);
                 displaySectorTimeframeCharts();
                 break;
 
             case 'aboveBelow':
+                $(".navbar-nav li#charts").addClass('active');
                 clearInterval(intraDayTimer);
                 changeFavIcon(true, true, true);
                 displayAboveBelow();
                 break;
 
             case 'technicalCharts':
+                $(".navbar-nav li#charts").addClass('active');
                 clearInterval(intraDayTimer);
                 changeFavIcon(true, true, true);
                 displayTechnicalCharts();
+                break;
+
+            case 'basket':
+                $(".navbar-nav li#rawData").addClass('active');
+                clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
+                displayBasket();
+                break;
+
+            case 'performanceData':
+                $(".navbar-nav li#rawData").addClass('active');
+                clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
+                displayPerformanceData();
                 break;
         }
     });
 });
 
 
-//
 // intraday heatmap chart and table
 
 // load intraday page, graph and table
@@ -201,7 +224,6 @@ function updatePortfolioTable(data){
 }
 
 
-//
 // sector allocation page
 
 // load and display page template
@@ -251,7 +273,6 @@ function updateAllocationDetails(){
 }
 
 
-//
 // sector vs timeframe page
 
 // load and display page template
@@ -442,13 +463,56 @@ function newTimeframeHighChart(chart, data, period){
     // console.log(data);
 }
 
+// display earnings today
+function displayEarnings() {
 
+    // load and display page template
+    $("#realtime").load("./pages/earnings.html", function(){
 
-//
+        // retrieve data from IEX trading
+        $.ajax({
+            type: "GET",
+            url: "https://api.iextrading.com/1.0/stock/market/today-earnings",
+        }).done(function(data){
+            // console.log(data);
+            var earnings = data.bto.concat(data.amc);
+            // console.log(earnings);
+            $('#datatable').DataTable({
+                language: {
+                            "emptyTable": "No earnings reported today"
+                },
+                searching:  false,
+                info:       false,
+                order:      [[6, 'desc'],[0, 'asc']],
+                orderMulti: true,
+                paging:     false,
+                data:       earnings,
+                columns: [
+                    { data: "quote.symbol",      width: "5%" , render: function (data, type, row){
+                                                                           return '<a class="earnings" target="_yahoo" href="https://finance.yahoo.com/quote/'+row.quote.symbol+'">'+row.quote.symbol+'</a>'}},
+                    { data: "quote.companyName", width: "20%" },
+                    { data: "quote.sector",      width: "15%" },
+                    { data: "consensusEPS",      width: "10%", render: $.fn.dataTable.render.number( ',', '.', 2) },
+
+                    { data: "yearAgo",           width: "10%", render: function (data, type, row) {
+                                                                           return ("yearAgo" in row ? numeral(row.yearAgo).format('0,0.00') : "")}},
+                    { data: "headline",          render: function (data, type, row) {
+                                                            return ("headline" in row ? row.headline : "")}},
+                    { data: "announceTime",      width: "5%"  },
+                ],
+                columnDefs: [
+                    { className: "text-center", targets: [0, 2, 3, 4, 6] },
+                    { className: "text-left",   targets: [1, 5] },
+                ]
+            });
+        });
+    });
+}
+
 // trade history page
-
-// load and display page template
 function displayTradeHistory(){
+
+    // load and display page template
     $("#realtime").load("./pages/tradeHistory.html", function(){
         $('#datatable').DataTable( {
             "info":       false,
@@ -473,7 +537,54 @@ function displayTradeHistory(){
     });
 }
 
-//
+// basket data page
+
+// load and display page template
+function displayBasket(){
+    $("#realtime").load("./pages/basket.html", function(){
+        $('#datatable').DataTable( {
+            "searching":  false,
+            "info":       false,
+            "orderMulti": false,
+            "paging":     false,
+            "ajax":       "./damwidiMain.php?mode=returnBasket",
+            "columns": [
+                { data: "symbol",
+                  render: function (data, type, row){
+                    return '<a class="earnings" target="_yahoo" href="https://finance.yahoo.com/quote/'+row.symbol+'">'+row.symbol+'</a>';}
+                },
+                { data: "description" },
+                { data: "dateAdded" },
+                { data: "dateLastVisited" },
+                { data: "visitCount" }
+            ],
+            "order":      [[ 2, 'desc' ]],
+            "columnDefs": [
+                { width: 100, className: "text-center", targets: [ 0, 2, 3 ] },
+                { width: 200, className: "text-left", targets: [ 1 ] },
+                { width: 50,  className: "text-center",  targets: [ 4 ] },
+            ],
+            "rowCallback": function( row, data ){
+                $(row).addClass('');
+            }
+        } );
+    });
+}
+
+// performance data page
+
+// load and display page template
+function displayPerformanceData(){
+    $("#realtime").load("./pages/performanceData.html", function(){
+        $.ajax({
+            type: "POST",
+            url: "./damwidiMain.php?mode=returnPerformanceData",
+        }).done(function(data){
+            console.log(JSON.parse(data));
+        });
+    });
+}
+
 // technical charts
 
 // load and display technical chart template
@@ -488,7 +599,7 @@ function processSymbol(symbol) {
     retrievePriceDataAlpha(symbol).then(function (data) {
         retrieveSymbolDescription(symbol).then(function (description) {
             displayCandleChart(data, symbol, description);
-            saveBasket(symbol);
+            saveBasket(symbol, description);
         }).catch(function (error) {
             description = (symbol == 'DAM' ? 'damwidi investments' : symbol);
             displayCandleChart(data, symbol, description);
@@ -603,8 +714,10 @@ function displayCandleChart(data, symbol, title){
         },
 
         title: {
-            text: title,
-            margin: 0
+            text: symbol+'<br>'+title,
+            margin: 0,
+            useHTML: false,
+            align: 'center'
         },
 
         xAxis: {
@@ -724,7 +837,6 @@ function displayCandleChart(data, symbol, title){
 }
 
 
-//
 // above the below and RS charts
 
 // load and display page template
@@ -868,7 +980,6 @@ function displayLineCharts(data, update){
 
 }
 
-//
 // ajax data handlers
 
 // load intraday data
@@ -892,10 +1003,10 @@ function loadDateDetails(callback){
     });
 }
 
-function saveBasket(symbol){
+function saveBasket(symbol, description){
     $.ajax({
         type: "POST",
-        url: "./damwidiMain.php?mode=updateDamwidiBasket&symbol="+symbol
+        url: "./damwidiMain.php?mode=updateDamwidiBasket&symbol="+symbol+"&description="+escape(description)
     });
 }
 

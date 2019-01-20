@@ -92,6 +92,7 @@ switch($mode){
     case 'retrieveBivioTransactions':
         retrieveBivioTransactions($verbose);
         break;
+
     case 'retrievePriceDataAlpha':
         $startDate = date('Y-m-d', strtotime('-1 years'));
         $startDate = date('Y-m-d', strtotime('1/1/2018'));
@@ -108,18 +109,6 @@ switch($mode){
         retrieveSectorWeights($verbose, $debug);
         break;
 
-    case 'viewPerformanceData':
-        viewPerformanceData();
-        break;
-
-    case 'bivioUnstick':
-        bivioUnstick($verbose);
-        break;
-
-    case 'displayUnstickLog':
-        displayUnstickLog();
-        break;
-
     case 'buildPortfolioTable':
         buildPortfolioTable();
         break;
@@ -129,14 +118,33 @@ switch($mode){
         break;
 
     case 'updateDamwidiBasket':
-        updateDamwidiBasket($_GET['symbol']);
+        updateDamwidiBasket($_GET['symbol'], $_GET['description'] );
         break;
 
-    case 'viewBasketData':
-        viewBasketData();
+    // admin & report functions
+    case 'returnBasket':
+        returnBasket($verbose, $debug);
         break;
 
+    case 'displayUnstickLog':
+        displayUnstickLog();
+        break;
+
+    case 'bivioUnstick':                // show value DB records where the calculated share value does not equal the bivio share value
+        bivioUnstick();
+        break;
+
+    case 'returnPerformanceData':
+        returnPerformanceData($verbose, $debug);
+        break;
+
+    case 'updateBasketDescriptions':
+        updateBasketDescriptions($verbose, $debug);
+        break;
+
+    // test functions
     case 'test':
+        retrieveIEXCompanyData('fb',false,true);
         break;
 
     default:

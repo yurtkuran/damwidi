@@ -56,39 +56,51 @@
     </head>
 
     <body>
+        <div class="mb-3">
+            <nav class="navbar navbar-expand-md navbar-light bg-light">
+                <span class="navbar-brand logo" href="">DAMWIDI</span>
 
-        <nav class="navbar navbar-expand-md navbar-light bg-light">
-            <span class="navbar-brand logo" href="">DAMWIDI</span>
+                <div class="collapse navbar-collapse" id="mainMenu">
+                    <ul class="navbar-nav mr-auto">
+                        <li id="heatMap" class="nav-item active">
+                            <a class="nav-link" id="heatMap" href="#">Intraday</a>
+                        </li>
 
-            <div class="collapse navbar-collapse" id="mainMenu">
-                <ul class="navbar-nav mr-auto">
-                    <li id="heatMap" class="nav-item active">
-                        <a class="nav-link" id="heatMap" href="#">Intraday</a>
-                    </li>
+                        <li id="sectorAllocation" class="nav-item">
+                            <a class="nav-link" id="sectorAllocation" href="#">Sector Allocation</a>
+                        </li>
 
-                    <li id="sectorAllocation" class="nav-item">
-                        <a class="nav-link" id="sectorAllocation" href="#">Sector Allocation</a>
-                    </li>
+                        <li id="tradeHistory" class="nav-item">
+                            <a class="nav-link" id="tradeHistory" href="#">Trade History</a>
+                        </li>
 
-                    <li id="tradeHistory" class="nav-item">
-                        <a class="nav-link" id="tradeHistory" href="#">Trade History</a>
-                    </li>
+                        <li id="earningsToday" class="nav-item">
+                            <a class="nav-link" id="earningsToday" href="#">Earnings Today</a>
+                        </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">Charts</a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" id="sectorTimeframe" href="#">Sector-Timeframe</a>
-                            <a class="dropdown-item" id="aboveBelow" href="#">Above-Below</a>
-                            <a class="dropdown-item" id="technicalCharts" href="#">Technical</a>
-                        </div>
-                    </li>
+                        <li id="charts" class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">Charts</a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" id="sectorTimeframe" href="#">Sector-Timeframe</a>
+                                <a class="dropdown-item" id="aboveBelow" href="#">Above-Below</a>
+                                <a class="dropdown-item" id="technicalCharts" href="#">Technical</a>
+                            </div>
+                        </li>
 
-                </ul>
-            </div>
-        </nav>
-
-        <div id='realtime' class="container-fluid"></div>
-
+                    </ul>
+                    <ul class="navbar-nav ml-auto pr-5">
+                        <li id="rawData" class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">Raw Data</a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" id="basket" href="#">basket data</a>
+                                <a class="dropdown-item" id="performanceData" href="#">performance</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <div id='realtime' class="container-fluid pt-5"></div>
     </body>
 
 </html>
