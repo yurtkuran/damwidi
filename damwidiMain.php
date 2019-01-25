@@ -144,7 +144,17 @@ switch($mode){
 
     // test functions
     case 'test':
-        retrieveIEXCompanyData('fb',false,true);
+        returnOpenPositions('2019/01/21',true, false);
+        break;
+
+    case 'test2':
+        retrieveIEXBatchData('amzn', false, $verbose, $debug);
+        break;
+
+    case 'test3':
+        show(array_search('amzn', array_column(loadSectors('CIS'), 'sector')));
+        show(array_column(loadSectors('CIS'), 'sector'));
+        show(loadSectors('CIS'));
         break;
 
     default:

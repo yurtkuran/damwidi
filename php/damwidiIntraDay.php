@@ -21,9 +21,11 @@ function returnDetails($verbose, $debug){
 
 // return IntraDay data
 function returnIntraDayData($verbose, $debug){
-
     $sectors = loadSectors('SI');
     if($verbose) show($sectors);
+
+    $openPositions = returnOpenPositions(date("Y-m-d"));
+    if($verbose) show($openPositions);
 
     // create symbol list
     $symbols = '';
@@ -51,6 +53,25 @@ function returnIntraDayData($verbose, $debug){
             "lastRefreshed" => $priceData[$sector['sector']]['lastRefreshed'],
         );
     }
+
+    // add data for individual stocks
+    foreach($openPositions as $symbol => $data){
+        if(!array_key_exists($symbol,$heatMapData)){
+            $iexData = retrieveIEXBatchData($symbol);
+            $heatMapData[$symbol]=array(
+                "sector"        => $symbol,
+                "openPosition"  => true,
+                "shares"        => $data['shares'],
+                "basis"         => $data['basis'],
+                "last"          => $iexData[$symbol]['quote']['latestPrice'],
+                "currentValue"  => $data['shares'] * $iexData[$symbol]['quote']['latestPrice'],
+                "prevClose"     => $iexData[$symbol]['quote']['previousClose'],
+                "gain"          => calculateGain($iexData[$symbol]['quote']['latestPrice'], $iexData[$symbol]['quote']['previousClose']),
+                "lastRefreshed" => date('Y-m-d h:i:s', $iexData[$symbol]['quote']['latestUpdate']/1000),
+            );
+        }
+    }
+
 
     // add damwidi data
     $heatMapData = damwidiGain($heatMapData, $verbose); // calculate current & previous damwidi value
@@ -266,6 +287,28 @@ function buildPortfolioTable(){
             $damwidiPrevious += $sector['shares'] * $sector['previous'];
         }
     }
+
+    $openPositions = returnOpenPositions(date("Y-m-d"));
+    foreach($openPositions as $symbol => $data){
+        if(array_search($symbol, array_column(loadSectors('CIS'), 'sector')) === FALSE){
+            $iexData = retrieveIEXBatchData($symbol);
+            ?>
+            <tr class=<?=($sector['sector']=='SPY' ? "rowSPY" : "")?>>
+                <td class="text-center" ><?=$symbol?></td>
+                <td class="text-left"   ><?=$iexData[$symbol]['quote']['companyName']?></td>
+                <td class="text-right"  ><?=number_format($data['basis'],2)?> </td>
+                <td class="text-right"  ><?=$data['shares']?> </td>
+                <td class="text-right"  ><?=number_format($iexData[$symbol]['quote']['previousClose'],2)?> </td>
+                <td class="text-right"  id="last<?=$symbol?>"></td>
+                <td class="text-center" id="change<?=$symbol?>"></td>
+                <td class="text-right"  id="value<?=$symbol?>"> <?=($symbol=='CASH' ? number_format($sector['previous'],2) : "")?></td>
+                <td class="text-right"  id="valueChange<?=$symbol?>"></td>
+            </tr>
+            <?php
+            $damwidiPrevious += $data['shares'] * $iexData[$symbol]['quote']['previousClose'];
+        }
+    }
+
     ?>
     <tr class="rowDAM">
         <td class="text-center" >DAM</td>

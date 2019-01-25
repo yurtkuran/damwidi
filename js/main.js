@@ -1013,7 +1013,6 @@ function saveBasket(symbol, description){
 
 //
 // helper functions
-
 // return color based on based value
 function changeColor(value){
     switch (true) {

@@ -4,7 +4,7 @@ function retrieveIEXBatchData($symbol, $saveData = false, $verbose = false, $deb
 
     $URL  = iexURL;
     $URL .= 'stock/market/batch?symbols='.$symbol.'&types=quote,news&last=2';
-    show($URL);
+    if ($verbose) show($URL);
 
     $json = file_get_contents($URL);      //retrieve data
     $data = json_decode($json,1);
