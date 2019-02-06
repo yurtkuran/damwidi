@@ -22,12 +22,16 @@
         <!-- moment-timezone.js: Parse and display moments in any timezone. -->
         <script src="./js/moment-timezone-with-data.js"></script>
 
+        <!-- socket.io realtime framework server -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+
         <!-- Chart.js -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"></script>
 
         <!-- highcharts & highstock -->
         <script src="https://code.highcharts.com/stock/highstock.js"></script>
+        <script src="https://code.highcharts.com/highcharts-more.js"></script>
         <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
         <script src="https://code.highcharts.com/stock/indicators/bollinger-bands.js"></script>
 
@@ -49,6 +53,7 @@
 
         <!-- app CSS -->
         <link rel="stylesheet" href="./css/styles.css">
+        <link rel="stylesheet" href="./css/symbolDetails.css">
 
         <!-- app scripts -->
         <script src="./js/main.js"></script>
@@ -56,7 +61,7 @@
     </head>
 
     <body>
-        <div class="mb-3">
+        <div class="mb-1">
             <nav class="navbar navbar-expand-md navbar-light bg-light">
                 <span class="navbar-brand logo" href="">DAMWIDI</span>
 
@@ -100,7 +105,7 @@
                 </div>
             </nav>
         </div>
-        <div id='realtime' class="container-fluid pt-5"></div>
+        <div id='realtime' class="container-fluid pt-2"></div>
     </body>
 
 </html>

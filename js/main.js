@@ -1,5 +1,35 @@
 var allocationData;
 var sectorData;
+var symbolDataHTML;
+var symbolDetailHTML;
+// var socket = io();
+
+const url = 'https://ws-api.iextrading.com/1.0/last';
+
+numeral.register('locale', 'us', {
+    delimiters: {
+        thousands: ',',
+        decimal: '.'
+    },
+    abbreviations: {
+        thousand: 'k',
+        million: 'M',
+        billion: 'B',
+        trillion: 'T'
+    },
+    currency: {
+        symbol: '$'
+    }
+});
+
+numeral.locale('us');
+
+Highcharts.setOptions({
+    lang: {
+        thousandsSep: ','
+    }
+});
+
 
 $(document).ready(function(){
 
@@ -591,18 +621,29 @@ function displayPerformanceData(){
 // https://icons8.com/preloaders/en/filtered-search/all/free/
 function displayTechnicalCharts(){
     $("#realtime").load("./pages/technicalCharts.php", function(){
+        symbolDetailHTML = $('#symbolDetail').html()
+        symbolDataHTML = $('#symbolData').html();
+
+        $('#symbolDetail').html('');
+        $('#symbolData').html('');
     });
 }
 
 function processSymbol(symbol) {
     $("#progressImage").html('<img id="progress" src="progress.svg"/>');
+    // socket.close();
+    // console.log(socket);
+    // console.log(socket.connected);
     retrievePriceDataAlpha(symbol).then(function (data) {
         retrieveSymbolDescription(symbol).then(function (description) {
             displayCandleChart(data, symbol, description);
+            displaySymbolDetails(symbol);
             saveBasket(symbol, description);
         }).catch(function (error) {
             description = (symbol == 'DAM' ? 'damwidi investments' : symbol);
             displayCandleChart(data, symbol, description);
+            $('#symbolDetail').html('');
+            $('#symbolData').html('');
         });
     }).catch(function (error) {
         $(".errorMessage").text('symbol not found');
@@ -703,6 +744,8 @@ function displayCandleChart(data, symbol, title){
         return a[0]-b[0];
     });
 
+    var titleText = (symbol == 'DAM' ? symbol+'<br>'+title : '');
+
     // create the chart
     Highcharts.stockChart('chartPrice', {
         chart: {
@@ -714,7 +757,7 @@ function displayCandleChart(data, symbol, title){
         },
 
         title: {
-            text: symbol+'<br>'+title,
+            text: titleText,
             margin: 0,
             useHTML: false,
             align: 'center'
@@ -833,6 +876,169 @@ function displayCandleChart(data, symbol, title){
             lineWidth: 3,
             enableMouseTracking: false
         }]
+    });
+}
+
+function displaySymbolDetails(symbol){
+    $('#symbolData').html(symbolDataHTML);
+    $('#symbolDetail').html(symbolDetailHTML);
+    var boxPlotOptions = {
+        chart: {
+            type: "boxplot",
+            inverted: true
+        },
+    
+        plotOptions: {
+            series: {
+                animation: false
+            }
+        },
+    
+        navigation: {
+            buttonOptions: {
+                enabled: false
+            }
+        },
+    
+        credits: {
+            enabled: false
+        },
+    
+        title: {
+            text: undefined
+        },
+    
+        legend: {
+            enabled: false
+        },
+    
+        tooltip: {
+            useHTML: true,
+            enabled: true,
+            headerFormat: '<table class="week52ToolTip">',
+            pointFormat: "<tr><td>52wk High:</td><td>${point.high:.2f}</td></tr><tr><td> 2wk High:</td><td>${point.q3:.2f}</td></tr><tr><td>Current:</td><td>${point.median:.2f}</td></tr><tr><td>2wk Low:</td><td>${point.q1:.2f}</td></tr><tr><td>52wk Low:</td><td>${point.low:.2f}</td></tr>",
+            footerFormat: "</table>"
+        },
+    
+        xAxis: {
+            categories: "",
+            visible: false
+        },
+    
+        yAxis: {
+            title: {
+                text: '52 Week Performance'
+            },
+            labels: {
+                format: '${value:,.f}',
+              },
+            gridLineWidth: 0
+        },
+    
+        series: [{
+            name: "52 Week",
+            pointWidth: 20,
+            data: [
+                [142, 150, 157, 164, 233]
+            ]
+        }]
+    };
+
+    $.ajax({
+        type: "GET",
+        url: "https://api.iextrading.com/1.0/stock/"+symbol+"/logo",
+    }).done(function (logo) {
+        $("#companyLogo").attr("src",logo.url);
+    });
+
+    $.ajax({
+        type: "GET",
+        url: "https://api.iextrading.com/1.0/stock/market/batch?symbols="+symbol+"&types=quote,news&last=10",
+    }).done(function (quoteData) {
+        // update headers
+        $('#tickerSymbol').html(symbol.toUpperCase());
+        $('#companyName').html(quoteData[symbol].quote.companyName);
+
+        // update detail table
+        $('#previousClose').html(numeral(quoteData[symbol].quote.previousClose).format('$0,0.00'));
+        $('#marketCap').html(numeral(quoteData[symbol].quote.marketCap).format('$0,0.0a'));
+        $('#peRatio').html(quoteData[symbol].quote.peRatio);
+
+        $('#week52High').html(numeral(quoteData[symbol].quote.week52High).format('$0,0.00'));
+        $('#week52Low').html(numeral(quoteData[symbol].quote.week52Low).format('$0,0.00'));
+        $('#ytdChange').html(numeral(quoteData[symbol].quote.ytdChange).format('0.00%'));
+
+        $('#latestVolume').html(numeral(quoteData[symbol].quote.latestVolume).format('0,0'));
+        $('#avgTotalVolume').html(numeral(quoteData[symbol].quote.avgTotalVolume).format('0,0'));
+        $('#sector').html(quoteData[symbol].quote.sector);
+        // $('#latestUpdate').html(moment(quoteData[symbol].quote.latestUpdate).format('hh:mm:ss dddd YYYY-MM-DD'));
+
+        // make connection 
+        const socket = io.connect(url, { forceNew: true });
+        socket.on('connect', () => {
+            socket.emit('subscribe', symbol);
+        });
+
+        var previousTick = 0;
+        socket.on('message', function(data){
+            quote = JSON.parse(data);
+
+            // console.log(quoteData);
+            // console.log(quote);
+            console.log(quote.symbol+': '+moment(quote.time).format('YY-MM-DD, hh:mm:ss')+' $'+quote.price);
+
+            var changePrice = quote.price-quoteData[symbol].quote.previousClose;
+            var changePerct = changePrice / quoteData[symbol].quote.previousClose;
+
+            $('#iexPrice').html(numeral(quote.price).format('$0.00'));
+            // $('#realTimeUpdate').html(moment(quote.time).format('dddd') + ' <i class="fa fa-ellipsis-h"></i> ' + moment(quote.time).format('h:mm:ssA') + ' <i class="fa fa-ellipsis-h"></i> ' + moment(quote.time).format('DD-MM-YYYY') );
+            $('#realTimeUpdate').html(moment(quote.time).format('h:mm:ssA') + ' - ' + moment(quote.time).format('dddd') + ' - ' + moment(quote.time).format('DD-MM-YYYY') );
+
+            if(changePrice >= 0){
+                $(".supsub").addClass('up').removeClass('down');
+                // $(".supsub").removeClass('down');
+            } else {
+                $(".supsub").addClass('down').removeClass('up');
+                // $(".supsub").removeClass('up');
+            }
+
+            if (previousTick !== 0){
+                if (quote.price >= previousTick) {
+                    // up tick, flash green backgroud
+                    $("#iexPrice").addClass("quoteGreen");
+                    setTimeout(() => {
+                        $("#iexPrice").removeClass("quoteGreen");
+                    }, 200)
+
+                } else if(quote.price < previousTick) {
+                    // down tick, flash red background
+                    $("#iexPrice").addClass("quoteRed");
+                    setTimeout(() => {
+                        $("#iexPrice").removeClass("quoteRed");
+                    }, 200)
+                }
+            } 
+            previousTick = quote.price;
+
+            $("#iexChange").html(numeral(changePrice).format('0.00'));
+            $("#iexPerct").html(numeral(changePerct).format('0.0%'));
+        });
+    }).then(function (quoteData) {
+
+        $.ajax({
+            type: "GET",
+            url: "https://api.iextrading.com/1.0/stock/"+symbol+"/chart?chartLast=10",
+            // url: "https://api.iextrading.com/1.0/stock/market/batch?symbols="+symbol+"&types=quote,news&last=10",
+        }).done(function (historicalData) {
+
+            boxPlotOptions.series[0].data = [[
+                quoteData[symbol].quote.week52Low,
+                Math.min.apply(Math, historicalData.map(function(o) { return o.low; })  ),
+                quoteData[symbol].quote.latestPrice,
+                Math.max.apply(Math, historicalData.map(function(o) { return o.high; })  ),
+                quoteData[symbol].quote.week52High]];
+            Highcharts.chart("containerBoxPlot", boxPlotOptions);
+        });
     });
 }
 
