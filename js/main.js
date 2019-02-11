@@ -2,9 +2,13 @@ var allocationData;
 var sectorData;
 var symbolDataHTML;
 var symbolDetailHTML;
-// var socket = io();
+
+// websocket variables
+var webSocketPreviousSymbol = '';
+var quoteData;
 
 const url = 'https://ws-api.iextrading.com/1.0/last';
+const socket = io.connect(url);
 
 numeral.register('locale', 'us', {
     delimiters: {
@@ -21,15 +25,13 @@ numeral.register('locale', 'us', {
         symbol: '$'
     }
 });
-
-numeral.locale('us');
+numeral.locale('us');  //init local numeral configuration
 
 Highcharts.setOptions({
     lang: {
         thousandsSep: ','
     }
 });
-
 
 $(document).ready(function(){
 
@@ -40,6 +42,7 @@ $(document).ready(function(){
 
     $('a[href="#"]').click(function (event) {
         event.preventDefault();
+        socket.emit('unsubscribe', webSocketPreviousSymbol);        // unsubscribe from any websocket
         $('.navbar-nav li').removeClass("active");                  // remove active class from every menu item
 
         switch($(this).attr('id')){
@@ -631,9 +634,6 @@ function displayTechnicalCharts(){
 
 function processSymbol(symbol) {
     $("#progressImage").html('<img id="progress" src="progress.svg"/>');
-    // socket.close();
-    // console.log(socket);
-    // console.log(socket.connected);
     retrievePriceDataAlpha(symbol).then(function (data) {
         retrieveSymbolDescription(symbol).then(function (description) {
             displayCandleChart(data, symbol, description);
@@ -954,7 +954,8 @@ function displaySymbolDetails(symbol){
     $.ajax({
         type: "GET",
         url: "https://api.iextrading.com/1.0/stock/market/batch?symbols="+symbol+"&types=quote,news&last=10",
-    }).done(function (quoteData) {
+    }).done(function (data) {
+        quoteData = data;
         // update headers
         $('#tickerSymbol').html(symbol.toUpperCase());
         $('#companyName').html(quoteData[symbol].quote.companyName);
@@ -973,64 +974,22 @@ function displaySymbolDetails(symbol){
         $('#sector').html(quoteData[symbol].quote.sector);
         // $('#latestUpdate').html(moment(quoteData[symbol].quote.latestUpdate).format('hh:mm:ss dddd YYYY-MM-DD'));
 
-        // make connection 
-        const socket = io.connect(url, { forceNew: true });
-        socket.on('connect', () => {
+        // make connection
+        if (socket.connected) {
+            console.log('websocket connected');
+            socket.emit('unsubscribe', webSocketPreviousSymbol);
             socket.emit('subscribe', symbol);
-        });
+            webSocketPreviousSymbol = symbol;
+            count = 0;
+            previousTick = 0;  
+        }
 
-        var previousTick = 0;
-        socket.on('message', function(data){
-            quote = JSON.parse(data);
-
-            // console.log(quoteData);
-            // console.log(quote);
-            console.log(quote.symbol+': '+moment(quote.time).format('YY-MM-DD, hh:mm:ss')+' $'+quote.price);
-
-            var changePrice = quote.price-quoteData[symbol].quote.previousClose;
-            var changePerct = changePrice / quoteData[symbol].quote.previousClose;
-
-            $('#iexPrice').html(numeral(quote.price).format('$0.00'));
-            // $('#realTimeUpdate').html(moment(quote.time).format('dddd') + ' <i class="fa fa-ellipsis-h"></i> ' + moment(quote.time).format('h:mm:ssA') + ' <i class="fa fa-ellipsis-h"></i> ' + moment(quote.time).format('DD-MM-YYYY') );
-            $('#realTimeUpdate').html(moment(quote.time).format('h:mm:ssA') + ' - ' + moment(quote.time).format('dddd') + ' - ' + moment(quote.time).format('DD-MM-YYYY') );
-
-            if(changePrice >= 0){
-                $(".supsub").addClass('up').removeClass('down');
-                // $(".supsub").removeClass('down');
-            } else {
-                $(".supsub").addClass('down').removeClass('up');
-                // $(".supsub").removeClass('up');
-            }
-
-            if (previousTick !== 0){
-                if (quote.price >= previousTick) {
-                    // up tick, flash green backgroud
-                    $("#iexPrice").addClass("quoteGreen");
-                    setTimeout(() => {
-                        $("#iexPrice").removeClass("quoteGreen");
-                    }, 200)
-
-                } else if(quote.price < previousTick) {
-                    // down tick, flash red background
-                    $("#iexPrice").addClass("quoteRed");
-                    setTimeout(() => {
-                        $("#iexPrice").removeClass("quoteRed");
-                    }, 200)
-                }
-            } 
-            previousTick = quote.price;
-
-            $("#iexChange").html(numeral(changePrice).format('0.00'));
-            $("#iexPerct").html(numeral(changePerct).format('0.0%'));
-        });
     }).then(function (quoteData) {
-
         $.ajax({
             type: "GET",
             url: "https://api.iextrading.com/1.0/stock/"+symbol+"/chart?chartLast=10",
             // url: "https://api.iextrading.com/1.0/stock/market/batch?symbols="+symbol+"&types=quote,news&last=10",
         }).done(function (historicalData) {
-
             boxPlotOptions.series[0].data = [[
                 quoteData[symbol].quote.week52Low,
                 Math.min.apply(Math, historicalData.map(function(o) { return o.low; })  ),
@@ -1341,3 +1300,43 @@ function roundTo(n, digits) {
 function test(){
     console.log('this is a test');
 };
+
+// websocket event handlers
+socket.on('message', function(data){
+    quote  = JSON.parse(data);
+    symbol = quote.symbol;
+    console.log(count++ +' '+quote.symbol+': '+moment(quote.time).format('YY-MM-DD, hh:mm:ss')+' $'+quote.price);
+
+    var changePrice = quote.price-quoteData[symbol].quote.previousClose;
+    var changePerct = changePrice / quoteData[symbol].quote.previousClose;
+
+    $('#iexPrice').html(numeral(quote.price).format('$0.00'));
+    $('#realTimeUpdate').html(moment(quote.time).format('h:mm:ssA') + ' - ' + moment(quote.time).format('dddd') + ' - ' + moment(quote.time).format('DD-MM-YYYY') );
+
+    if(changePrice >= 0){
+        $(".supsub").addClass('up').removeClass('down');
+    } else {
+        $(".supsub").addClass('down').removeClass('up');
+    }
+
+    if (previousTick !== 0){
+        if (quote.price >= previousTick) {
+            // up tick, flash green backgroud
+            $("#iexPrice").addClass("quoteGreen");
+            setTimeout(() => {
+                $("#iexPrice").removeClass("quoteGreen");
+            }, 200)
+
+        } else if(quote.price < previousTick) {
+            // down tick, flash red background
+            $("#iexPrice").addClass("quoteRed");
+            setTimeout(() => {
+                $("#iexPrice").removeClass("quoteRed");
+            }, 200)
+        }
+    } 
+    previousTick = quote.price;
+
+    $("#iexChange").html(numeral(changePrice).format('0.00'));
+    $("#iexPerct").html(numeral(changePerct).format('0.0%'));
+});
