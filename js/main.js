@@ -96,6 +96,13 @@ $(document).ready(function(){
                 displayTechnicalCharts();
                 break;
 
+            case 'sp500':
+                $(".navbar-nav li#rawData").addClass('active');
+                clearInterval(intraDayTimer);
+                changeFavIcon(true, true, true);
+                displaySP500();
+                break;                
+
             case 'basket':
                 $(".navbar-nav li#rawData").addClass('active');
                 clearInterval(intraDayTimer);
@@ -498,6 +505,8 @@ function newTimeframeHighChart(chart, data, period){
 
 // display earnings today
 function displayEarnings() {
+    var count = 0;
+    var weight = 0;
 
     // load and display page template
     $("#realtime").load("./pages/earnings.html", function(){
@@ -505,7 +514,7 @@ function displayEarnings() {
         // retrieve data from IEX trading
         $.ajax({
             type: "GET",
-            url: "https://api.iextrading.com/1.0/stock/market/today-earnings",
+            url:  "https://api.iextrading.com/1.0/stock/market/today-earnings",
         }).done(function(data){
             // console.log(data);
             var earnings = data.bto.concat(data.amc);
@@ -536,7 +545,16 @@ function displayEarnings() {
                 columnDefs: [
                     { className: "text-center", targets: [0, 2, 3, 4, 6] },
                     { className: "text-left",   targets: [1, 5] },
-                ]
+                ],
+                "createdRow": function( row, data, dataIndex ) {
+                    isSP500(data.symbol, function(data){
+                        if(data.isSP500){
+                            $('#countSP500').html(++count);
+                            $('#weightSP500').html(numeral(weight += data.weight).format('0.00'));
+                            $(row).addClass('table-primary');
+                        }
+                    });
+                },
             });
         });
     });
@@ -570,6 +588,39 @@ function displayTradeHistory(){
     });
 }
 
+// S&P500 data page
+function displaySP500(){
+
+    // load and display page template
+    $("#realtime").load("./pages/sp500.html", function(){
+
+        $.ajax({
+            type: "GET",
+            url:  "http://192.241.146.131/getspy/",
+        }).done((sp500) => {
+            $('#datatable').DataTable( {
+                "searching":  true,
+                "info":       false,
+                "orderMulti": true,
+                "paging":     false,
+                "data":       sp500,
+                "order":      [4,'desc'],
+                "columns": [
+                    {data : "id"},
+                    {data : "symbol" , render: function (data, type, row){
+                                               return '<a class="earnings" target="_yahoo" href="https://finance.yahoo.com/quote/'+row.symbol+'">'+row.symbol+'</a>'}},
+                    {data : "companyName"},
+                    {data : "sector"},
+                    {data : "weight", render: $.fn.dataTable.render.number( ',', '.', 2,'','%')},
+                ],
+                "columnDefs": [
+                    {targets: [0,1,4], className: "text-center"}
+                ]
+            } );
+        });
+    });
+}
+
 // basket data page
 
 // load and display page template
@@ -599,6 +650,13 @@ function displayBasket(){
             ],
             "rowCallback": function( row, data ){
                 $(row).addClass('');
+            },
+            "createdRow": function( row, data, dataIndex ) {
+                isSP500(data.symbol, function(data){
+                    if(data.isSP500){
+                        $(row).addClass('table-primary');
+                    }
+                });
             }
         } );
     });
@@ -1165,6 +1223,16 @@ function loadDateDetails(callback){
         success: function(data){
             callback(JSON.parse(data));
         },
+    });
+}
+
+function isSP500(symbol, callback){
+    return $.ajax({
+        type: "GET",
+        url:  "http://192.241.146.131/getspy/"+symbol,
+        success: function(data){
+            callback(data);
+        }
     });
 }
 

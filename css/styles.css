@@ -59,6 +59,16 @@ canvas {
     width: 90%;
 }
 
+.sp500 {
+    position: relative;
+    margin: 0 auto;
+    width: 60%;
+}
+
+.menuRightPadding {
+    padding-right: 100px
+}
+
 .allocationButton {
     float: right;
     margin-bottom: 10px;
