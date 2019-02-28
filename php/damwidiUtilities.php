@@ -28,7 +28,7 @@ function displayUnstickLog(){
     }
 }
 
-// return contents on unstick data lop
+// return contents on unstick data log
 function returnUnstickLogData(){
     $filename = UNSTICK_LOG;
     $dataLog  = array();

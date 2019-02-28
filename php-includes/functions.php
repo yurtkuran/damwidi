@@ -127,7 +127,8 @@ function writeAirTableRecord($table, $start = NULL, $duration = NULL){
         'table'     => $table,
         'datetime'  => date('Y-m-d H:i'),
         'start'     => $start,
-        'duration'  => $duration
+        'duration'  => $duration,
+        'server'    => stristr(php_uname(),'ubuntu') ? 'local' : 'host'
     );
 
     // Save to Airtable

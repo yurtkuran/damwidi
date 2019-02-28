@@ -152,9 +152,10 @@ switch($mode){
         break;
 
     case 'test3':
-        show(array_search('amzn', array_column(loadSectors('CIS'), 'sector')));
-        show(array_column(loadSectors('CIS'), 'sector'));
-        show(loadSectors('CIS'));
+        show(php_uname());
+        show(stristr(php_uname(),'ubuntu') ? 'local' : 'host' );
+        writeAirTableRecord('test', 1, 2);
+        phpinfo(INFO_GENERAL);
         break;
 
     default:
