@@ -2,6 +2,8 @@
 
 // update cash, SPY fields in `data_value` table
 function updateValueTable($verbose = false, $debug = false){
+    if ($verbose) show("--- UPDATE VALUE TABLE ---");  
+
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
 
@@ -38,7 +40,7 @@ function updateValueTable($verbose = false, $debug = false){
     if ($verbose) show("update data_value table \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     // get market holidays
-    $marketHolidays = getMarketCalendar($startDate, $endDate, false); // loadNewData, saveData, verbose, debug
+    $marketHolidays = getMarketCalendar($startDate, $endDate, true, false, $verbose, $debug ); // loadNewData, saveData, verbose, debug
 
     // get historical SPY data
     $historicalSPYData = getHistory('SPY', $startDate, $endDate, false, false)['alphaVantage']['SPY']; //verbose, debug

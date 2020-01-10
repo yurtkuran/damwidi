@@ -84,6 +84,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
     }
 
     if ($verbose) show($dataSet['Meta Data']);
+    // if ($verbose) show($dataSet['seriesData']);
     return $dataSet;
 }
 

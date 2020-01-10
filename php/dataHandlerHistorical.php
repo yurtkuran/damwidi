@@ -48,7 +48,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
 }
 
 // return market holidays
-function getMarketCalendar($startDate, $endDate, $loadNewData = true, $saveData = false, $verbose = false, $debug = false){
+function getMarketCalendar($startDate, $endDate, $loadNewData = true, $saveData = true, $verbose = false, $debug = false){
     if ($verbose) show("get market calendar \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     $startDate      = strtotime($startDate);

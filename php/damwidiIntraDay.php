@@ -241,8 +241,8 @@ function createPortfolioData($heatMapData, $verbose){
 function damwidiGain($heatMapData, $verbose){
 
     $lastRefreshed = '';
-    $last = loadSectors('C')[0]['basis'];  //load cash
-    foreach ($heatMapData as $sector){     //loop through sectors, add open positions (shares*lastQuote)
+    $last = loadSectors('C')['CASH']['basis'];  //load cash
+    foreach ($heatMapData as $sector){          //loop through sectors, add open positions (shares*lastQuote)
         if ($sector['shares']){
             $last += $sector['shares'] * $sector['last'];
         }
@@ -328,7 +328,9 @@ function buildPortfolioTable(){
 function buildAllocationTable(){
     $damwidiPrevious = 0;
     $damwidiBasis    = 0;
-    $sectors = loadSectors('CIS'); // lodad cash, sectors and index (SPY) data
+    $sectors         = loadSectors('CIS'); // lodad cash, sectors and index (SPY) data
+    $openPositions   = returnOpenPositions(date("Y-m-d")); // retrieve all open positions 
+
     foreach($sectors as $sector){
         ?>
         <tr class=<?=($sector['sector']=='SPY' ? "rowSPY" : "")?>>
@@ -346,6 +348,19 @@ function buildAllocationTable(){
         $damwidiPrevious += $sector['shares'] * $sector['previous'];
         $damwidiBasis    += $sector['shares'] * $sector['basis'];
     }
+    
+    foreach($openPositions as $symbol => $data){
+        if(!array_key_exists($symbol, $sectors)){
+            ?>
+            <tr class=''>
+                <td class="text-center" ><?=$symbol?></td>
+            </tr>
+            <?php
+        }
+    }
+    die();
+
+
     ?>
     <tr class="rowDAM">
         <td class="text-center" >DAM</td>

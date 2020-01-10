@@ -2,6 +2,8 @@
 
 // update `data_history` table
 function updateHistoryTable($verbose = false, $debug = false){
+    if ($verbose) show("--- UPDATE HISTORY TABLE ---");  
+
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
     

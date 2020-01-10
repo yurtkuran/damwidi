@@ -1,6 +1,8 @@
 <?php
 // update fields in the `data_performance` table for sectors, index and cash
 function updatePerformanceData($verbose, $debug){
+    if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");  
+
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
 
@@ -12,6 +14,11 @@ function updatePerformanceData($verbose, $debug){
 
     // load timeframe details
     $timeFrames = json_decode(file_get_contents("./config/comparison.json"),1);
+
+    // load open positions, needed to add individual stock positions to the 'data_performance' table
+    $openPositions = returnOpenPositions(date("Y-m-d"));
+
+    refreshPerformanceTable();
 
     // loop through all sectors
     foreach($sectors as $sector){
@@ -83,6 +90,24 @@ function updatePerformanceData($verbose, $debug){
     if ($verbose) show($start." start");
     show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
     writeAirTableRecord($table, $start, $duration);
+}
+
+// add/remove individual stocks from preformance table
+function refreshPerformanceTable(){
+
+    // load open positions, needed to add individual stock positions to the 'data_performance' table
+    $openPositions = returnOpenPositions(date("Y-m-d"));
+
+    // load all sectors and index
+    $sectors = loadSectors('SI');
+
+    foreach ($openPositions as $symbol => $position){
+        if(!array_key_exists($symbol,$sectors)){
+            $companyData = retrieveIEXCompanyData($symbol);
+            show($symbol.', '.$companyData['companyName']);
+            insertPerformanceStock($symbol);
+        }
+    }
 }
 
 // return shares and basis detail in `data_performance` table

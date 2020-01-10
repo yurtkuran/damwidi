@@ -7,6 +7,10 @@ var symbolDetailHTML;
 var webSocketPreviousSymbol = '';
 var quoteData;
 
+// iex parameters
+const iexURL = 'https://cloud.iexapis.com/stable/';
+const iexPK  = 'pk_5e475fb86046444a94016bf6270a7434';
+
 const url = 'https://ws-api.iextrading.com/1.0/last';
 const socket = io.connect(url);
 
@@ -514,7 +518,7 @@ function displayEarnings() {
         // retrieve data from IEX trading
         $.ajax({
             type: "GET",
-            url:  "https://api.iextrading.com/1.0/stock/market/today-earnings",
+            url:  "https://cloud.iexapis.com/stable/stock/market/today-earnings?token=pk_5e475fb86046444a94016bf6270a7434",
         }).done(function(data){
             // console.log(data);
             var earnings = data.bto.concat(data.amc);
@@ -596,7 +600,7 @@ function displaySP500(){
 
         $.ajax({
             type: "GET",
-            url:  "http://192.241.146.131/getspy/",
+            url:  "http://192.241.146.131:3000/getspy/",
         }).done((sp500) => {
             $('#datatable').DataTable( {
                 "searching":  true,
@@ -1004,32 +1008,33 @@ function displaySymbolDetails(symbol){
 
     $.ajax({
         type: "GET",
-        url: "https://api.iextrading.com/1.0/stock/"+symbol+"/logo",
+        url: iexURL+"stock/"+symbol+"/logo"+"?token="+iexPK,
     }).done(function (logo) {
         $("#companyLogo").attr("src",logo.url);
     });
 
     $.ajax({
         type: "GET",
-        url: "https://api.iextrading.com/1.0/stock/market/batch?symbols="+symbol+"&types=quote,news&last=10",
+        url: iexURL+"stock/"+symbol+"/quote"+"?token="+iexPK,
     }).done(function (data) {
         quoteData = data;
+
         // update headers
         $('#tickerSymbol').html(symbol.toUpperCase());
-        $('#companyName').html(quoteData[symbol].quote.companyName);
+        $('#companyName').html(quoteData.companyName);
 
         // update detail table
-        $('#previousClose').html(numeral(quoteData[symbol].quote.previousClose).format('$0,0.00'));
-        $('#marketCap').html(numeral(quoteData[symbol].quote.marketCap).format('$0,0.0a'));
-        $('#peRatio').html(quoteData[symbol].quote.peRatio);
+        $('#previousClose').html(numeral(quoteData.previousClose).format('$0,0.00'));
+        $('#marketCap').html(numeral(quoteData.marketCap).format('$0,0.0a'));
+        $('#peRatio').html(quoteData.peRatio);
 
-        $('#week52High').html(numeral(quoteData[symbol].quote.week52High).format('$0,0.00'));
-        $('#week52Low').html(numeral(quoteData[symbol].quote.week52Low).format('$0,0.00'));
-        $('#ytdChange').html(numeral(quoteData[symbol].quote.ytdChange).format('0.00%'));
+        $('#week52High').html(numeral(quoteData.week52High).format('$0,0.00'));
+        $('#week52Low').html(numeral(quoteData.week52Low).format('$0,0.00'));
+        $('#ytdChange').html(numeral(quoteData.ytdChange).format('0.00%'));
 
-        $('#latestVolume').html(numeral(quoteData[symbol].quote.latestVolume).format('0,0'));
-        $('#avgTotalVolume').html(numeral(quoteData[symbol].quote.avgTotalVolume).format('0,0'));
-        $('#sector').html(quoteData[symbol].quote.sector);
+        $('#latestVolume').html(numeral(quoteData.latestVolume).format('0,0'));
+        $('#avgTotalVolume').html(numeral(quoteData.avgTotalVolume).format('0,0'));
+        $('#sector').html(quoteData.sector);
         // $('#latestUpdate').html(moment(quoteData[symbol].quote.latestUpdate).format('hh:mm:ss dddd YYYY-MM-DD'));
 
         // make connection
@@ -1045,15 +1050,19 @@ function displaySymbolDetails(symbol){
     }).then(function (quoteData) {
         $.ajax({
             type: "GET",
-            url: "https://api.iextrading.com/1.0/stock/"+symbol+"/chart?chartLast=10",
+            // url: "https://api.iextrading.com/1.0/stock/"+symbol+"/chart?chartLast=10",
             // url: "https://api.iextrading.com/1.0/stock/market/batch?symbols="+symbol+"&types=quote,news&last=10",
+            url: iexURL+"stock/"+symbol+"/chart?chartLast=10&token="+iexPK,
+
+            // https://cloud.iexapis.com/stable/stock/amzn/chart?chartLast=10&token=pk_5e475fb86046444a94016bf6270a7434
+
         }).done(function (historicalData) {
             boxPlotOptions.series[0].data = [[
-                quoteData[symbol].quote.week52Low,
+                quoteData.week52Low,
                 Math.min.apply(Math, historicalData.map(function(o) { return o.low; })  ),
-                quoteData[symbol].quote.latestPrice,
+                quoteData.latestPrice,
                 Math.max.apply(Math, historicalData.map(function(o) { return o.high; })  ),
-                quoteData[symbol].quote.week52High]];
+                quoteData.week52High]];
             Highcharts.chart("containerBoxPlot", boxPlotOptions);
         });
     });
@@ -1375,8 +1384,8 @@ socket.on('message', function(data){
     symbol = quote.symbol;
     console.log(count++ +' '+quote.symbol+': '+moment(quote.time).format('YY-MM-DD, hh:mm:ss')+' $'+quote.price);
 
-    var changePrice = quote.price-quoteData[symbol].quote.previousClose;
-    var changePerct = changePrice / quoteData[symbol].quote.previousClose;
+    var changePrice = quote.price-quoteData.previousClose;
+    var changePerct = changePrice / quoteData.previousClose;
 
     $('#iexPrice').html(numeral(quote.price).format('$0.00'));
     $('#realTimeUpdate').html(moment(quote.time).format('h:mm:ssA') + ' - ' + moment(quote.time).format('dddd') + ' - ' + moment(quote.time).format('DD-MM-YYYY') );

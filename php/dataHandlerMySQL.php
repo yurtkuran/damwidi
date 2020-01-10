@@ -1,11 +1,27 @@
 <?php
+
+// insert stock into perforamance table
+function insertPerformanceStock($symbol){
+    $dbc = connect();
+    $stmt = $dbc->prepare("INSERT INTO `data_performance` (`sector`, `name`, `type`) VALUES (:symbol, :name ,'K')");
+    $stmt->bindValue(':symbol', strtoupper($symbol));
+    $stmt->bindValue(':name',   retrieveIEXCompanyData($symbol)['companyName']);
+    $stmt->execute();
+}
+
+
 // returns data from data_SPDR table based on mask
-// C=cash, I=index, S=sector, F=fund (i.e. damwidi)
-function loadSectors($mask = 'CISF'){
+// C=cash, I=index, S=sector, F=fund (i.e. damwidi), K=stock
+function loadSectors($mask = 'CISFK'){
     $dbc = connect();
     $stmt = $dbc->prepare("SELECT * FROM `data_performance` WHERE INSTR('$mask', `type`) ORDER BY `sector`");
     $stmt->execute();
-    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+    $result = $stmt->fetchall(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC); // first column (sector symbol) is used as the key
+
+    // add sector symbol back into the array
+    foreach($result as $symbol => $data){
+        $result[$symbol]['sector'] = $symbol;
+    }    
 
     return $result;
 }
