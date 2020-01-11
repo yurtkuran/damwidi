@@ -2,6 +2,10 @@
 ini_set('max_execution_time', 1200); // increase execution time
 date_default_timezone_set('America/New_York');
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+
 // error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // ini_set('display_errors', false); // Error display
 // ini_set('log_errors', TRUE); // Error logging

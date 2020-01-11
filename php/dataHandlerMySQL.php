@@ -12,9 +12,13 @@ function insertPerformanceStock($symbol){
 
 // returns data from data_SPDR table based on mask
 // C=cash, I=index, S=sector, F=fund (i.e. damwidi), K=stock
-function loadSectors($mask = 'CISFK'){
+function loadSectors($mask = 'CISFK', $rawQuery = null){
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT * FROM `data_performance` WHERE INSTR('$mask', `type`) ORDER BY `sector`");
+    if ($rawQuery == null) {
+        $stmt = $dbc->prepare("SELECT * FROM `data_performance` WHERE INSTR('$mask', `type`) ORDER BY `sector`");
+    } else {
+        $stmt = $dbc->prepare($rawQuery);
+    }
     $stmt->execute();
     $result = $stmt->fetchall(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC); // first column (sector symbol) is used as the key
 

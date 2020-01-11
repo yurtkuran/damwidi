@@ -157,7 +157,11 @@ switch($mode){
         writeAirTableRecord('test', 1, 2);
         phpinfo(INFO_GENERAL);
         break;
-
+        
+        case 'test4':
+            bivioLogin($verbose);
+            break;
+    
     default:
         // no valid mode supplied
 } 

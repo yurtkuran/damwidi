@@ -9,8 +9,8 @@ function updatePerformanceData($verbose, $debug){
     // load previous 2 years of data
     $startDate = date('Y-m-d', strtotime('-2 years'));
 
-    // load all sectors, index and fund
-    $sectors = loadSectors('SIF');
+    // load all sectors, stocks, index and fund
+    $sectors = loadSectors('SKIF');
 
     // load timeframe details
     $timeFrames = json_decode(file_get_contents("./config/comparison.json"),1);
@@ -191,8 +191,9 @@ function returnYTDData($sector, $lastRefreshed, $performanceData, $priceData, $v
 }
 
 function returnSectorTimeframePerformanceData($verbose, $debug){
+    $query = 'SELECT * FROM `data_performance` WHERE INSTR(\'SIFK\', `type`) ORDER BY FIELD(`type`, "F", "I", "S", "K"), `sector`';
     $timeframe = $_GET['timeframe'];
-    $sectors = loadSectors('SIF');
+    $sectors = loadSectors(null, $query);
 
     // add sector timeframe data for chart.js
     $i = 0;

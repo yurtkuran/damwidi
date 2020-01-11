@@ -43,7 +43,7 @@ $(document).ready(function(){
     displayIntraday(function(timer){                                // load intraday page, graph and table
         intraDayTimer = timer;
     });
-
+    
     $('a[href="#"]').click(function (event) {
         event.preventDefault();
         socket.emit('unsubscribe', webSocketPreviousSymbol);        // unsubscribe from any websocket
@@ -331,7 +331,7 @@ function buildSectorTimeframeCharts(){
     var periods = ['1wk', '2wk', '4wk', '1qtr', 'ytd', '1yr'];
 
     $(periods).each(function(i, val) {
-        var ctx = $("#chart"+i);
+        // var ctx = $("#chart"+i);
         $.ajax({
             type: "POST",
             url: "./damwidiMain.php?mode=returnSectorTimeframePerformanceData&timeframe="+val,
@@ -422,6 +422,26 @@ function newTimeframeHighChart(chart, data, period){
     arrowType  = (valueDAM > valueSPY ? 'fa-arrow-circle-up' : 'fa-arrow-circle-down');
     arrowColor = (valueDAM >= 0 ? 'arrowGreen' : 'arrowRed' );
 
+    $('#'+chart).css('height', (35*data.labels.length)+'px');
+
+    xAxisPlotLines = [{
+        color: 'rgba(0,0,0,0.3)',
+        dashStyle: 'ShortDash',
+        width: 2,
+        value: 1.5
+    }];
+
+    if(data.labels.length > 12){
+        xAxisPlotLines.push(
+            {
+                color: 'rgba(0,0,0,0.3)',
+                dashStyle: 'ShortDash',
+                width: 2,
+                value: 11.5
+            }
+        );
+    }
+
     chartOptions = {
         chart: {
             type: 'bar'
@@ -459,6 +479,7 @@ function newTimeframeHighChart(chart, data, period){
                     fontSize: "10px"
                 },
             },
+            plotLines: xAxisPlotLines,
         },
         yAxis: {
             title:{
@@ -483,7 +504,8 @@ function newTimeframeHighChart(chart, data, period){
                 width: 1,
                 value: 0,
                 zIndex: 4
-            }]
+            }],
+            allowDecimals: false
         },
         plotOptions: {
             series: {
@@ -504,7 +526,6 @@ function newTimeframeHighChart(chart, data, period){
         };
     })
     Highcharts.chart(chart, chartOptions);
-    // console.log(data);
 }
 
 // display earnings today
