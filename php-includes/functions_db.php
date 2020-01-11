@@ -4,15 +4,17 @@ function connect(){
     try {
         $host = MySQLHOST;      // Host name
 
-        // local server
-        $name = 'damwidi_v2';   // Database name
-        $user = MySQLUSERNAME;  // Username
-        $pass = MySQLPASSWORD;  // Password
-
-        // hostgator
-        // $name = 'yurtkura_damwidi'; // Database name
-        // $user = HOSTGATORUSERNAME;  // Username
-        // $pass = HOSTGATORPASSWORD;  // Password
+        if (ENV == 'development') {
+            // local server
+            $name = 'damwidi_v2';   // Database name
+            $user = MySQLUSERNAME;  // Username
+            $pass = MySQLPASSWORD;  // Password
+        } elseif (ENV == 'production') {
+            // hostgator
+            $name = 'yurtkura_damwidi'; // Database name
+            $user = HOSTGATORUSERNAME;  // Username
+            $pass = HOSTGATORPASSWORD;  // Password
+        }
 
         $dbc = new PDO("mysql:host=$host;dbname=$name", $user, $pass);
         $connect = $dbc;
