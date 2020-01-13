@@ -329,7 +329,7 @@ function buildAllocationTable(){
     $damwidiPrevious = 0;
     $damwidiBasis    = 0;
     $sectors         = loadSectors('CIS'); // lodad cash, sectors and index (SPY) data
-    $openPositions   = returnOpenPositions(date("Y-m-d")); // retrieve all open positions 
+    // $openPositions   = returnOpenPositions(date("Y-m-d")); // retrieve all open positions 
 
     foreach($sectors as $sector){
         ?>
@@ -349,18 +349,6 @@ function buildAllocationTable(){
         $damwidiBasis    += $sector['shares'] * $sector['basis'];
     }
     
-    foreach($openPositions as $symbol => $data){
-        if(!array_key_exists($symbol, $sectors)){
-            ?>
-            <tr class=''>
-                <td class="text-center" ><?=$symbol?></td>
-            </tr>
-            <?php
-        }
-    }
-    die();
-
-
     ?>
     <tr class="rowDAM">
         <td class="text-center" >DAM</td>

@@ -158,9 +158,9 @@ switch($mode){
         phpinfo(INFO_GENERAL);
         break;
         
-        case 'test4':
-            bivioLogin($verbose);
-            break;
+    case 'test4':
+        bivioLogin($verbose);
+        break;
     
     default:
         // no valid mode supplied
