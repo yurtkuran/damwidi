@@ -11,19 +11,21 @@ function updatePerformanceData($verbose, $debug){
 
     // load all sectors, stocks, index and fund
     $sectors = loadSectors('SKIF');
+    // show($sectors);
 
     // load timeframe details
     $timeFrames = json_decode(file_get_contents("./config/comparison.json"),1);
 
     // load open positions, needed to add individual stock positions to the 'data_performance' table
     $openPositions = returnOpenPositions(date("Y-m-d"));
+    // show($openPositions);
 
-    refreshPerformanceTable();
+    refreshPerformanceTable($verbose);
 
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, true, false);  // loadNewData, saveData, verbose, debug
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
         } else {
@@ -93,19 +95,19 @@ function updatePerformanceData($verbose, $debug){
 }
 
 // add/remove individual stocks from preformance table
-function refreshPerformanceTable(){
+function refreshPerformanceTable($verbose){
 
     // load open positions, needed to add individual stock positions to the 'data_performance' table
     $openPositions = returnOpenPositions(date("Y-m-d"));
 
     // load all sectors and index
-    $sectors = loadSectors('SI');
+    $sectors = loadSectors('SIK');
 
     foreach ($openPositions as $symbol => $position){
         if(!array_key_exists($symbol,$sectors)){
             $companyData = retrieveIEXCompanyData($symbol);
-            show($symbol.', '.$companyData['companyName']);
-            insertPerformanceStock($symbol);
+            if ($verbose) show($symbol.', '.$companyData['companyName']);
+            insertPerformanceStock($symbol, $companyData['companyName']);
         }
     }
 }

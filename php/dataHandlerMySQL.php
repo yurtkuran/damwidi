@@ -1,14 +1,14 @@
 <?php
 
 // insert stock into perforamance table
-function insertPerformanceStock($symbol){
+function insertPerformanceStock($symbol, $name){
     $dbc = connect();
-    $stmt = $dbc->prepare("INSERT INTO `data_performance` (`sector`, `name`, `type`) VALUES (:symbol, :name ,'K')");
-    $stmt->bindValue(':symbol', strtoupper($symbol));
-    $stmt->bindValue(':name',   retrieveIEXCompanyData($symbol)['companyName']);
+    $stmt = $dbc->prepare("INSERT INTO `data_performance` (`sector`, `name`, `description`, `type`) VALUES (:symbol, :name , :description, 'K')");
+    $stmt->bindValue(':symbol',      strtoupper($symbol));
+    $stmt->bindValue(':name',        $name);
+    $stmt->bindValue(':description', $name);
     $stmt->execute();
 }
-
 
 // returns data from data_SPDR table based on mask
 // C=cash, I=index, S=sector, F=fund (i.e. damwidi), K=stock
@@ -173,6 +173,32 @@ function saveValueData($valueData){
     $stmt->bindValue(':low',           $valueData['low']);
     $stmt->bindValue(':close',         $valueData['close']);
     $stmt->execute();
+}
+
+function alterPerformanceTable(){
+    $query  = "ALTER TABLE `data_performance` CHANGE `shares`   `shares`   INT(6)       NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `weight`   `weight`   DECIMAL(4,2) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `previous` `previous` DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `1wk`      `1wk`      DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `2wk`      `2wk`      DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `4wk`      `4wk`      DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `8wk`      `8wk`      DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `1qtr`     `1qtr`     DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `1yr`      `1yr`      DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `ytd`      `ytd`      DECIMAL(8,3) NOT NULL DEFAULT '0';";
+    $query .= "ALTER TABLE `data_performance` CHANGE `as-of`             `as-of`             DATE NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `effectiveDate`     `effectiveDate`     DATE NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `fetchedDate`       `fetchedDate`       DATE NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `sector`            `sector`            CHAR(5)      CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `Description`       `Description`       VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `Name`              `Name`              VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `sectorDescription` `sectorDescription` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `type`              `type`              CHAR(1)      CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
+
+    $dbc = connect();
+    $stmt = $dbc->prepare($query);
+    $stmt->execute();
+
 }
 
 ?>

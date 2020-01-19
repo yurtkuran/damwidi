@@ -142,6 +142,10 @@ switch($mode){
         updateBasketDescriptions($verbose, $debug);
         break;
 
+    case 'alterPerformanceTable':
+        alterPerformanceTable($verbose, $debug);
+        break;
+
     // test functions
     case 'test':
         returnOpenPositions('2019/01/21',true, false);
