@@ -557,19 +557,17 @@ function displayEarnings() {
                 columns: [
                     { data: "quote.symbol",      width: "5%" , render: function (data, type, row){
                                                                            return '<a class="earnings" target="_yahoo" href="https://finance.yahoo.com/quote/'+row.quote.symbol+'">'+row.quote.symbol+'</a>'}},
-                    { data: "quote.companyName", width: "20%" },
-                    { data: "quote.sector",      width: "15%" },
+                                                                           { data: "quote.companyName", width: "20%" },
+                    {"defaultContent": "",       width: "15%"},                                                                
                     { data: "consensusEPS",      width: "10%", render: $.fn.dataTable.render.number( ',', '.', 2) },
-
-                    { data: "yearAgo",           width: "10%", render: function (data, type, row) {
-                                                                           return ("yearAgo" in row ? numeral(row.yearAgo).format('0,0.00') : "")}},
-                    { data: "headline",          render: function (data, type, row) {
-                                                            return ("headline" in row ? row.headline : "")}},
+                    { data: "quote.latestPrice", width: "10%"  },
+                    { data: "quote.week52High",  width: "10%"  },
+                    { data: "quote.week52Low",   width: "10%"  },
                     { data: "announceTime",      width: "5%"  },
                 ],
                 columnDefs: [
-                    { className: "text-center", targets: [0, 2, 3, 4, 6] },
-                    { className: "text-left",   targets: [1, 5] },
+                    { className: "text-center", targets: [0, 2, 3, 4, 5, 6, 7] },
+                    { className: "text-left",   targets: [1] },
                 ],
                 "createdRow": function( row, data, dataIndex ) {
                     isSP500(data.symbol, function(data){
@@ -1409,7 +1407,7 @@ socket.on('message', function(data){
     var changePerct = changePrice / quoteData.previousClose;
 
     $('#iexPrice').html(numeral(quote.price).format('$0.00'));
-    $('#realTimeUpdate').html(moment(quote.time).format('h:mm:ssA') + ' - ' + moment(quote.time).format('dddd') + ' - ' + moment(quote.time).format('DD-MM-YYYY') );
+    $('#realTimeUpdate').html(moment(quote.time).format('h:mm:ssA') + ' - ' + moment(quote.time).format('dddd') + ' - ' + moment(quote.time).format('YYYY-MM-DD') );
 
     if(changePrice >= 0){
         $(".supsub").addClass('up').removeClass('down');

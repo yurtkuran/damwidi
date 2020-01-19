@@ -162,13 +162,13 @@ function parseTransaction($transaction){
     } else if (strpos($transaction, 'INTEREST' !== FALSE )) {
         $parse['type'] = 'I';
 
-    } else if (strpos($transaction, 'PAYMENT') !== FALSE ) {
+    } else if (substr($transaction, 0, strlen('PAYMENT')) == 'PAYMENT') {
         $parse['type'] = 'P';
 
-    } else if (strpos($transaction, 'PURCHASED') !== FALSE ) {
+    } else if (substr($transaction, 0, strlen('PURCHASED')) == 'PURCHASED') {
         $parse['type'] = 'B';
 
-    } else if (strpos($transaction, 'SOLD') !== FALSE ) {
+    } else if (substr($transaction, 0, strlen('SOLD')) == 'SOLD') {
         $parse['type'] = 'S';
 
     } else if (strpos($transaction, 'RETURN')  !== FALSE ) {
