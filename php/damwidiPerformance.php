@@ -100,14 +100,26 @@ function refreshPerformanceTable($verbose){
     // load open positions, needed to add individual stock positions to the 'data_performance' table
     $openPositions = returnOpenPositions(date("Y-m-d"));
 
-    // load all sectors and index
+    // load all sectors, stocks and index
     $sectors = loadSectors('SIK');
 
+    // add new stock positions to performance table
     foreach ($openPositions as $symbol => $position){
         if(!array_key_exists($symbol,$sectors)){
             $companyData = retrieveIEXCompanyData($symbol);
             if ($verbose) show($symbol.', '.$companyData['companyName']);
             insertPerformanceStock($symbol, $companyData['companyName']);
+        }
+    }
+
+    // load all stocks
+    $stocks = loadSectors('K');
+
+    // remove any stocks from performance table that are not in open positions
+    foreach ($stocks as $stock => $position){
+        if(!array_key_exists($stock,$openPositions)){
+            if ($verbose) show($stock.' removed from Performance table');
+            removePerformanceStock($stock);
         }
     }
 }

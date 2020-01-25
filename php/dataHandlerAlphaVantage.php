@@ -143,4 +143,61 @@ function retrieveBatchDataAlpha($symbols, $loadNewData = true, $saveData = false
     return $dataSet;
 }
 
+function retrieveBatchDataAlphaV2($symbols, $loadNewData = true, $saveData = false, $verbose = true, $debug = false){
+
+    $URL  = alphaVantageURL;
+    $URL .= '?function=GLOBAL_QUOTE';
+    $URL .= '&apikey='.alphaVantageAPIkey;
+    $URL .= '&symbol=';
+
+    //convert symbols list to array
+    $symbols = explode(",",$symbols);
+    if($verbose) show($symbols);
+
+    foreach($symbols as $symbol){
+        if($verbose) show($URL.$symbol);
+        if ($loadNewData) {
+            $json     = file_get_contents($URL.$symbol);  //retrieve data
+            $response = $http_response_header[0]; //http response information
+            $url      = $URL;                     //alphavantage URL
+            $data     = json_decode($json,1);
+            show($data);
+            show($response);
+            if ($saveData) save($filename, $data);
+        } else {
+            $json     = file_get_contents($filename); //load data from file, for development
+            $response = "loaded from file";
+            $url      = $filename;                    //filename
+        }
+    }
+    die();
+    
+    $filename = "./data/data_price_alpha_batch.json";
+
+    $seriesData = json_decode($json,1);
+
+    if ($verbose) show($http_response_header);
+    if ($verbose) show($seriesData);
+
+    $dataSet = array(
+        'symbol'   => $symbols,
+        'url'      => $url,
+        'response' => $response,
+    );
+
+    if ( !(strpos($response,'200') === false) or !$loadNewData ) {
+        $dataSet['status'] = 'success';
+        foreach($seriesData['Stock Quotes'] as $quote){
+            $dataSet['seriesData'][$quote['1. symbol']] = array(
+                "price"          => $quote['2. price'],
+                "lastRefreshed"  => $quote['4. timestamp'],
+            );
+        }
+    }
+
+    if ($verbose) show($dataSet);
+    return $dataSet;
+}
+
+
 ?>

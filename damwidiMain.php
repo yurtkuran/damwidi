@@ -146,24 +146,20 @@ switch($mode){
         alterPerformanceTable($verbose, $debug);
         break;
 
-    // test functions
-    case 'test':
-        returnOpenPositions('2019/01/21',true, false);
-        break;
-
-    case 'test2':
-        retrieveIEXBatchData('amzn', false, $verbose, $debug);
-        break;
-
-    case 'test3':
+    case 'environment':
         show(php_uname());
         show(stristr(php_uname(),'ubuntu') ? 'local' : 'host' );
         writeAirTableRecord('test', 1, 2);
         phpinfo(INFO_GENERAL);
         break;
-        
-    case 'test4':
-        bivioLogin($verbose);
+    
+    // test functions - used only in development
+    case 'test':
+        if(ENV == 'development') returnOpenPositions('2019/01/21',true, false);
+        break;
+
+    case 'test2':
+        if(ENV == 'development') retrieveIEXBatchData('amzn,spy', false, $verbose, $debug);
         break;
     
     default:

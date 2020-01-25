@@ -175,6 +175,13 @@ function saveValueData($valueData){
     $stmt->execute();
 }
 
+function removePerformanceStock($symbol){
+    $dbc = connect();
+    $stmt = $dbc->prepare("DELETE FROM `data_performance` WHERE `sector` = :symbol");
+    $stmt->bindValue(':symbol', strtoupper($symbol));
+    $stmt->execute();
+}
+
 function alterPerformanceTable(){
     $query  = "ALTER TABLE `data_performance` CHANGE `shares`   `shares`   INT(6)       NOT NULL DEFAULT '0';";
     $query .= "ALTER TABLE `data_performance` CHANGE `weight`   `weight`   DECIMAL(4,2) NOT NULL DEFAULT '0';";

@@ -3,7 +3,7 @@
 function retrieveIEXBatchData($symbol, $saveData = false, $verbose = false, $debug = false){
 
     $URL  = iexURL;
-    $URL .= 'stock/market/batch?symbols='.$symbol.'&types=quote,news&last=2';
+    $URL .= 'stock/market/batch?symbols='.$symbol.'&types=quote';
     $URL .= '&token='.iexPK;
 
     if ($verbose) show($URL);
