@@ -155,7 +155,11 @@ switch($mode){
     
     // test functions - used only in development
     case 'test':
-        if(ENV == 'development') returnOpenPositions('2019/01/21',true, false);
+        if(ENV == 'development') {
+            // touch('./data/test.txt');
+            save('./data/test.txt', 'test file write at: '.date('Y-m-d H:i:s'));  
+            show(date('Y-m-d H:i:s'));
+        } 
         break;
 
     case 'test2':

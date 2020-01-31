@@ -25,7 +25,7 @@ function updatePerformanceData($verbose, $debug){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, true, false);  // loadNewData, saveData, verbose, debug
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
         } else {
