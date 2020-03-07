@@ -83,7 +83,7 @@ function returnBivioValue($ch, $date, $verbose = false){
 // return complete list of transactions for trade history table
 function returnTransactions($verbose, $debug){
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT   `transaction_date`, `ticker`, `type`, `amount`, `shares`, `description`
+    $stmt = $dbc->prepare("SELECT   `transaction_date`, `symbol`, `type`, `amount`, `shares`, `description`
                            FROM     `data_transactions`
                            WHERE    (`type` = 'S' OR `type` = 'B')
                            ORDER BY `transaction_date` DESC");
@@ -159,7 +159,7 @@ function parseTransaction($transaction){
     if (strpos($transaction, 'DIVIDEND')){
         $parse['type'] = 'D';
 
-    } else if (strpos($transaction, 'INTEREST' !== FALSE )) {
+    } else if (strpos($transaction, 'INTEREST') !== FALSE ) {
         $parse['type'] = 'I';
 
     } else if (substr($transaction, 0, strlen('PAYMENT')) == 'PAYMENT') {
@@ -187,15 +187,15 @@ function parseTransaction($transaction){
         $parse['type'] = 'X';
     }
 
-    $parse['ticker'] = "";
+    $parse['symbol'] = "";
     $parse['shares'] = 0;
 
-    // determine ticker
+    // determine symbol
     if (strpos("BSD", $parse['type']) !== FALSE) {
         $start = strpos( $transaction, "(" );
         $end   = strpos( $transaction, ")" );
         if ($start !== FALSE and $end !== FALSE) {
-            $parse['ticker'] =  substr( $transaction, $start+1, $end-$start-1 );
+            $parse['symbol'] =  substr( $transaction, $start+1, $end-$start-1 );
         }
     }
 

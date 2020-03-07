@@ -20,7 +20,7 @@ function returnDetails($verbose, $debug){
 }
 
 // return IntraDay data
-function returnIntraDayData($verbose, $debug){
+function returnIntraDayData($verbose, $debug, $api = false){
     $sectors = loadSectors('SIK');
     if($verbose) show($sectors);
 
@@ -70,8 +70,12 @@ function returnIntraDayData($verbose, $debug){
     );
 
     if($verbose) show($intraDayData);
-    if(!$verbose)echo json_encode($intraDayData);
-
+    
+    if($api){
+        return $intraDayData;
+    } else {
+        if(!$verbose)echo json_encode($intraDayData);
+    }
 }
 
 // create chart.js labels and data
@@ -115,62 +119,71 @@ function createHeatMapData($heatMapData, $verbose){
 }
 
 function createAllocationData($heatMapData, $verbose){
+    
+    // load data
+    $query      = 'SELECT * FROM `data_performance` WHERE INSTR(\'CIS\', `type`) ORDER BY FIELD(`type`, "C", "I", "S"), `weight` DESC';
+    $sectors    = loadSectors(null, $query);                    // load data for SPY, cash, sectors and stocks
+    $stocks     = loadRawQuery('CALL stock_allocation()');      // load stock-to-sector data
+    $stocksData = loadSectors('K');                             // load data for stocks
+    
+    // init data variables & array
+    $allocationData      = array();
+    $damwidiBasis        = 0;
+    $summaryCurrentValue = 0;  
 
-    $sectors        = loadSectors('SIC'); // load data for SPY, Cash and sectors
-    $allocationData = array();
-    $damwidiBasis   = 0;
+    // loop through sectors
+    foreach($sectors as $sector => $sectorData){
+        $sectorSummary     = false;
+        insertIntoAllocationData($sector, $sector, $sectorData, $heatMapData, $allocationData, $damwidiBasis);
 
-    foreach($sectors as $sectorData){
-        $sector = $sectorData['sector'];
+        // summary data
+        $sectorSummaryData = array(
+            'type'         => 'Y',
+            'description'  => $sectorData['name'],
+            'currentValue' => $allocationData[$sector]['currentValue'],
+            'change'       => $allocationData[$sector]['change'],
+            'weight'       => $sectorData['weight'],
+        );
+        
+        // loop through stocks
+        foreach($stocks as $stock){
+            if($stock['sector'] == $sector) {
+                $sectorSummary = true;
+                $symbol        = $stock['symbol'];
+                insertIntoAllocationData($symbol, $sector, $stocksData[$symbol], $heatMapData, $allocationData, $damwidiBasis);
 
-        $allocationData[$sector]['sector']       = $sector;
-        $allocationData[$sector]['description']  = $sectorData['Description'];
-        $allocationData[$sector]['type']         = $sectorData['type'];
-        $allocationData[$sector]['shares']       = $sectorData['shares'];
-        $allocationData[$sector]['basis']        = $sectorData['basis'];
-        $damwidiBasis                           += $sectorData['shares'] * $sectorData['basis'];
-
-        if ($sectorData['type'] == 'C') {
-            $allocationData[$sector]['last']          = $sectorData['basis'];
-            $allocationData[$sector]['currentValue']  = $sectorData['basis'];
-            $allocationData[$sector]['allocation']    = ($allocationData[$sector]['currentValue'] / $heatMapData['DAM']['last'])*100;
-        } else {
-            $allocationData[$sector]['last']          = $heatMapData[$sector]['last'];
-            $allocationData[$sector]['currentValue']  = $sectorData['shares'] * $heatMapData[$sector]['last'];
-            $allocationData[$sector]['allocation']    = (($sectorData['shares'] * $heatMapData[$sector]['last']) / $heatMapData['DAM']['last'])*100;
+                // update summary data
+                $sectorSummaryData['currentValue'] += $allocationData[$symbol]['currentValue'];
+                $sectorSummaryData['change']       += $allocationData[$symbol]['change'];
+            }
         }
+        
+        if ($sectorSummary) insertIntoAllocationData($sector.'_Total', $sector, $sectorSummaryData, $heatMapData, $allocationData, $damwidiBasis);
 
-        $allocationData[$sector]['change']          = $sectorData['shares'] * ($allocationData[$sector]['last'] - $sectorData['basis']);
-        $allocationData[$sector]['changePercent']   = ($sectorData['shares'] ? ($allocationData[$sector]['last'] / $allocationData[$sector]['basis'] - 1)*100 : 0);
-
-        if ($sectorData['type']=='S') {
-            $allocationData[$sector]['weight']                  = $sectorData['weight']/100 * $heatMapData['DAM']['last'];
-            $allocationData[$sector]['weightPercent']           = $sectorData['weight'];
-            $allocationData[$sector]['actualOverUnderPercent']  = $allocationData[$sector]['allocation'] - $sectorData['weight'];
-            $allocationData[$sector]['implied']                 = ($heatMapData['SPY']['currentValue'] * ($sectorData['weight']/100) + $allocationData[$sector]['currentValue']);
-            $allocationData[$sector]['impliedPercent']          = (($heatMapData['SPY']['currentValue'] * ($sectorData['weight']/100) + $allocationData[$sector]['currentValue'])/$heatMapData['DAM']['last'])*100;
-            $allocationData[$sector]['impliedOverUnder']        = $allocationData[$sector]['implied'] - $sectorData['weight']/100 * $heatMapData['DAM']['last'];
-            $allocationData[$sector]['impliedOverUnderPercent'] = $allocationData[$sector]['impliedPercent'] - $sectorData['weight'];
-        }
+        if (!$sectorSummary and $sectorData['type'] == 'S') $allocationData[$sector]['type'] = 'Y'; // convert setor only row to summary
     }
+
     // add DAM data
-    $sector = 'DAM';
-    $allocationData[$sector]['sector']       = $sector;
-    $allocationData[$sector]['description']  = "Damwidi";
-    $allocationData[$sector]['type']         = 'F';
-    $allocationData[$sector]['shares']       = damwidiShareCount;
-    $allocationData[$sector]['basis']        = $damwidiBasis;
-    $allocationData[$sector]['currentValue'] = $heatMapData[$sector]['last'];
-    $allocationData[$sector]['change']       = $heatMapData[$sector]['last'] - $damwidiBasis;
-    $allocationData[$sector]['allocation']   = 0;
+    $symbol = 'DAM';
+    $allocationData[$symbol]['sector']       = $symbol;
+    $allocationData[$symbol]['symbol']       = $symbol;
+    $allocationData[$symbol]['description']  = "Damwidi";
+    $allocationData[$symbol]['type']         = 'F';
+    $allocationData[$symbol]['shares']       = damwidiShareCount;
+    $allocationData[$symbol]['basis']        = $damwidiBasis;
+    $allocationData[$symbol]['currentValue'] = $heatMapData[$symbol]['last'];
+    $allocationData[$symbol]['change']       = $heatMapData[$symbol]['last'] - $damwidiBasis;
+    $allocationData[$symbol]['allocation']   = 0;
 
     // format numbers
     foreach($allocationData as &$sector){
-        $sector['currentValue'] = number_format($sector['currentValue'],2);
-        $sector['change']       = number_format($sector['change'],2);
-        $sector['allocation']   = number_format($sector['allocation'],1).'%';
+        $sector['currentValue']  = number_format($sector['currentValue'],2);
+        $sector['change']        = number_format($sector['change'],2);
+        $sector['allocation']    = number_format($sector['allocation'],1).'%';
 
-        if ($sector['type']=='S'){
+        if (strpos('SKY', $sector['type'])) $sector['changePercent'] = number_format($sector['changePercent'],1).'%';
+
+        if ($sector['type']=='S' or $sector['type']=='Y'){
             $sector['weight']                  = number_format($sector['weight'],0);
             $sector['weightPercent']           = number_format($sector['weightPercent'],1).'%';
             $sector['actualOverUnderPercent']  = number_format($sector['actualOverUnderPercent'],1).'%';
@@ -258,7 +271,7 @@ function buildPortfolioTable(){
             ?>
             <tr class=<?=($sector['sector']=='SPY' ? "rowSPY" : "")?>>
                 <td class="text-center" ><?=$sector['sector']?></td>
-                <td class="text-left"   ><?=trim($sector['Description'])?></td>
+                <td class="text-left"   ><?=trim($sector['description'])?></td>
                 <td class="text-right"  ><?=number_format($sector['basis'],2)?> </td>
                 <td class="text-right"  ><?=$sector['shares']?> </td>
                 <td class="text-right"  ><?=number_format($sector['previous'],2)?> </td>
@@ -289,32 +302,35 @@ function buildPortfolioTable(){
 
 // complete the allocation table
 function buildAllocationTable(){
-    $damwidiPrevious = 0;
-    $damwidiBasis    = 0;
-    $sectors         = loadSectors('CIS'); // lodad cash, sectors and index (SPY) data
-    // $openPositions   = returnOpenPositions(date("Y-m-d")); // retrieve all open positions 
+    $sectors         = returnIntraDayData(false, false, true)['allocationTable'];  //verbose, debug, api
+    // $sectors         = loadSectors('CIS'); // lodad cash, sectors and index (SPY) data
 
     foreach($sectors as $sector){
-        ?>
-        <tr class=<?=($sector['sector']=='SPY' ? "rowSPY" : "")?>>
-            <td class="text-center" ><?=$sector['sector']?></td>
-            <td class="text-left"   ><?=trim($sector['Description'])?></td>
-            <td class="text-right"  id="shares<?=$sector['sector']?>"> <?= number_format($sector['shares'],0)?></td>
-            <td class="text-right"  id="value<?=$sector['sector']?>" > <?=($sector['type']=='C' ? number_format($sector['basis'],2) :'')?></td>
-            <td class="text-right"  id="change<?=$sector['sector']?>"> </td>
-            <td class="text-right"  id="allocation<?=$sector['sector']?>"></td>
-            <td class="text-right"  id="weight<?=$sector['sector']?>"> </td>
-            <td class="text-right"  id="implied<?=$sector['sector']?>"></td>
-            <td class="text-right"  id="impliedOverUnder<?=$sector['sector']?>"></td>
-        </tr>
-        <?php
-        $damwidiPrevious += $sector['shares'] * $sector['previous'];
-        $damwidiBasis    += $sector['shares'] * $sector['basis'];
+
+        if($sector['type'] != 'F' and ($sector['type'] != 'S' or ($sector['type'] = 'S' and $sector['shares'] >0 )) ){
+            $class  = ($sector['sector']=='SPY' ? "rowSPY" : "");
+            $class .= ' ' . ($sector['type']=='Y' ? "rowSummary" : "");
+
+            ?>
+            <tr class=<?= $class ?>>
+                <td class="text-left" ><?=$sector['symbol']?></td>
+                <td class="text-left"   ><?=trim($sector['description'])?></td>
+                <td class="text-right"  id="shares<?=$sector['symbol']?>"> <?= (!strpos($sector['symbol'],'Total') ? number_format($sector['shares'],0) : '')?></td>
+                <td class="text-right"  id="value<?=$sector['symbol']?>" > <?=($sector['type']=='C' ? number_format($sector['basis'],2) :'')?></td>
+                <td class="text-right"  id="change<?=$sector['symbol']?>"> </td>
+                <td class="text-right"  id="allocation<?=$sector['symbol']?>"></td>
+                <td class="text-right"  id="weight<?= ($sector['type'] != 'S' ? $sector['symbol'] : '') ?>"> </td>
+                <td class="text-right"  id="implied<?= ($sector['type'] != 'S' ? $sector['symbol'] : '') ?>"></td>
+                <td class="text-right"  id="impliedOverUnder<?= ($sector['type'] != 'S' ? $sector['symbol'] : '') ?>"></td>
+            </tr>
+            <?php
+        }
+
     }
-    
+
     ?>
     <tr class="rowDAM">
-        <td class="text-center" >DAM</td>
+        <td class="text-left" >DAM</td>
         <td class="text-left"   >Total</td>
         <td class="text-right"  > </td>
         <td class="text-right" id="valueDAM"> </td>
@@ -326,4 +342,48 @@ function buildAllocationTable(){
     </tr>
     <?php
 }
+
+// add data to allocationData array
+function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allocationData, & $damwidiBasis){
+    $allocationData[$symbol]['symbol']        = $symbol;
+    $allocationData[$symbol]['sector']        = $sector;
+    $allocationData[$symbol]['description']   = $data['description'];
+    $allocationData[$symbol]['type']          = $data['type'];
+    
+    if ($data['type'] == 'C') { //cash
+        $allocationData[$symbol]['last']          = $data['basis'];
+        $allocationData[$symbol]['currentValue']  = $data['basis'];
+        $allocationData[$symbol]['basis']         = $data['basis'];
+        $allocationData[$symbol]['allocation']    = ($allocationData[$symbol]['currentValue'] / $heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['shares']        = 1;
+        $allocationData[$symbol]['change']        = 0;
+        $damwidiBasis                            += $data['shares'] * $data['basis'];
+    } else if ($data['type'] == 'S' or $data['type'] == 'K' or $data['type'] == 'I') {
+        $allocationData[$symbol]['last']          = $heatMapData[$symbol]['last'];
+        $allocationData[$symbol]['currentValue']  = $data['shares'] * $heatMapData[$symbol]['last'];
+        $allocationData[$symbol]['allocation']    = (($data['shares'] * $heatMapData[$symbol]['last']) / $heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['shares']        = (int)   $data['shares'];
+        $allocationData[$symbol]['basis']         = (float) $data['basis'];
+        $allocationData[$symbol]['change']        = $data['shares'] * ($heatMapData[$symbol]['last'] - $data['basis']);
+        $allocationData[$symbol]['changePercent'] = ($data['shares'] ? ($heatMapData[$symbol]['last'] / $allocationData[$symbol]['basis'] - 1)*100 : 0);
+        $damwidiBasis                            += $data['shares'] * $data['basis'];
+    } else if ($data['type'] == 'Y') {
+        $allocationData[$symbol]['currentValue']  = $data['currentValue'];
+        $allocationData[$symbol]['allocation']    = ($data['currentValue'] / $heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['shares']        = null;
+        $allocationData[$symbol]['change']        = $data['change'];
+        $allocationData[$symbol]['changePercent'] = ($data['change']/($data['currentValue']  - $data['change']))*100;
+    } 
+
+    if ($data['type'] == 'S' or $data['type'] == 'Y') {
+        $allocationData[$symbol]['weight']                  = $data['weight']/100 * $heatMapData['DAM']['last'];
+        $allocationData[$symbol]['weightPercent']           = (float) $data['weight'];
+        $allocationData[$symbol]['actualOverUnderPercent']  = $allocationData[$symbol]['allocation'] - $data['weight'];
+        $allocationData[$symbol]['implied']                 = ($heatMapData['SPY']['currentValue'] * ($data['weight']/100) + $allocationData[$symbol]['currentValue']);
+        $allocationData[$symbol]['impliedPercent']          = (($heatMapData['SPY']['currentValue'] * ($data['weight']/100) + $allocationData[$symbol]['currentValue'])/$heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['impliedOverUnder']        = $allocationData[$symbol]['implied'] - $data['weight']/100 * $heatMapData['DAM']['last'];
+        $allocationData[$symbol]['impliedOverUnderPercent'] = $allocationData[$symbol]['impliedPercent'] - $data['weight'];
+    }
+}
+
 ?>

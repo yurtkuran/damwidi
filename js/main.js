@@ -129,7 +129,7 @@ $(document).ready(function(){
 
 // load intraday page, graph and table
 function displayIntraday(callback){
-    $("#realtime").load("./pages/heatMapTest.html", function(){                         // load main page template
+    $("#realtime").load("./pages/heatMap.html", function(){                         // load main page template
         $('#portfolio').load('./damwidiMain.php?mode=buildPortfolioTable', () => {      // build out the portfolio table
             heatMapChart = newHeatMapChart();                                       // create new chart
             updateIntraday(heatMapChart);                                           // update heat map chart with latest data

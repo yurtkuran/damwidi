@@ -181,8 +181,8 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
     $dbc = connect();
     $stmt = $dbc->prepare("SELECT * FROM `data_transactions`
                            WHERE    `transaction_date` <= :date
-                           AND      `ticker` IS NOT NULL
-                           AND      `ticker` <> ''
+                           AND      `symbol` IS NOT NULL
+                           AND      `symbol` <> ''
                            ORDER BY `transaction_date` ASC");
     $stmt->bindParam(':date', $date);
     $stmt->execute();
@@ -193,13 +193,13 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
     foreach($result as $transaction){
         switch($transaction['type']){
             case 'B':
-                if (array_key_exists ( $transaction['ticker'] , $openPositions )){
-                    // ticker in array
-                    $openPositions[$transaction['ticker']]['shares']   += $transaction['shares'];
-                    $openPositions[$transaction['ticker']]['purchase'] += $transaction['amount'];
+                if (array_key_exists ( $transaction['symbol'] , $openPositions )){
+                    // symbol in array
+                    $openPositions[$transaction['symbol']]['shares']   += $transaction['shares'];
+                    $openPositions[$transaction['symbol']]['purchase'] += $transaction['amount'];
                 } else {
-                    // new ticker
-                    $openPositions[$transaction['ticker']] = array(
+                    // new symbol
+                    $openPositions[$transaction['symbol']] = array(
                         'shares'    => $transaction['shares'],
                         'purchase'  => $transaction['amount'],
                         'dividend'  => 0
@@ -207,13 +207,13 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
                 }
                 break;
             case 'S':
-                $openPositions[$transaction['ticker']]['shares']   += $transaction['shares'];
-                $openPositions[$transaction['ticker']]['purchase'] += $transaction['amount'];
-                if ($openPositions[$transaction['ticker']]['shares'] == 0) unset($openPositions[$transaction['ticker']]);
+                $openPositions[$transaction['symbol']]['shares']   += $transaction['shares'];
+                $openPositions[$transaction['symbol']]['purchase'] += $transaction['amount'];
+                if ($openPositions[$transaction['symbol']]['shares'] == 0) unset($openPositions[$transaction['symbol']]);
                 break;
             case 'D':
-                if (array_key_exists ( $transaction['ticker'] , $openPositions )){
-                    $openPositions[$transaction['ticker']]['dividend'] += $transaction['amount'];
+                if (array_key_exists ( $transaction['symbol'] , $openPositions )){
+                    $openPositions[$transaction['symbol']]['dividend'] += $transaction['amount'];
                 }
                 break;
             default:

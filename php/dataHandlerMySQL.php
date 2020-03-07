@@ -20,14 +20,38 @@ function loadSectors($mask = 'CISFK', $rawQuery = null){
         $stmt = $dbc->prepare($rawQuery);
     }
     $stmt->execute();
-    $result = $stmt->fetchall(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC); // first column (sector symbol) is used as the key
+    $result  = $stmt->fetchall(PDO::FETCH_ASSOC); // first column (id) is used as the key
+    $sectors = array();
 
     // add sector symbol back into the array
-    foreach($result as $symbol => $data){
-        $result[$symbol]['sector'] = $symbol;
+    foreach($result as $data){
+        $sectors[$data['sector']] = $data;
     }    
 
+    return $sectors;
+}
+
+function loadRawQuery($rawQuery){
+    $dbc = connect();
+    $stmt = $dbc->prepare($rawQuery);
+    $stmt->execute();
+    $result  = $stmt->fetchall(PDO::FETCH_ASSOC); // first column (id) is used as the key
     return $result;
+}
+
+function loadAllocations(){
+    $dbc = connect();
+    $stmt = $dbc->prepare("CALL sector_allocations()");
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+
+    $sectors = array();
+    // add sector symbol back into the array
+    foreach($result as $data){
+        $sectors[$data['symbol']] = $data;
+    }  
+
+    return $sectors;
 }
 
 function loadDamdidiValue($limit = 1){
@@ -127,9 +151,9 @@ function savePerformanceData($performanceData){
 // saves transaction data scraped from bivio.com
 function saveTransactionData($transaction){
     $dbc = connect();
-    $stmt = $dbc->prepare("INSERT INTO `data_transactions` (`transaction_date`, `ticker`, `type`, `amount`, `shares`, `description` ) VALUES (:transaction_date, :ticker, :type, :amount, :shares, :description)");
+    $stmt = $dbc->prepare("INSERT INTO `data_transactions` (`transaction_date`, `symbol`, `type`, `amount`, `shares`, `description` ) VALUES (:transaction_date, :symbol, :type, :amount, :shares, :description)");
     $stmt->bindParam(':transaction_date', $transaction['Date']);
-    $stmt->bindParam(':ticker',           $transaction['ticker']);
+    $stmt->bindParam(':symbol',           $transaction['symbol']);
     $stmt->bindParam(':type',             $transaction['type']);
     $stmt->bindParam(':amount',           $transaction['Amount']);
     $stmt->bindParam(':shares',           $transaction['shares']);
@@ -201,6 +225,8 @@ function alterPerformanceTable(){
     $query .= "ALTER TABLE `data_performance` CHANGE `Name`              `Name`              VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
     $query .= "ALTER TABLE `data_performance` CHANGE `sectorDescription` `sectorDescription` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL;";
     $query .= "ALTER TABLE `data_performance` CHANGE `type`              `type`              CHAR(1)      CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `Name` `name` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
+    $query .= "ALTER TABLE `data_performance` CHANGE `Description` `description` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;";
 
     $dbc = connect();
     $stmt = $dbc->prepare($query);

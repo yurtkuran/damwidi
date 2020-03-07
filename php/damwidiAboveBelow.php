@@ -60,7 +60,7 @@ function returnAboveBelow($verbose = false, $debug = false){
 
         if(array_key_exists($symbol, $data)){
             $dataSummary[$i]['sector']   = $symbol;
-            $dataSummary[$i]['name']     = $sector['Name'];
+            $dataSummary[$i]['name']     = $sector['name'];
             $dataSummary[$i]['type']     = $sector['type'];
             $dataSummary[$i]['rs']       = $data[$symbol]['rs'][$length-1];
             $dataSummary[$i++]['gain']   = $data[$symbol]['gain'][$length-1];
