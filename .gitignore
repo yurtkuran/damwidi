@@ -1,8 +1,19 @@
-.DS_Store
+#ignore mac hidden files
+**/._*
+**/.DS_Store
+**/._.DS_Store
+
+#ignore vscode setup
 .vscode/*
 
+#ignore development directories
 archieve/*
 tmp/*
 cookies/*
 
+#ignore data files & directories
+data/performanceData.json
+
+#ignore environment files
+.env
 php-includes/definedConstants.php
