@@ -59,6 +59,7 @@ function updateValueTable($verbose = false, $debug = false){
         $mktClosed = array_key_exists($date, $marketHolidays);
 
         if ( $dow >0 and $dow < 6 and !$mktClosed) {
+            $valuation = returnBivioValue($ch, $date);
 
             $marketValue = returnMarketValue($date, $historicalData); // return market vallue H/O/L/C
 
@@ -69,16 +70,16 @@ function updateValueTable($verbose = false, $debug = false){
             $valueData['market_value']  = $marketValue['close'];
             $valueData['account_value'] = $valueData['cash'] + $valueData['market_value'];
             $valueData['payments']      = returnPayments($date);
-            $valueData['bivio_value']   = round(returnBivioValue($ch, $date),6);
+            $valueData['bivio_value']   = round($valuation['value'],6);
 
             if ($firstRecord) {
                 $firstRecord = false;
                 $totalShares = $valueData['payments']/initialShareValue;
                 $valueData['total_shares'] = $totalShares;
             } else {
-                $totalShares += $valueData['payments']/$shareValue;
-                $shareValue   = $valueData['account_value']/$totalShares;
-                $valueData['total_shares'] = $totalShares;
+                $totalShares = $valuation['units'];
+                $shareValue  = $valueData['account_value']/$totalShares;
+                $valueData['total_shares'] = round($valuation['units'],6);
             }
             $valueData['share_value']   = round($shareValue,6);
             $valueData['open']          = ($valueData['cash'] + $marketValue['open'])  / $totalShares;

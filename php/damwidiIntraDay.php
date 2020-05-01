@@ -248,11 +248,11 @@ function damwidiGain($heatMapData, $verbose){
     $heatMapData['DAM'] = array(
         "sector"        => 'DAM',
         "openPosition"  => true,
-        "shares"        => damwidiShareCount,
+        "shares"        => (float)$damwidiValue[0]['total_shares'],
         "last"          => $last,
         "currentValue"  => $last,
-        "prevClose"     => $damwidiValue[0]['bivio_value']*damwidiShareCount,
-        "gain"          => calculateGain($last, $damwidiValue[0]['bivio_value']*damwidiShareCount),
+        "prevClose"     => (float)$damwidiValue[0]['bivio_value']*$damwidiValue[0]['total_shares'],
+        "gain"          => (float)calculateGain($last, $damwidiValue[0]['bivio_value']*$damwidiValue[0]['total_shares']),
         "lastRefreshed" => $lastRefreshed
     );
 

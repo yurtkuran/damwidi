@@ -22,6 +22,7 @@ include_once 'php/damwidiIntraDay.php';
 include_once 'php/damwidiPerformance.php';
 include_once 'php/damwidiScrapeBivio.php';
 include_once 'php/damwidiSectorWeights.php';
+include_once 'php/damwidiSPanalytics.php';
 include_once 'php/damwidiUpdateValue.php';
 include_once 'php/damwidiUtilities.php';
 

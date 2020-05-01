@@ -69,15 +69,27 @@ function returnBivioValue($ch, $date, $verbose = false){
     curl_setopt($ch, CURLOPT_URL, $URL);
     $response = curl_exec($ch);
 
+    // create array
+    $valuation['date'] = $date;
+
     // parse response for value
     $start = strpos($response, "Value of One Unit");
     $mid   = strpos($response, "<td class=\"b_align_e\" class=\"amount_cell\">", $start);
     $end   = strpos($response,"</td>", $mid);
     $data  = substr($response, $mid, $end-$mid);
     $data  = floatval(preg_replace('/[^0-9\.]/', '', $data));
+    $valuation['value'] = $data;
 
-    if ($verbose) show($date." ".$data);
-    return $data;
+    // parse response for units
+    $start = strpos($response, "Total Number of Valuation Units to Date");
+    $mid   = strpos($response, "<td class=\"b_align_e\" class=\"amount_cell\">", $start);
+    $end   = strpos($response,"</td>", $mid);
+    $data  = substr($response, $mid, $end-$mid);
+    $data  = floatval(preg_replace('/[^0-9\.]/', '', $data));
+    $valuation['units'] = $data;
+
+    if ($verbose) show($valuation);
+    return $valuation;
 }
 
 // return complete list of transactions for trade history table

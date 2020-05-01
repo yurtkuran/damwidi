@@ -56,6 +56,10 @@ switch($mode){
         updatePerformanceData($verbose, $debug);
         break;
 
+    case 'updateSPKeyData':
+        updateSPKeyData($verbose, $debug);
+        break;
+
     case 'updateValueTable':
         updateValueTable($verbose, $debug);
         break;
@@ -165,8 +169,47 @@ switch($mode){
     case 'test2':
         if(ENV == 'development') retrieveIEXBatchData('amzn,spy', false, $verbose, $debug);
         break;
-    
+        
+    case 'keystats':
+        if(ENV == 'development' and isset($_GET['symbol'])) {
+
+            $symbol = $_GET['symbol'];
+            $URL  = iexURL;
+            $URL .= 'stock/'.$symbol.'/stats';
+            $URL .= '?token='.iexPK;
+        
+            if ($verbose) show($URL);
+        
+            $json = file_get_contents($URL);      //retrieve data
+            $data = json_decode($json,1);
+
+            if ($verbose) show($data);
+        } else {
+            show('not set');
+        }
+        break;
+
+    case 'accountDetails':
+        if(ENV == 'development') {
+
+            $URL  = iexURL.'account/metadata?token='.iexSK;
+                $json = file_get_contents($URL);      //retrieve data
+            show(json_decode($json,1));
+
+            $URL  = iexURL.'account/usage?token='.iexSK;
+            $json = file_get_contents($URL);      //retrieve data
+            show(json_decode($json,1));
+        } 
+    case 'bivioValuation':
+        if(ENV == 'development') {
+            $ch = bivioLogin($verbose);
+            returnBivioValue($ch, '2020-04-17', $verbose);
+        }
+    case 'returnCashBalance':
+        if(ENV == 'development') {
+            returnCashBalance('2020-03-01', $verbose, $debug);
+        }
     default:
-        // no valid mode supplied
+    // no valid mode supplied
 } 
 ?>

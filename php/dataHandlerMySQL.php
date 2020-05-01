@@ -148,6 +148,75 @@ function savePerformanceData($performanceData){
     }
 }
 
+// save key data to database
+function saveSPKeyData($symbol, $keyData){
+    $dbc = connect();
+
+    // prepare sql and bind parameters
+    $stmt = $dbc->prepare("UPDATE `sp_holdings` 
+                           SET     employees           = :employees,
+                                   marketcap           = :marketcap,
+                                   sharesOutstanding   = :sharesOutstanding,
+                                   sharesFloat	       = :sharesFloat,
+                                   ttmEPS	           = :ttmEPS,
+                                   peRatio	           = :peRatio,
+                                   beta	               = :beta,
+                                   avg10Volume	       = :avg10Volume,
+                                   avg30Volume	       = :avg30Volume,
+                                   week52change	       = :week52change,
+                                   week52high	       = :week52high,
+                                   week52low	       = :week52low,
+                                   day200MovingAvg	   = :day200MovingAvg,
+                                   day50MovingAvg	   = :day50MovingAvg,
+                                   year5ChangePercent  = :year5ChangePercent,
+                                   year2ChangePercent  = :year2ChangePercent,
+                                   year1ChangePercent  = :year1ChangePercent,
+                                   ytdChangePercent	   = :ytdChangePercent,
+                                   month6ChangePercent = :month6ChangePercent,
+                                   month3ChangePercent = :month3ChangePercent,
+                                   month1ChangePercent = :month1ChangePercent,
+                                   day30ChangePercent  = :day30ChangePercent,
+                                   day5ChangePercent   = :day5ChangePercent,
+                                   ttmDividendRate     = :ttmDividendRate,
+                                   dividendYield       = :dividendYield,
+                                   nextDividendDate    = :nextDividendDate,
+                                   exDividendDate      = :exDividendDate,
+                                   nextEarningsDate    = :nextEarningsDate
+                           WHERE   symbol = :symbol");
+
+    $stmt->bindParam(':symbol', $symbol);
+    $stmt->bindParam(':employees',           $keyData['employees']);
+    $stmt->bindParam(':marketcap',           $keyData['marketcap']);
+    $stmt->bindParam(':sharesOutstanding',   $keyData['sharesOutstanding']);
+    $stmt->bindParam(':sharesFloat',         $keyData['float']);
+    $stmt->bindParam(':ttmEPS',              $keyData['ttmEPS']);
+    $stmt->bindParam(':peRatio',             $keyData['peRatio']);
+    $stmt->bindParam(':beta',                $keyData['beta']);
+    $stmt->bindParam(':avg10Volume',         $keyData['avg10Volume']);
+    $stmt->bindParam(':avg30Volume',         $keyData['avg30Volume']);
+    $stmt->bindParam(':week52change',        $keyData['week52change']);
+    $stmt->bindParam(':week52high',          $keyData['week52high']);
+    $stmt->bindParam(':week52low',           $keyData['week52low']);
+    $stmt->bindParam(':day200MovingAvg',     $keyData['day200MovingAvg']);
+    $stmt->bindParam(':day50MovingAvg',      $keyData['day50MovingAvg']);
+    $stmt->bindParam(':year5ChangePercent',  $keyData['year5ChangePercent']);
+    $stmt->bindParam(':year2ChangePercent',  $keyData['year2ChangePercent']);
+    $stmt->bindParam(':year1ChangePercent',  $keyData['year1ChangePercent']);
+    $stmt->bindParam(':ytdChangePercent',    $keyData['ytdChangePercent']);
+    $stmt->bindParam(':month6ChangePercent', $keyData['month6ChangePercent']);
+    $stmt->bindParam(':month3ChangePercent', $keyData['month3ChangePercent']);
+    $stmt->bindParam(':month1ChangePercent', $keyData['month1ChangePercent']);
+    $stmt->bindParam(':day30ChangePercent',  $keyData['day30ChangePercent']);
+    $stmt->bindParam(':day5ChangePercent',   $keyData['day5ChangePercent']);
+    $stmt->bindParam(':ttmDividendRate',     $keyData['ttmDividendRate']);
+    $stmt->bindParam(':dividendYield',       $keyData['dividendYield']);
+    $stmt->bindParam(':nextDividendDate',    $keyData['nextDividendDate']);
+    $stmt->bindParam(':exDividendDate',      $keyData['exDividendDate']);
+    $stmt->bindParam(':nextEarningsDate',    $keyData['nextEarningsDate']);
+    $stmt->execute();
+}
+
+
 // saves transaction data scraped from bivio.com
 function saveTransactionData($transaction){
     $dbc = connect();
