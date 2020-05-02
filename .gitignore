@@ -12,9 +12,15 @@ tmp/*
 cookies/*
 
 #ignore data files & directories
-data/performanceData.json
+/data/performanceData.json
 data-etf/
 
 #ignore environment files
 .env
 php-includes/definedConstants.php
+
+#fav icons
+faviconGreenDown.ico
+faviconGreenUp.ico
+faviconRedDown.ico
+faviconRedUp.ico
