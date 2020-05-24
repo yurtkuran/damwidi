@@ -22,9 +22,11 @@ function returnDetails($verbose, $debug){
 // return IntraDay data
 function returnIntraDayData($verbose, $debug, $api = false){
     $sectors = loadSectors('SIK');
+    if($verbose) show('Complete Sector List:');
     if($verbose) show($sectors);
 
     $openPositions = returnOpenPositions(date("Y-m-d"));
+    if($verbose) show('Open Positions:');
     if($verbose) show($openPositions);
 
     // create symbol list
@@ -41,6 +43,11 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $heatMapData = array();
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
+
+        if( $symbol == 'BRK.B'){
+            $priceData[$symbol]['quote']['latestPrice'] = 180;
+        }
+
         $heatMapData[$sector['sector']]=array(
             "sector"        => $sector['sector'],
             "openPosition"  => $sector['shares']>0 ? true : false,

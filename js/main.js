@@ -237,40 +237,43 @@ function updatePortfolioTable(data) {
     // console.log(data);
 
     Object.keys(data).forEach(function (symbol) {
-        $('#last' + symbol).text(data[symbol]['last']);
-        $('#value' + symbol).text(data[symbol]['value']);
+        // escaple . (period) in symbols such as BRK.b
+        symbolID = symbol.search(/\./) > 0 ? symbol.replace('.', '\\.') : symbol;
+
+        $('#last' + symbolID).text(data[symbol]['last']);
+        $('#value' + symbolID).text(data[symbol]['value']);
 
         if (symbol != 'DAM') {
-            $('#change' + symbol).text(data[symbol]['changePercent'] + '% / ' + data[symbol]['change']);
+            $('#change' + symbolID).text(data[symbol]['changePercent'] + '% / ' + data[symbol]['change']);
         } else {
-            $('#change' + symbol).text(data[symbol]['changePercent'] + '%');
+            $('#change' + symbolID).text(data[symbol]['changePercent'] + '%');
         }
 
-        $('#valueChange' + symbol).text(data[symbol]['valueChange']);
+        $('#valueChange' + symbolID).text(data[symbol]['valueChange']);
 
         // format cells based on change (up, down or flat)
-        $('#change' + symbol).removeClass();
-        $('#change' + symbol).addClass('text-center');
-        $('#valueChange' + symbol).removeClass();
-        $('#valueChange' + symbol).addClass('text-right');
+        $('#change' + symbolID).removeClass();
+        $('#change' + symbolID).addClass('text-center');
+        $('#valueChange' + symbolID).removeClass();
+        $('#valueChange' + symbolID).addClass('text-right');
         switch (data[symbol]['tick']) {
             case 'UP':
-                $('#change' + symbol).addClass('table-success');
-                $('#change' + symbol).css('color', 'green');
-                $('#valueChange' + symbol).addClass('table-success');
-                $('#valueChange' + symbol).css('color', 'green');
+                $('#change' + symbolID).addClass('table-success');
+                $('#change' + symbolID).css('color', 'green');
+                $('#valueChange' + symbolID).addClass('table-success');
+                $('#valueChange' + symbolID).css('color', 'green');
                 break;
             case 'DOWN':
-                $('#change' + symbol).addClass('table-danger');
-                $('#change' + symbol).css('color', 'red');
-                $('#valueChange' + symbol).addClass('table-danger');
-                $('#valueChange' + symbol).css('color', 'red');
+                $('#change' + symbolID).addClass('table-danger');
+                $('#change' + symbolID).css('color', 'red');
+                $('#valueChange' + symbolID).addClass('table-danger');
+                $('#valueChange' + symbolID).css('color', 'red');
                 break;
             case 'ZERO':
-                $('#change' + symbol).addClass('table-default');
-                $('#change' + symbol).css('color', 'black');
-                $('#valueChange' + symbol).addClass('table-default');
-                $('#valueChange' + symbol).css('color', 'black');
+                $('#change' + symbolID).addClass('table-default');
+                $('#change' + symbolID).css('color', 'black');
+                $('#valueChange' + symbolID).addClass('table-default');
+                $('#valueChange' + symbolID).css('color', 'black');
                 break;
         }
     });
@@ -295,24 +298,29 @@ function displaySectorAllocation() {
 
 // add data to allocation table
 function updateAllocationTable(data, mode) {
+    console.log(data);
+
     if (mode === undefined) mode = 'relative';
     Object.keys(data).forEach(function (symbol) {
-        $('#value' + symbol).text(data[symbol]['currentValue']);
-        $('#change' + symbol).text(data[symbol]['change']);
-        $('#allocation' + symbol).text(data[symbol]['allocation']);
+        // escaple . (period) in symbols such as BRK.b
+        symbolID = symbol.search(/\./) > 0 ? symbol.replace('.', '\\.') : symbol;
+
+        $('#value' + symbolID).text(data[symbol]['currentValue']);
+        $('#change' + symbolID).text(data[symbol]['change']);
+        $('#allocation' + symbolID).text(data[symbol]['allocation']);
 
         if (mode == 'relative') {
-            $('#weight' + symbol).text(data[symbol]['weightPercent']);
-            $('#implied' + symbol).text(data[symbol]['impliedPercent']);
-            $('#impliedOverUnder' + symbol).text(data[symbol]['impliedOverUnderPercent']);
+            $('#weight' + symbolID).text(data[symbol]['weightPercent']);
+            $('#implied' + symbolID).text(data[symbol]['impliedPercent']);
+            $('#impliedOverUnder' + symbolID).text(data[symbol]['impliedOverUnderPercent']);
         } else {
-            $('#weight' + symbol).text(data[symbol]['weight']);
-            $('#implied' + symbol).text(data[symbol]['implied']);
-            $('#impliedOverUnder' + symbol).text(data[symbol]['impliedOverUnder']);
+            $('#weight' + symbolID).text(data[symbol]['weight']);
+            $('#implied' + symbolID).text(data[symbol]['implied']);
+            $('#impliedOverUnder' + symbolID).text(data[symbol]['impliedOverUnder']);
         }
 
         // format change text color based on value
-        $('#change' + symbol).css('color', changeColor(numeral(data[symbol]['change']).value()));
+        $('#change' + symbolID).css('color', changeColor(numeral(data[symbol]['change']).value()));
     });
 }
 

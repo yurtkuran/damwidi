@@ -187,7 +187,7 @@ switch($mode){
         } else {
             show('not set');
         }
-        break;
+        break;      
 
     case 'accountDetails':
         if(ENV == 'development') {

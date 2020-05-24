@@ -8,19 +8,15 @@ function updatePerformanceData($verbose, $debug){
 
     // load previous 2 years of data
     $startDate = date('Y-m-d', strtotime('-2 years'));
+    
+    // add and remove stock positions from performance MySQL table
+    refreshPerformanceTable($verbose);
 
     // load all sectors, stocks, index and fund
     $sectors = loadSectors('SKIF');
-    // show($sectors);
 
     // load timeframe details
     $timeFrames = json_decode(file_get_contents("./config/comparison.json"),1);
-
-    // load open positions, needed to add individual stock positions to the 'data_performance' table
-    $openPositions = returnOpenPositions(date("Y-m-d"));
-    // show($openPositions);
-
-    refreshPerformanceTable($verbose);
 
     // loop through all sectors
     foreach($sectors as $sector){
