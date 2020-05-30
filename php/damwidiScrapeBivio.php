@@ -6,6 +6,8 @@ function bivioLogin($verbose){
     $login_pass       = BIVIOPASSWORD;  
     $cookie_file_path = './cookies/cookies.txt';
 
+    // https://www.bivio.com/pub/login?c=aMTM_%21bMTQ_%21eZjABAWYxAQFmMgEBdgEx%21zYU5nX18_&f1=Secure%20Login&tz=240&v=2&x1=erol%40yurtkuran.net&x2=XqRh863M7tBAdf
+
     //login form action url
     $url       = "https://www.bivio.com/pub/login";
     $postinfo  = "tz=240";
@@ -19,8 +21,8 @@ function bivioLogin($verbose){
 
     $ch = curl_init();
     curl_setopt ($ch, CURLOPT_URL, $url);
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 1);
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, TRUE);
     curl_setopt ($ch, CURLOPT_SSLVERSION, 6);
     curl_setopt ($ch, CURLOPT_POSTFIELDS, $postinfo);

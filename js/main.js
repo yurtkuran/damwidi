@@ -458,7 +458,7 @@ function newTimeframeHighChart(chart, data, period) {
             color: 'rgba(0,0,0,0.3)',
             dashStyle: 'ShortDash',
             width: 2,
-            value: 11.5,
+            value: 12.5,
         });
     }
 
