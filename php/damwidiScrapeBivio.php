@@ -142,6 +142,16 @@ function updateBivioTransactions($verbose){
             }
             $transaction['Date'] = date('Y-m-d', strtotime($transaction['Date']));
             $transaction = array_merge( $transaction,  parseTransaction( $transaction['Description']) );
+
+            // revise certain symbols, e.g. BRKB -> BRK.B
+            switch ($transaction['symbol']){
+                case 'BRKB':
+                    $transaction['symbol'] = 'BRK.B';
+                    break;
+                default:
+                // symbol okay
+            }
+                
             if ($verbose) show($transaction);
             saveTransactionData($transaction); //update database
 
@@ -154,6 +164,9 @@ function updateBivioTransactions($verbose){
     $stmt->execute();
 
     // close cURL session
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt ($ch, CURLOPT_SSLVERSION, 3);
     curl_close($ch);
 
     // create notifications
@@ -276,5 +289,7 @@ function testScrape($verbose){
     $shareValue = $xpath->query("//div[@class='main_body']/table[2]/tr[3]/td[4]")[0]->nodeValue;
     show('share value: $'.$shareValue);
 }
+
+
 
 ?>

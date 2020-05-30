@@ -160,9 +160,7 @@ switch($mode){
     // test functions - used only in development
     case 'test':
         if(ENV == 'development') {
-            // touch('./data/test.txt');
-            save('./data/test.txt', 'test file write at: '.date('Y-m-d H:i:s'));  
-            show(date('Y-m-d H:i:s'));
+            show(UUiDv4());
         } 
         break;
 
@@ -200,16 +198,22 @@ switch($mode){
             $json = file_get_contents($URL);      //retrieve data
             show(json_decode($json,1));
         } 
+        break;
+
     case 'bivioValuation':
         if(ENV == 'development') {
             $ch = bivioLogin($verbose);
             returnBivioValue($ch, '2020-04-17', $verbose);
         }
+        break;
+
     case 'returnCashBalance':
         if(ENV == 'development') {
             returnCashBalance('2020-03-01', $verbose, $debug);
         }
+        break;
+
     default:
-    // no valid mode supplied
+        // no valid mode supplied
 } 
 ?>

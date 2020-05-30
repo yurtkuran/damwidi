@@ -116,6 +116,9 @@ function updateValueTable($verbose = false, $debug = false){
     if(!empty($dataLog)) save(UNSTICK_LOG, $dataLog);
 
     // close cURL session
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt ($ch, CURLOPT_SSLVERSION, 3);
     curl_close($ch);
 
     // create notifications

@@ -1,112 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>damwidi</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link id="favicon" rel="shortcut icon" href="./faviconDefault.ico" type="image/x-icon">
 
-        <!-- JS -->
-        <!-- jquery -->
-        <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+<head>
+    <title>damwidi</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link id="favicon" rel="shortcut icon" href="./faviconDefault.ico" type="image/x-icon">
 
-        <!-- bootstrap: Latest compiled and minified JavaScript -->
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <!-- JS -->
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.4.1.js"
+        integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
 
-        <!--numeral.js: javascript library for formatting and manipulating numbers -->
-        <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+    <!-- bootstrap: Latest compiled and minified JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
 
-        <!--moment.js: Parse, validate, manipulate, and display dates -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+    <!--numeral.js: javascript library for formatting and manipulating numbers -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 
-        <!-- moment-timezone.js: Parse and display moments in any timezone. -->
-        <script src="./js/moment-timezone-with-data.js"></script>
+    <!--moment.js: Parse, validate, manipulate, and display dates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
 
-        <!-- socket.io realtime framework server -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <!-- moment-timezone.js: Parse and display moments in any timezone. -->
+    <script src="./js/moment-timezone-with-data.js"></script>
 
-        <!-- Chart.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"></script>
+    <!-- socket.io realtime framework server -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
 
-        <!-- highcharts & highstock -->
-        <script src="https://code.highcharts.com/stock/highstock.js"></script>
-        <script src="https://code.highcharts.com/highcharts-more.js"></script>
-        <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
-        <script src="https://code.highcharts.com/stock/indicators/bollinger-bands.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"></script>
 
-        <!-- datatables  -->
-        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
+    <!-- highcharts & highstock -->
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
+    <script src="https://code.highcharts.com/stock/indicators/bollinger-bands.js"></script>
 
-        <!-- CSS  -->
-        <!-- bootstrap: CSS stylesheet -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!-- datatables  -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
 
-        <!-- fontawesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <!-- CSS  -->
+    <!-- bootstrap: CSS stylesheet -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-        <!-- google font CSS -->
-        <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400i,600i" rel="stylesheet">
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
-        <!-- datatables CSS, CDN -->
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css"/>
+    <!-- google font CSS -->
+    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400i,600i" rel="stylesheet">
 
-        <!-- app CSS -->
-        <link rel="stylesheet" href="./css/styles.css">
-        <link rel="stylesheet" href="./css/symbolDetails.css">
+    <!-- datatables CSS, CDN -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css" />
 
-        <!-- app scripts -->
-        <script src="./js/main.js"></script>
+    <!-- app CSS -->
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/symbolDetails.css">
 
-    </head>
+    <!-- app scripts -->
+    <script src="./js/main.js"></script>
 
-    <body>
-        <div class="mb-1">
-            <nav class="navbar navbar-expand-md navbar-light bg-light">
-                <span class="navbar-brand logo" href="">DAMWIDI</span>
+</head>
 
-                <div class="collapse navbar-collapse" id="mainMenu">
-                    <ul class="navbar-nav mr-auto">
-                        <li id="heatMap" class="nav-item active">
-                            <a class="nav-link" id="heatMap" href="#">Intraday</a>
-                        </li>
+<body>
+    <div class="mb-1">
+        <nav class="navbar navbar-expand-md navbar-light bg-light">
+            <span class="navbar-brand logo" href="">DAMWIDI</span>
 
-                        <li id="sectorAllocation" class="nav-item">
-                            <a class="nav-link" id="sectorAllocation" href="#">Sector Allocation</a>
-                        </li>
+            <div class="collapse navbar-collapse" id="mainMenu">
+                <ul class="navbar-nav mr-auto">
+                    <li id="heatMap" class="nav-item active">
+                        <a class="nav-link" id="heatMap" href="#">Intraday</a>
+                    </li>
 
-                        <li id="tradeHistory" class="nav-item">
-                            <a class="nav-link" id="tradeHistory" href="#">Trade History</a>
-                        </li>
+                    <li id="sectorAllocation" class="nav-item">
+                        <a class="nav-link" id="sectorAllocation" href="#">Sector Allocation</a>
+                    </li>
 
-                        <li id="earningsToday" class="nav-item">
-                            <a class="nav-link" id="earningsToday" href="#">Earnings Today</a>
-                        </li>
+                    <li id="tradeHistory" class="nav-item">
+                        <a class="nav-link" id="tradeHistory" href="#">Trade History</a>
+                    </li>
 
-                        <li id="charts" class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">Charts</a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" id="sectorTimeframe" href="#">Sector-Timeframe</a>
-                                <a class="dropdown-item" id="aboveBelow" href="#">Above-Below</a>
-                                <a class="dropdown-item" id="technicalCharts" href="#">Technical</a>
-                            </div>
-                        </li>
+                    <li id="earningsToday" class="nav-item">
+                        <a class="nav-link disabled" id="earningsToday" href="#">Earnings Today</a>
+                    </li>
 
-                    </ul>
-                    <ul class="navbar-nav ml-auto menuRightPadding">
-                        <li id="rawData" class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">Raw Data</a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" id="sp500" href="#">S&P 500 Companies</a>
-                                <a class="dropdown-item" id="basket" href="#">basket data</a>
-                                <a class="dropdown-item" id="performanceData" href="#">performance</a>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        </div>
-        <div id='realtime' class="container-fluid pt-2"></div>
-    </body>
+                    <li id="charts" class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-toggle="dropdown">Charts</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" id="sectorTimeframe" href="#">Sector-Timeframe</a>
+                            <a class="dropdown-item" id="aboveBelow" href="#">Above-Below</a>
+                            <a class="dropdown-item" id="technicalCharts" href="#">Technical</a>
+                        </div>
+                    </li>
+
+                </ul>
+                <ul class="navbar-nav ml-auto menuRightPadding">
+                    <li id="rawData" class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-toggle="dropdown">Raw Data</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" id="sp500" href="#">S&P 500 Companies</a>
+                            <a class="dropdown-item" id="basket" href="#">basket data</a>
+                            <a class="dropdown-item" id="performanceData" href="#">performance</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+    <div id='realtime' class="container-fluid pt-2"></div>
+</body>
 
 </html>

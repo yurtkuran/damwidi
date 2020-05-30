@@ -135,4 +135,9 @@ function writeAirTableRecord($table, $start = NULL, $duration = NULL){
     $record = $airtable->saveContent("damwidi", $details);
 }
 
+function UUIDv4(){
+    $url = 'https://www.uuidgenerator.net/api/version4';
+    return file_get_contents($url);
+}
+
 ?>
