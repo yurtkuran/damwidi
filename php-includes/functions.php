@@ -29,13 +29,19 @@ function curl_get_contents($url){
     // explainationn of cURL errors: https://curl.haxx.se/libcurl/c/libcurl-errors.html
 
     $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_HEADER, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSLVERSION,4); 
     $response = curl_exec($ch);
+
+    // show(curl_error($ch));
+
+    if ($response === FALSE) die(curl_error($ch));
 
     $data = array(
         'error'    => curl_errno($ch),
@@ -45,7 +51,7 @@ function curl_get_contents($url){
 
     curl_close($ch);
 
-    return $data;
+    return $data['response'];
 }
 
 #return a font awesome icon
