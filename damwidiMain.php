@@ -165,7 +165,7 @@ switch($mode){
         break;
 
     case 'test2':
-        if(ENV == 'development') retrieveIEXBatchData('amzn,spy', false, $verbose, $debug);
+        retrieveIEXBatchData('amzn,spy', false, $verbose, $debug);
         break;
         
     case 'keystats':
