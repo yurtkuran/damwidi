@@ -39,8 +39,6 @@ function curl_get_contents($url){
     curl_setopt($ch, CURLOPT_SSLVERSION,4); 
     $response = curl_exec($ch);
 
-    // show(curl_error($ch));
-
     if ($response === FALSE) die(curl_error($ch));
 
     $data = array(

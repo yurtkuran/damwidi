@@ -8,7 +8,6 @@ function retrieveIEXBatchData($symbol, $saveData = false, $verbose = false, $deb
 
     if ($verbose) show($URL);
 
-    // $json = file_get_contents($URL);      //retrieve data
     $json = curl_get_contents($URL);      //retrieve data
 
     $data = json_decode($json,1);
@@ -25,7 +24,7 @@ function retrieveIEXCompanyData($symbol, $saveData = false, $verbose = false, $d
 
     if ($verbose) show($URL);
 
-    $json = file_get_contents($URL);      //retrieve data
+    $json = curl_get_contents($URL);      //retrieve data
     $data = json_decode($json,1);
 
     if ($verbose) show($data);
