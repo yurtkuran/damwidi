@@ -91,7 +91,6 @@ function updateValueTable($verbose = false, $debug = false){
 
             // determine if unstick condition exists
             if($valueData['bivio_value'] <> $valueData['share_value'] or $debug){
-
                 // save data to array
                 if (array_key_exists($date, $dataLog)){
                     // key already exists, replace data
@@ -100,7 +99,14 @@ function updateValueTable($verbose = false, $debug = false){
                     // key does not exist, append data
                     $dataLog = array_merge(array($date => $valueData), $dataLog);
                 }
-                sendSMS("damwidi unstick", $date); // send SMS via IFTTT web service
+                $dataLog[$date]['unstickDelta'] = round($result['total_shares']*($valueData['bivio_value'] - $valueData['share_value']),2);  //positive: bivio NAV is higher than calculated NAV
+                foreach($allPositions as $position) {
+                    $dataLog[$date]['positions'][$position] = $historicalData['alphaVantage'][$position][$date]['close'];
+                }
+
+                $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
+
+                sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service
             }
         }
 
