@@ -67,25 +67,46 @@ function updateValueTable($verbose = false, $debug = false){
             $valueData['date']          = $date;
             $valueData['SPY']           = $historicalSPYData[$date]['close'];
             $valueData['cash']          = returnCashBalance($date);
-            $valueData['market_value']  = $marketValue['close'];
-            $valueData['account_value'] = $valueData['cash'] + $valueData['market_value'];
             $valueData['payments']      = returnPayments($date);
             $valueData['bivio_value']   = round($valuation['value'],6);
 
+            // determine share count
             if ($firstRecord) {
                 $firstRecord = false;
                 $totalShares = $valueData['payments']/initialShareValue;
                 $valueData['total_shares'] = $totalShares;
             } else {
                 $totalShares = $valuation['units'];
-                $shareValue  = $valueData['account_value']/$totalShares;
                 $valueData['total_shares'] = round($valuation['units'],6);
             }
-            $valueData['share_value']   = round($shareValue,6);
-            $valueData['open']          = ($valueData['cash'] + $marketValue['open'])  / $totalShares;
-            $valueData['high']          = ($valueData['cash'] + $marketValue['high'])  / $totalShares;
-            $valueData['low']           = ($valueData['cash'] + $marketValue['low'])   / $totalShares;
-            $valueData['close']         = ($valueData['cash'] + $marketValue['close']) / $totalShares;
+
+            // determine which datasource to use
+            $unstickError = null;
+            foreach(array_keys($marketValue) as $source){
+                $shareValue  = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,6);
+
+                if (abs($shareValue - $valueData['bivio_value']) < $unstickError || $unstickError == null) {
+                    $unstickError = abs($shareValue - $valueData['bivio_value'])*$valueData['total_shares'] ;
+                    $provider     = $source;
+                }
+
+                if ($verbose) show($date.' - '.$provider.' - '.$unstickError);
+
+                if ($unstickError == 0) break;
+            }
+            
+            $valueData['market_value']  = $marketValue[$provider]['close'];
+            $valueData['account_value'] = $marketValue[$provider]['close'] + $valueData['cash'];
+            $valueData['share_value']   = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,6);
+            
+            $valueData['open']          = ($valueData['cash'] + $marketValue[$provider]['open'])  / $totalShares;
+            $valueData['high']          = ($valueData['cash'] + $marketValue[$provider]['high'])  / $totalShares;
+            $valueData['low']           = ($valueData['cash'] + $marketValue[$provider]['low'])   / $totalShares;
+            $valueData['close']         = ($valueData['cash'] + $marketValue[$provider]['close']) / $totalShares;
+            
+            $valueData['source']        = $provider;
+
+            if ($verbose) show($date.' - '.$provider);
 
             saveValueData($valueData); // write data to database
 
@@ -100,9 +121,11 @@ function updateValueTable($verbose = false, $debug = false){
                     $dataLog = array_merge(array($date => $valueData), $dataLog);
                 }
                 $dataLog[$date]['unstickDelta'] = round($result['total_shares']*($valueData['bivio_value'] - $valueData['share_value']),2);  //positive: bivio NAV is higher than calculated NAV
+                $dataLog[$date]['positions']['provider']= $provider;
                 foreach($allPositions as $position) {
-                    $dataLog[$date]['positions'][$position] = $historicalData['alphaVantage'][$position][$date]['close'];
+                    $dataLog[$date]['positions'][$position] = $historicalData[$provider][$position][$date]['close'];
                 }
+                
 
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
 
@@ -169,20 +192,30 @@ function returnCashBalance($date, $verbose = false, $debug = false){
 // return market vallue H/O/L/C
 function returnMarketValue($date, $historicalData){
     $openPositions = returnOpenPositions($date);
-    $historicalData = $historicalData['alphaVantage'];
 
-    $marketValue = array(
-        'open'    => 0,
-        'high'    => 0,
-        'low'     => 0,
-        'close'   => 0,
-    );
-    foreach($openPositions as $symbol => $data){
-        $marketValue['open']  += $data['shares']*$historicalData[$symbol][$date]['open'];
-        $marketValue['high']  += $data['shares']*$historicalData[$symbol][$date]['high'];
-        $marketValue['low']   += $data['shares']*$historicalData[$symbol][$date]['low'];
-        $marketValue['close'] += $data['shares']*$historicalData[$symbol][$date]['close'];
+    // list of data providers
+    $dataProviders = array_keys($historicalData);
+
+    // $historicalData = $historicalData['alphaVantage'];
+
+    foreach($dataProviders as $provider){
+
+        $marketValue[$provider] = array(
+            'open'    => 0,
+            'high'    => 0,
+            'low'     => 0,
+            'close'   => 0,
+        );
+        foreach($openPositions as $symbol => $data){
+            if (array_key_exists($symbol, $historicalData[$provider])){
+                $marketValue[$provider]['open']  += $data['shares']*$historicalData[$provider][$symbol][$date]['open'];
+                $marketValue[$provider]['high']  += $data['shares']*$historicalData[$provider][$symbol][$date]['high'];
+                $marketValue[$provider]['low']   += $data['shares']*$historicalData[$provider][$symbol][$date]['low'];
+                $marketValue[$provider]['close'] += $data['shares']*$historicalData[$provider][$symbol][$date]['close'];
+            }
+        }
     }
+
     return $marketValue;
 }
 

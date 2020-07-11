@@ -245,12 +245,12 @@ function saveValueData($valueData){
         $stmt = $dbc->prepare("UPDATE `data_value`
                                SET   `SPY` = :SPY, `cash` = :cash, `market_value` = :market_value, `account_value` = :account_value, `payments` = :payments,
                                      `total_shares` = :total_shares, `share_value` = :share_value, `bivio_value` = :bivio_value,
-                                     `open` = :open, `high` = :high, `low` = :low, `close` = :close
+                                     `open` = :open, `high` = :high, `low` = :low, `close` = :close, `source` = :source
                                WHERE `date` = :date");
     } else {
         //date not found, insert new record
-        $stmt = $dbc->prepare("INSERT INTO `data_value` (`date`, `SPY`, `cash`, `market_value`, `account_value`, `payments`, `total_shares`, `share_value`, `bivio_value`, `open`, `high`, `low`, `close`)
-                               VALUES (:date, :SPY, :cash, :market_value, :account_value, :payments, :total_shares, :share_value, :bivio_value, :open, :high, :low, :close)");
+        $stmt = $dbc->prepare("INSERT INTO `data_value` (`date`, `SPY`, `cash`, `market_value`, `account_value`, `payments`, `total_shares`, `share_value`, `bivio_value`, `open`, `high`, `low`, `close`, `source`)
+                               VALUES (:date, :SPY, :cash, :market_value, :account_value, :payments, :total_shares, :share_value, :bivio_value, :open, :high, :low, :close, :source)");
     }
     $stmt->bindParam(':date',          $valueData['date']);
     $stmt->bindParam(':SPY',           $valueData['SPY']);
@@ -265,6 +265,7 @@ function saveValueData($valueData){
     $stmt->bindValue(':high',          $valueData['high']);
     $stmt->bindValue(':low',           $valueData['low']);
     $stmt->bindValue(':close',         $valueData['close']);
+    $stmt->bindValue(':source',        $valueData['source']);
     $stmt->execute();
 }
 

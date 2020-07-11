@@ -4,7 +4,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
     if ($verbose) show("get historical data \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     // list of data providers
-    $dataProviders = array('alphaVantage');
+    $dataProviders = array('alphaVantage', 'barChart');
 
     // convert to array if single symbol
     $symbols = (is_array($symbols) ? $symbols : array($symbols));
