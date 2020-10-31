@@ -108,7 +108,7 @@ function updateValueTable($verbose = false, $debug = false){
 
             if ($verbose) show($date.' - '.$provider);
 
-            // saveValueData($valueData); // write data to database
+            saveValueData($valueData); // write data to database
 
             // determine if unstick condition exists - in other words, when the bivio account value does not equal the calculated account value
             if($valueData['bivio_value'] <> $valueData['share_value'] or $debug){
@@ -123,11 +123,6 @@ function updateValueTable($verbose = false, $debug = false){
                 $dataLog[$date]['unstickDelta'] = round($result['total_shares']*($valueData['bivio_value'] - $valueData['share_value']),2);  //positive: bivio NAV is higher than calculated NAV
                 $dataLog[$date]['bivio_account_value'] = round($result['total_shares']*$valueData['bivio_value'],2);
 
-                // add close prices to log file
-                // foreach($allPositions as $position) {
-                //     $dataLog[$date]['positions'][$position]['close'] = $historicalData[$provider][$position][$date]['close'];
-                // }
-
                 // add close price share qty to log file
                 $openPositions = returnOpenPositions($date);
                 foreach($openPositions as $symbol => $data){
@@ -137,7 +132,7 @@ function updateValueTable($verbose = false, $debug = false){
             
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
 
-                // sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service
+                sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service
             }
         }
 
