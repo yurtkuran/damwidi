@@ -134,6 +134,10 @@ switch($mode){
         displayUnstickLog();
         break;
 
+    case 'returnUnstickLog':
+        echo json_encode(returnUnstickLogData());
+        break;
+
     case 'bivioUnstick':                // show value DB records where the calculated share value does not equal the bivio share value
         bivioUnstick();
         break;
@@ -165,7 +169,7 @@ switch($mode){
         break;
 
     case 'test2':
-        if(ENV == 'development') retrieveIEXBatchData('amzn,spy', false, $verbose, $debug);
+        if(ENV == 'development') retrieveIEXBatchData('aapl,xlsr,xout', false, $verbose, $debug);
         break;
         
     case 'keystats':
@@ -191,7 +195,7 @@ switch($mode){
         if(ENV == 'development') {
 
             $URL  = iexURL.'account/metadata?token='.iexSK;
-                $json = file_get_contents($URL);      //retrieve data
+            $json = file_get_contents($URL);      //retrieve data
             show(json_decode($json,1));
 
             $URL  = iexURL.'account/usage?token='.iexSK;
