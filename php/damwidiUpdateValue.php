@@ -211,10 +211,10 @@ function returnMarketValue($date, $historicalData){
         );
         foreach($openPositions as $symbol => $data){
             if (array_key_exists($symbol, $historicalData[$provider])){
-                $marketValue[$provider]['open']  += $data['shares']*$historicalData[$provider][$symbol][$date]['open'];
-                $marketValue[$provider]['high']  += $data['shares']*$historicalData[$provider][$symbol][$date]['high'];
-                $marketValue[$provider]['low']   += $data['shares']*$historicalData[$provider][$symbol][$date]['low'];
-                $marketValue[$provider]['close'] += $data['shares']*$historicalData[$provider][$symbol][$date]['close'];
+                $marketValue[$provider]['open']  += $data['shares']*round($historicalData[$provider][$symbol][$date]['open']  ,2);
+                $marketValue[$provider]['high']  += $data['shares']*round($historicalData[$provider][$symbol][$date]['high']  ,2);
+                $marketValue[$provider]['low']   += $data['shares']*round($historicalData[$provider][$symbol][$date]['low']   ,2);
+                $marketValue[$provider]['close'] += $data['shares']*round($historicalData[$provider][$symbol][$date]['close'] ,2);
             }
         }
     }

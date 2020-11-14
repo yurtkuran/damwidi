@@ -96,7 +96,7 @@ function createHeatMapData($heatMapData, $verbose){
     foreach($heatMapData as $sector => $sectorData){
         $labels[$i] = $sector;
 
-        $dataset['data'][$i]        = $sectorData['gain'];
+        $dataset['data'][$i]        = round($sectorData['gain'],2);
         $dataset['borderWidth'][$i] = 1;
 
         if($sectorData['gain'] < 0) {
@@ -249,14 +249,16 @@ function damwidiGain($heatMapData, $verbose){
     $damwidiValue = loadDamdidiValue(1);
 
     $heatMapData['DAM'] = array(
-        "sector"        => 'DAM',
-        "openPosition"  => true,
-        "shares"        => (float)$damwidiValue[0]['total_shares'],
-        "last"          => $last,
-        "currentValue"  => $last,
-        "prevClose"     => (float)$damwidiValue[0]['bivio_value']*$damwidiValue[0]['total_shares'],
-        "gain"          => (float)calculateGain($last, $damwidiValue[0]['bivio_value']*$damwidiValue[0]['total_shares']),
-        "lastRefreshed" => $lastRefreshed
+        "sector"         => 'DAM',
+        "openPosition"   => true,
+        "shares"         => (float)$damwidiValue[0]['total_shares'],
+        "last"           => $last,
+        "currentValue"   => $last,
+        "prevClose"      => (float)$damwidiValue[0]['bivio_value']*$damwidiValue[0]['total_shares'],
+        "gain"           => (float)calculateGain($last, $damwidiValue[0]['bivio_value']*$damwidiValue[0]['total_shares']),
+        "currShareValue" => (float)$last/$damwidiValue[0]['total_shares'],
+        "prevShareValue" => $damwidiValue[0]['share_value'],
+        "lastRefreshed"  => $lastRefreshed
     );
 
     return $heatMapData;
