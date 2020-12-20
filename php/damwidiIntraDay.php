@@ -54,6 +54,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
             "prevClose"     => $sector['previous'],
             "gain"          => calculateGain($priceData[$symbol]['quote']['latestPrice'], $priceData[$symbol]['quote']['previousClose']),
             "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['quote']['latestUpdate']/1000),
+            "description"   => $sector['description']
         );
     }
 
@@ -64,12 +65,14 @@ function returnIntraDayData($verbose, $debug, $api = false){
     uasort($heatMapData, function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
     if($verbose) show($heatMapData);
 
-    $intraDayData = array(
-        'time'            => $heatMapData['DAM']['lastRefreshed'],
-        'graphHeatMap'    => createHeatMapData($heatMapData, $verbose),
-        'portfolioTable'  => createPortfolioData($heatMapData, $verbose),
-        'allocationTable' => createAllocationData($heatMapData, $verbose),
-        'intraDay'        => $heatMapData
+    $intraDayData = (object) array(
+        'time'             => $heatMapData['DAM']['lastRefreshed'],
+        'graphHeatMap'     => createHeatMapData($heatMapData, $verbose),
+        'portfolioTable'   => createPortfolioData($heatMapData, $verbose),
+        'allocationTable'  => createAllocationData($heatMapData, $verbose),
+        'performanceData'  => createPerformacneData($heatMapData, $openPositions, $verbose),
+        'heatMapData'      => createPortfolioData_v4($heatMapData, $verbose),
+        'intraDay'         => $heatMapData
     );
 
     if($verbose) show($intraDayData);
@@ -200,6 +203,54 @@ function createAllocationData($heatMapData, $verbose){
     return $allocationData;
 }
 
+// build data object for performance graph
+function createPerformacneData($heatMapData, $positions, $verbose){
+    $data        = array();
+    $categories  = array();
+    $seriesPrice = array();
+    $seriesSPY   = array();
+    $seriesDate  = array();
+
+    // sort openpositions alphabetically
+    ksort($positions, SORT_STRING);
+
+    // loop through open positions
+    foreach($positions as $position => $positionData){
+        $positionBasis = loadPositionBasis($position);
+        $spyBasis = loadHistoricalBasis('SPY',$positionBasis['date'])['close'];
+
+        $data[$position]['symbol']     = $position;
+        $data[$position]['dateBasis']  = $positionBasis['date'];
+        $data[$position]['priceBasis'] = floatval(number_format($positionBasis['price'],2));
+        $data[$position]['priceLast']  = $heatMapData[$position]['last'];
+        $data[$position]['priceGain']  = round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2);
+        $data[$position]['spyBasis']   = floatval(number_format($spyBasis,2));        
+        $data[$position]['spyLast']    = $heatMapData['SPY']['last'];
+        $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
+
+        // create categories array
+        array_push($categories, $position);
+
+        // create price gain array
+        array_push($seriesPrice, $data[$position]['priceGain']);
+
+        // create spy gain array
+        array_push($seriesSPY, $data[$position]['spyGain']);
+
+        // create date array
+        array_push($seriesDate, $data[$position]['dateBasis']);
+    }
+
+    return array(
+        'data'        => $data, 
+        'categories'  => $categories, 
+        'seriesPrice' => $seriesPrice, 
+        'seriesSPY'   => $seriesSPY,
+        'seriesDate'  => $seriesDate
+    );
+    
+}
+
 // create data used in the intraday portfilio table
 function createPortfolioData($heatMapData, $verbose){
     $portfolioData = array();
@@ -230,6 +281,15 @@ function createPortfolioData($heatMapData, $verbose){
                     $portfolioData[$sector]['tick'] = 'ZERO';
             }
         }
+    }
+    return $portfolioData;
+}
+
+// create data used in the intraday portfilio table for v4 of site
+function createPortfolioData_v4($heatMapData, $verbose){
+    $portfolioData = array();
+    foreach($heatMapData as $symbol => $data){
+        if($data['shares']>0) array_push($portfolioData, $data);
     }
     return $portfolioData;
 }

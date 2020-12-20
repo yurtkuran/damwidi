@@ -157,8 +157,7 @@ switch($mode){
     case 'environment':
         show(php_uname());
         show(stristr(php_uname(),'ubuntu') ? 'local' : 'host' );
-        writeAirTableRecord('test', 1, 2);
-        phpinfo(INFO_GENERAL);
+        phpinfo();
         break;
     
     // test functions - used only in development
@@ -169,7 +168,7 @@ switch($mode){
         break;
 
     case 'test2':
-        if(ENV == 'development') retrieveIEXBatchData('aapl,xlsr,xout', false, $verbose, $debug);
+        if(ENV == 'development') retrieveIEXBatchData('spy', false, $verbose, $debug);
         break;
         
     case 'keystats':

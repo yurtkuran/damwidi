@@ -97,7 +97,10 @@ function updateValueTable($verbose = false, $debug = false){
             
             $valueData['market_value']  = $marketValue[$provider]['close'];
             $valueData['account_value'] = $marketValue[$provider]['close'] + $valueData['cash'];
-            $valueData['share_value']   = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,6);
+            $valueData['share_value']   = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,8);
+            $valueData['share_value']   = round($valueData['share_value'],7);
+            $valueData['share_value']   = round($valueData['share_value'],6);
+            // $valueData['share_value']   = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,6);
             
             $valueData['open']          = ($valueData['cash'] + $marketValue[$provider]['open'])  / $totalShares;
             $valueData['high']          = ($valueData['cash'] + $marketValue[$provider]['high'])  / $totalShares;
@@ -132,7 +135,12 @@ function updateValueTable($verbose = false, $debug = false){
             
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
 
-                sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service
+                sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service 
+            } else {
+                if (array_key_exists($date, $dataLog)){
+                    // key already exists, remove data
+                    unset($dataLog[$date]);
+                }
             }
         }
 
@@ -211,10 +219,10 @@ function returnMarketValue($date, $historicalData){
         );
         foreach($openPositions as $symbol => $data){
             if (array_key_exists($symbol, $historicalData[$provider])){
-                $marketValue[$provider]['open']  += $data['shares']*round($historicalData[$provider][$symbol][$date]['open']  ,2);
-                $marketValue[$provider]['high']  += $data['shares']*round($historicalData[$provider][$symbol][$date]['high']  ,2);
-                $marketValue[$provider]['low']   += $data['shares']*round($historicalData[$provider][$symbol][$date]['low']   ,2);
-                $marketValue[$provider]['close'] += $data['shares']*round($historicalData[$provider][$symbol][$date]['close'] ,2);
+                $marketValue[$provider]['open']  += $data['shares']*round($historicalData[$provider][$symbol][$date]['open']  ,3);
+                $marketValue[$provider]['high']  += $data['shares']*round($historicalData[$provider][$symbol][$date]['high']  ,3);
+                $marketValue[$provider]['low']   += $data['shares']*round($historicalData[$provider][$symbol][$date]['low']   ,3);
+                $marketValue[$provider]['close'] += $data['shares']*round($historicalData[$provider][$symbol][$date]['close'] ,3);
             }
         }
     }

@@ -72,6 +72,36 @@ function loadDamwidiBasket(){
     return $result;
 }
 
+function loadPositionBasis($symbol){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT 
+                                 `symbol`,
+                                 `transaction_date` AS 'date',
+                                 abs(`amount` / `shares`) AS 'price'  
+                           FROM  `data_transactions` 
+                           WHERE `symbol` = :symbol AND `type` = 'B' 
+                           ORDER BY `transaction_date` DESC
+                           LIMIT 1 ");
+
+    $stmt->bindParam(':symbol', $symbol);
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+
+    return $result[0];
+}
+
+function loadHistoricalBasis($symbol, $date){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol AND `date` = :date ");
+
+    $stmt->bindParam(':symbol', $symbol);
+    $stmt->bindParam(':date',   $date);
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+
+    return $result[0];
+}
+
 // save damwidi basket details
 function saveDamwidiBasket($symbol, $description, $exists = FALSE){
     $dbc = connect();
