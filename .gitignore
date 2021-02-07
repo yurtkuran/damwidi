@@ -12,7 +12,7 @@ tmp/*
 cookies/*
 
 #ignore data files & directories
-./data/performanceData.json
+data/performanceData.json
 data-etf/
 
 #ignore environment files

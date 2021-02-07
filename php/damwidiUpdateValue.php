@@ -251,11 +251,13 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
                     // symbol in array
                     $openPositions[$transaction['symbol']]['shares']   += $transaction['shares'];
                     $openPositions[$transaction['symbol']]['purchase'] += $transaction['amount'];
+                    array_push($openPositions[$transaction['symbol']]['purchases'], $transaction['transaction_date'] );
                 } else {
                     // new symbol
                     $openPositions[$transaction['symbol']] = array(
                         'shares'    => $transaction['shares'],
                         'purchase'  => $transaction['amount'],
+                        'purchases' => array($transaction['transaction_date']),
                         'dividend'  => 0
                     );
                 }

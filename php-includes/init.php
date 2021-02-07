@@ -28,6 +28,8 @@ include_once 'php/damwidiUtilities.php';
 
 include_once 'php/dataHandlerAlphaVantage.php';
 include_once 'php/dataHandlerBarChart.php';
+include_once 'php/dataHandlerEodHistorical.php';
+include_once 'php/dataHandlerFinnhub.php';
 include_once 'php/dataHandlerHistorical.php';
 include_once 'php/dataHandlerIEX.php';
 include_once 'php/dataHandlerMySQL.php';

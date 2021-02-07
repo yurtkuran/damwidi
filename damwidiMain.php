@@ -105,8 +105,12 @@ switch($mode){
 
     case 'retrievePriceDataBarChart':
         $startDate = date('Y-m-d', strtotime('-2 years'));
-        // $startDate = date('Y-m-d', strtotime('1/1/2018'));
         retrievePriceDataBarChart('SPY', 'daily', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
+        break;
+
+    case 'retrievePriceEodHistorical':
+        $startDate = date('Y-m-d', strtotime('-5 days'));
+        retrievePriceEodHistorical('SPY', 'D', $startDate, $loadNewData = true, $saveData = false, $verbose, $debug);
         break;
 
     case 'retrieveSectorWeights':

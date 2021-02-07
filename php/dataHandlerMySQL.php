@@ -72,18 +72,20 @@ function loadDamwidiBasket(){
     return $result;
 }
 
-function loadPositionBasis($symbol){
+function loadPositionBasis($symbol, $date){
     $dbc = connect();
     $stmt = $dbc->prepare("SELECT 
                                  `symbol`,
                                  `transaction_date` AS 'date',
+                                 `shares`,
                                  abs(`amount` / `shares`) AS 'price'  
                            FROM  `data_transactions` 
-                           WHERE `symbol` = :symbol AND `type` = 'B' 
+                           WHERE `symbol` = :symbol AND `transaction_date` = :date AND `type` = 'B' 
                            ORDER BY `transaction_date` DESC
                            LIMIT 1 ");
 
     $stmt->bindParam(':symbol', $symbol);
+    $stmt->bindParam(':date',   $date);
     $stmt->execute();
     $result = $stmt->fetchall(PDO::FETCH_ASSOC);
 

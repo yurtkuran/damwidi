@@ -216,17 +216,29 @@ function createPerformacneData($heatMapData, $positions, $verbose){
 
     // loop through open positions
     foreach($positions as $position => $positionData){
-        $positionBasis = loadPositionBasis($position);
+        $positionBasis = loadPositionBasis($position, end($positionData['purchases']));
         $spyBasis = loadHistoricalBasis('SPY',$positionBasis['date'])['close'];
 
         $data[$position]['symbol']     = $position;
         $data[$position]['dateBasis']  = $positionBasis['date'];
-        $data[$position]['priceBasis'] = floatval(number_format($positionBasis['price'],2));
+        $data[$position]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
         $data[$position]['priceLast']  = $heatMapData[$position]['last'];
         $data[$position]['priceGain']  = round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2);
         $data[$position]['spyBasis']   = floatval(number_format($spyBasis,2));        
         $data[$position]['spyLast']    = $heatMapData['SPY']['last'];
         $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
+
+        // create array of all open purchases
+        for ($i=0; $i < count($positionData['purchases']); $i++) {
+            $positionBasis = loadPositionBasis($position, $positionData['purchases'][$i]);
+            $spyBasis      = loadHistoricalBasis('SPY',$positionData['purchases'][$i])['close'];
+
+            $data[$position]['purchases'][$i]['dateBasis']  = $positionData['purchases'][$i];
+            $data[$position]['purchases'][$i]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
+            $data[$position]['purchases'][$i]['priceGain']  = round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2);
+            $data[$position]['purchases'][$i]['spyBasis']   = floatval(number_format($spyBasis,2));    
+            $data[$position]['purchases'][$i]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
+        }
 
         // create categories array
         array_push($categories, $position);
@@ -240,7 +252,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         // create date array
         array_push($seriesDate, $data[$position]['dateBasis']);
     }
-
+    // show('test');
     return array(
         'data'        => $data, 
         'categories'  => $categories, 

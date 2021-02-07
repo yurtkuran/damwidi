@@ -4,7 +4,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
     if ($verbose) show("get historical data \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     // list of data providers
-    $dataProviders = array('alphaVantage', 'barChart'); 
+    $dataProviders = array('alphaVantage'); 
 
     // convert to array if single symbol
     $symbols = (is_array($symbols) ? $symbols : array($symbols));
@@ -28,6 +28,12 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                         break;
                     case 'barChart':
                         $historicalData  = retrievePriceDataBarChart($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+                        break;
+                    case 'finnHub':
+                        $historicalData  = retrievePriceFinnhub($symbol, 'D', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+                        break;
+                    case 'eod':
+                        $historicalData  = retrievePriceEodHistorical($symbol, 'D', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
                         break;
                 }
                 if (array_key_exists('seriesData', $historicalData)) { // determine if seriesData exists
