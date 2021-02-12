@@ -65,7 +65,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
     uasort($heatMapData, function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
     if($verbose) show($heatMapData);
 
-    $intraDayData = (object) array(
+    $intraDayData =  array(
         'time'             => $heatMapData['DAM']['lastRefreshed'],
         'graphHeatMap'     => createHeatMapData($heatMapData, $verbose),
         'portfolioTable'   => createPortfolioData($heatMapData, $verbose),
