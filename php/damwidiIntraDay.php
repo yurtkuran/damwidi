@@ -127,7 +127,7 @@ function createHeatMapData($heatMapData, $verbose){
 function createAllocationData($heatMapData, $verbose){
     
     // load data
-    $query      = 'SELECT * FROM `data_performance` WHERE INSTR(\'CIS\', `type`) ORDER BY FIELD(`type`, "C", "I", "S"), `weight` DESC';
+    $query      = 'SELECT * FROM `data_performance` WHERE INSTR(\'CIS\', `type`) ORDER BY FIELD(`type`, "C", "I", "S"), `sector`, `weight` DESC';
     $sectors    = loadSectors(null, $query);                    // load data for SPY, cash, sectors and stocks
     $stocks     = loadRawQuery('CALL stock_allocation()');      // load stock-to-sector data
     $stocksData = loadSectors('K');                             // load data for stocks
