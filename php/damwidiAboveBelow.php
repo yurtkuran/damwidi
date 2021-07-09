@@ -7,6 +7,12 @@ function returnAboveBelow($verbose = false, $debug = false){
     // load all sectors, index and fund
     $sectors = loadSectors('SI');
 
+    // filter out indicies except for SPY
+    $sectors = array_filter($sectors, function($data, $symbol) {
+        // show($data);
+        return ($data['type'] == 'I' and  $data['sector'] == 'SPY') || ($data['type'] == 'S');
+    }, ARRAY_FILTER_USE_BOTH);
+
     // load timeframe details
     $timeFrame = $_GET['timeframe'];
     if ($timeFrame != 'ytd') {
