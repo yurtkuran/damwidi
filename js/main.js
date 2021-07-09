@@ -437,8 +437,14 @@ function newTimeframeChart(ctx, data, period) {
 // create timeframe-vs-sector bar chart using HighCharts API
 function newTimeframeHighChart(chart, data, period) {
     data = JSON.parse(data);
+    console.log(data);
+    console.log(data.labels);
+    console.log(data.datasets[0].data);
+    idxSPY = data.labels.findIndex((symbol) => symbol === 'SPY');
+    console.log(idxSPY);
+
     valueDAM = numeral(data.datasets[0].data[0]).value();
-    valueSPY = numeral(data.datasets[0].data[1]).value();
+    valueSPY = numeral(data.datasets[0].data[idxSPY]).value();
     arrowType = valueDAM > valueSPY ? 'fa-arrow-circle-up' : 'fa-arrow-circle-down';
     arrowColor = valueDAM >= 0 ? 'arrowGreen' : 'arrowRed';
 
@@ -449,7 +455,7 @@ function newTimeframeHighChart(chart, data, period) {
             color: 'rgba(0,0,0,0.3)',
             dashStyle: 'ShortDash',
             width: 2,
-            value: 1.5,
+            value: idxSPY + 0.5,
         },
     ];
 
@@ -458,7 +464,7 @@ function newTimeframeHighChart(chart, data, period) {
             color: 'rgba(0,0,0,0.3)',
             dashStyle: 'ShortDash',
             width: 2,
-            value: 12.5,
+            value: idxSPY + 11.5,
         });
     }
 
