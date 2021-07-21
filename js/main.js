@@ -437,11 +437,11 @@ function newTimeframeChart(ctx, data, period) {
 // create timeframe-vs-sector bar chart using HighCharts API
 function newTimeframeHighChart(chart, data, period) {
     data = JSON.parse(data);
-    console.log(data);
-    console.log(data.labels);
-    console.log(data.datasets[0].data);
+    // console.log(data);
+    // console.log(data.labels);
+    // console.log(data.datasets[0].data);
     idxSPY = data.labels.findIndex((symbol) => symbol === 'SPY');
-    console.log(idxSPY);
+    // console.log(idxSPY);
 
     valueDAM = numeral(data.datasets[0].data[0]).value();
     valueSPY = numeral(data.datasets[0].data[idxSPY]).value();

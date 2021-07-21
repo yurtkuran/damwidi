@@ -8,9 +8,9 @@ table {
 
 .logo {
     font-family: 'Josefin Sans', sans-serif;
-    font-size:   22px;
+    font-size: 22px;
     font-weight: 600;
-    font-style:  italic;
+    font-style: italic;
     text-shadow: 1px 1px 1px #aaa;
 }
 
@@ -28,12 +28,12 @@ canvas {
     border-bottom: 2pt solid black;
 }
 
-.table tbody>tr.rowSummary.rowSummary>td {
+.table tbody > tr.rowSummary.rowSummary > td {
     border-bottom: 1px dotted grey;
 }
 
 .rowSummary {
-    /* /* /* border-top: 1pt solid  rgb(200, 200, 200); */ */ */
+    /* border-top: 1pt solid  rgb(200, 200, 200); */
     color: rgb(100, 100, 100);
     font-weight: bold;
 }
@@ -50,7 +50,8 @@ canvas {
     padding-left: 50px;
 }
 
-.tradeHistory, .basket {
+.tradeHistory,
+.basket {
     padding-bottom: 2px;
     padding-top: 20px;
     padding-right: 50px;
@@ -76,7 +77,7 @@ canvas {
 }
 
 .menuRightPadding {
-    padding-right: 100px
+    padding-right: 100px;
 }
 
 .allocationButton {
@@ -85,7 +86,7 @@ canvas {
 }
 
 #mainMenu .navbar-nav li.active > a {
-	color: rgb(119, 13, 13);
+    color: rgb(119, 13, 13);
 }
 
 a.earnings {
@@ -93,7 +94,7 @@ a.earnings {
     text-decoration: none;
 }
 
-a.allocation-link:hover  {
+a.allocation-link:hover {
     text-decoration: none;
 }
 
@@ -107,7 +108,7 @@ a.allocation-link:hover  {
     text-align: center;
     display: block;
     margin-left: auto;
-    margin-right: auto
+    margin-right: auto;
 }
 
 .candleChart {

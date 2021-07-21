@@ -81,7 +81,8 @@ switch($mode){
         break;
 
     case 'returnSectorTimeframePerformanceData':
-        returnSectorTimeframePerformanceData($verbose, $debug);
+        // $version = isset($_GET['version']) ? $_GET['version'] : 'v1';
+        returnSectorTimeframePerformanceData($verbose, $debug, isset($_GET['version']) ? $_GET['version'] : 'v1' );
         break;
 
     case 'returnTransactions':

@@ -4,13 +4,20 @@ function returnAboveBelow($verbose = false, $debug = false){
 
     // $timeframe = $_GET['timeframe'];
 
-    // load all sectors, index and fund
+    // load all sectors and indicies
     $sectors = loadSectors('SI');
 
     // filter out indicies except for SPY
     $sectors = array_filter($sectors, function($data, $symbol) {
-        // show($data);
-        return ($data['type'] == 'I' and  $data['sector'] == 'SPY') || ($data['type'] == 'S');
+        return ($data['type'] == 'I' and $data['sector'] == 'SPY') || ($data['type'] == 'S');
+    }, ARRAY_FILTER_USE_BOTH);
+
+    // load all stocks & indicies
+    $stocks = loadSectors('KI');
+
+    // filter out indicies except for SPY
+    $stocks = array_filter($stocks, function($data, $symbol) {
+        return ($data['type'] == 'I' and $data['sector'] != 'SPY') || ($data['type'] == 'K');
     }, ARRAY_FILTER_USE_BOTH);
 
     // load timeframe details

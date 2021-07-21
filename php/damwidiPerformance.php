@@ -201,38 +201,49 @@ function returnYTDData($sector, $lastRefreshed, $performanceData, $priceData, $v
 }
 
 function returnSectorTimeframePerformanceData($verbose, $debug){
+
+    // set version for API, v2 is for damwidi_v2, v4 is for damwidi_v4
+    $version = isset($_GET['version']) ? $_GET['version'] : 'v2';
+
+    // MySQL query to retrieve performance data
     $query = 'SELECT * FROM `data_performance` WHERE INSTR(\'SIFK\', `type`) ORDER BY FIELD(`type`, "F", "I", "S", "K"), `sector`';
-    $timeframe = $_GET['timeframe'];
-    $sectors = loadSectors(null, $query);
-
-    // add sector timeframe data for chart.js
-    $i = 0;
-    $labels  = array();
-    $dataset = array(
-        'data'            => [],
-        'backgroundColor' => [],
-        'borderColor'     => [],
-        'borderWidth'     => 1,
-    );
-    foreach($sectors as $sector){
-        $labels[$i]          = $sector['sector'];
-        $dataset['data'][$i] = $sector[$timeframe];
-        if($sector[$timeframe] < 0) {
-            $dataset['backgroundColor'][$i] = 'rgba(196, 33, 27, 0.2)' ;
-            $dataset['borderColor'][$i] = 'rgba(196, 33, 27, 1)' ;
-        } else {
-            $dataset['backgroundColor'][$i] = 'rgba(29, 170, 90, 0.2)' ;
-            $dataset['borderColor'][$i] = 'rgba(29, 170, 90, 1)' ;
+    
+    if ($version==='v2') {
+        $timeframe = $_GET['timeframe'];
+        $sectors = loadSectors(null, $query);
+        
+        // add sector timeframe data for chart.js
+        $i = 0;
+        $labels  = array();
+        $dataset = array(
+            'data'            => [],
+            'backgroundColor' => [],
+            'borderColor'     => [],
+            'borderWidth'     => 1,
+        );
+        foreach($sectors as $sector){
+            $labels[$i]          = $sector['sector'];
+            $dataset['data'][$i] = $sector[$timeframe];
+            if($sector[$timeframe] < 0) {
+                $dataset['backgroundColor'][$i] = 'rgba(196, 33, 27, 0.2)' ;
+                $dataset['borderColor'][$i] = 'rgba(196, 33, 27, 1)' ;
+            } else {
+                $dataset['backgroundColor'][$i] = 'rgba(29, 170, 90, 0.2)' ;
+                $dataset['borderColor'][$i] = 'rgba(29, 170, 90, 1)' ;
+            }
+            if($sector['sector']=='SPY') $SPY = $sector[$timeframe];
+            $i++;
         }
-        if($sector['sector']=='SPY') $SPY = $sector[$timeframe];
-        $i++;
-    }
 
-    $data = array(
-        'SPY'      => $SPY,
-        'labels'   => $labels,
-        'datasets' => [$dataset]
-    );
+        $data = array(
+            'SPY'      => $SPY,
+            'labels'   => $labels,
+            'datasets' => [$dataset]
+        ); 
+    } else if ($version === 'v4'){
+        // $data = loadRawQuery($query);
+        $data = loadSectors(null, $query);
+    }
 
     if ($verbose)show($data);
     if(!$verbose)echo json_encode($data);
