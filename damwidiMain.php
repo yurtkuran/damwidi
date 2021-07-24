@@ -168,7 +168,8 @@ switch($mode){
     // test functions - used only in development
     case 'test':
         if(ENV == 'development') {
-            show(UUiDv4());
+            show(returnFormatDetails('rs'));
+
         } 
         break;
 

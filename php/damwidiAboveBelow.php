@@ -2,7 +2,8 @@
 
 function returnAboveBelow($verbose = false, $debug = false){
 
-    // $timeframe = $_GET['timeframe'];
+    // set version for API, v2 is for damwidi_v2, v4 is for damwidi_v4
+    $version = isset($_GET['version']) ? $_GET['version'] : 'v2';
 
     // load all sectors and indicies
     $sectors = loadSectors('SI');
@@ -27,6 +28,11 @@ function returnAboveBelow($verbose = false, $debug = false){
         $length = $timeFrames[$timeFrame]['lengthDays'];
     } else {
         $length = determineYTDlength();
+    }
+
+    // load v4 chart color and line config
+    if ($version == 'v4') {
+        $chartConfig = json_decode(file_get_contents("./config/chartColorConfig.json"),1);
     }
 
     $data = array();
@@ -82,15 +88,15 @@ function returnAboveBelow($verbose = false, $debug = false){
 
     // build 'above the line' dataset
     usort($dataSummary,function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
-    $aboveDataSet = buildDataSet($data, $dataSummary, 'above');
+    $aboveDataSet = buildDataSet($data, $dataSummary, 'above', $version);
 
     // build 'below the line' dataset
     usort($dataSummary,function($a,$b) {return ($a['gain'] > $b['gain']) ; }); //sort ascending
-    $belowDataSet = buildDataSet($data, $dataSummary, 'below');
+    $belowDataSet = buildDataSet($data, $dataSummary, 'below', $version);
 
     // build relative strength 'rs' dataset
     usort($dataSummary,function($a,$b) {return ($a['rs'] < $b['rs']) ; }); //sort desending
-    $rsDataSet = buildDataSet($data, $dataSummary, 'rs');
+    $rsDataSet = buildDataSet($data, $dataSummary, 'rs', $version);
 
     $data = array(
         'labels' => $labels,
@@ -98,6 +104,10 @@ function returnAboveBelow($verbose = false, $debug = false){
         'below'  => $belowDataSet,
         'rs'     => $rsDataSet
     );
+
+    if ($version=='v4') {
+        $data['chartConfig'] = $chartConfig;
+    }
 
     if ($verbose) show($data);
     if (!$verbose) echo json_encode($data);
@@ -127,7 +137,10 @@ function determineYTDlength(){
     return (int)$result[0]+1;
 }
 
-function buildDataSet($data, $dataSummary, $type){
+function buildDataSet($data, $dataSummary, $type, $version){
+    // set version for API, v2 is for damwidi_v2, v4 is for damwidi_v4
+    // $version = isset($_GET['version']) ? $_GET['version'] : 'v2';
+
     $formats = returnFormatDetails($type);
     $formatCount = count($formats)-1;
 
@@ -156,22 +169,28 @@ function buildDataSet($data, $dataSummary, $type){
     foreach ($dataSummary as $sector){
         $formatIndex = ($i <= $formatCount) ? $i : $formatCount;
 
-        $dataset[$i] = $datasetOptions;
-        $dataset[$i]['borderDash']      = explode(",", $formats[$formatIndex]['style']);
-        $dataset[$i]['borderWidth']     = $formats[$formatIndex]['weight'];
-        $dataset[$i]['borderColor']     = "rgba(".$formats[$formatIndex][$type].")";
-        $dataset[$i]['backgroundColor'] = "rgba(".substr($formats[$formatIndex][$type],0,11).",0.1)";
-        $dataset[$i]['label']           = $sector['name'];
+        if ($version == 'v2') {
+            $dataset[$i] = $datasetOptions;
+            $dataset[$i]['borderDash']      = explode(",", $formats[$formatIndex]['style']);
+            $dataset[$i]['borderWidth']     = $formats[$formatIndex]['weight'];
+            $dataset[$i]['borderColor']     = "rgba(".$formats[$formatIndex][$type].")";
+            $dataset[$i]['backgroundColor'] = "rgba(".substr($formats[$formatIndex][$type],0,11).",0.1)";
+        }
 
+        $dataset[$i]['label']           = $sector['name'];
+        $dataset[$i]['symbol']          = $sector['sector'];
+        
         // add y-axis data
         $dataset[$i]['data'] = $data[$sector['sector']][($type != 'rs' ? 'gain' : 'rs')];
 
         // format SPY
         if ($sector['type'] == 'I'){
-            $dataset[$i]['borderDash']      = [];
-            $dataset[$i]['borderWidth']     = 3;
-            $dataset[$i]['borderColor']     = "rgba(0,0,0,1)";
-            $dataset[$i]['backgroundColor'] = "rgba(255,255,255,0.1)";
+            if ($version == 'v2') {
+                $dataset[$i]['borderDash']      = [];
+                $dataset[$i]['borderWidth']     = 3;
+                $dataset[$i]['borderColor']     = "rgba(0,0,0,1)";
+                $dataset[$i]['backgroundColor'] = "rgba(255,255,255,0.1)";
+            }
 
             if($type <> 'rs') break; // truncate loop at the index
         }
