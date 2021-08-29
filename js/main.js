@@ -763,6 +763,7 @@ function processSymbol(symbol) {
                 });
         })
         .catch(function (error) {
+            console.log(error);
             $('.errorMessage').text('symbol not found');
         })
         .finally(function () {
@@ -775,14 +776,18 @@ function retrievePriceDataAlpha(symbol) {
     if (symbol != 'DAM') {
         var url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=' + symbol + '&apikey=WWQO&outputsize=full';
     } else {
-        var url = './damwidiMain.php?mode=returnDamwidiOHLC';
+        var url = 'http://www.damwidi.com/damwidiMain.php?mode=returnDamwidiOHLC';
+        // var url = 'http://172.16.105.129/damwidiMain.php?mode=returnDamwidiOHLC';
     }
 
     $('#progressImage').html('<img id="progress" src="progress.svg"/>');
 
     return new Promise(function (resolve, reject) {
         $.getJSON(url, function (data) {})
-            .fail(function () {
+            .fail(function (e) {
+                console.log(e);
+                console.log(url);
+                // console.log(data);
                 reject('error loading data');
             })
             .done(function (data) {
@@ -811,6 +816,7 @@ function retrieveSymbolDescription(symbol) {
             },
             success: function (data) {
                 if (!data.quotes.hasOwnProperty('unmatched_symbols')) {
+                    console.log(data);
                     resolve(data.quotes.quote.description);
                 } else {
                     reject('symbol not found');
@@ -1456,7 +1462,7 @@ function test() {
 socket.on('message', function (data) {
     quote = JSON.parse(data);
     symbol = quote.symbol;
-    console.log(count++ + ' ' + quote.symbol + ': ' + moment(quote.time).format('YY-MM-DD, hh:mm:ss') + ' $' + quote.price);
+    // console.log(count++ + ' ' + quote.symbol + ': ' + moment(quote.time).format('YY-MM-DD, hh:mm:ss') + ' $' + quote.price);
 
     var changePrice = quote.price - quoteData.previousClose;
     var changePerct = changePrice / quoteData.previousClose;

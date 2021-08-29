@@ -113,16 +113,27 @@ function returnAboveBelow($verbose = false, $debug = false){
     if (!$verbose) echo json_encode($data);
 }
 
-function returnHistoricalData($symbol, $length){
+function returnHistoricalData($symbol, $length=0, $verbose = false ){
+
+    // set version for API, v2 is for damwidi_v2, v4 is for damwidi_v4
+    $version = isset($_GET['version']) ? $_GET['version'] : 'v2';
 
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC LIMIT :length");
+    if($length>0) {
+        // $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC LIMIT :length"));
+        // $stmt->bindParam(':length', $length, PDO::PARAM_INT);
+    } else { 
+        $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC");
+    }
     $stmt->bindParam(':symbol', $symbol);
-    $stmt->bindParam(':length', $length, PDO::PARAM_INT);
     $stmt->execute();
 
     $result = $stmt->fetchall(PDO::FETCH_ASSOC);
-    return  array_reverse($result);
+    if ($version=='v2') {
+        return array_reverse($result);
+    } else {
+        if (!$verbose) echo json_encode(array_reverse($result));
+    }
 
 }
 
@@ -138,8 +149,6 @@ function determineYTDlength(){
 }
 
 function buildDataSet($data, $dataSummary, $type, $version){
-    // set version for API, v2 is for damwidi_v2, v4 is for damwidi_v4
-    // $version = isset($_GET['version']) ? $_GET['version'] : 'v2';
 
     $formats = returnFormatDetails($type);
     $formatCount = count($formats)-1;

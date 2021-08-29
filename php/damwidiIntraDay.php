@@ -223,6 +223,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         $data[$position]['dateBasis']  = $positionBasis['date'];
         $data[$position]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
         $data[$position]['priceLast']  = $heatMapData[$position]['last'];
+        $data[$position]['pricePreviousClose']  = $heatMapData[$position]['prevClose'];
         $data[$position]['priceGain']  = round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2);
         $data[$position]['spyBasis']   = floatval(number_format($spyBasis,2));        
         $data[$position]['spyLast']    = $heatMapData['SPY']['last'];

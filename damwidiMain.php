@@ -72,6 +72,11 @@ switch($mode){
         returnDamwidiOHLC($verbose, $debug);
         break;
 
+    // API: returns historical data stored in MySQL
+    case 'returnHistoricalData':
+        returnHistoricalData($_GET['symbol'], 0, $verbose);
+        break;
+
     case 'returnDetails':
         returnDetails($verbose, $debug);
         break;
