@@ -120,8 +120,8 @@ function returnHistoricalData($symbol, $length=0, $verbose = false ){
 
     $dbc = connect();
     if($length>0) {
-        // $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC LIMIT :length"));
-        // $stmt->bindParam(':length', $length, PDO::PARAM_INT);
+        $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC LIMIT :length");
+        $stmt->bindParam(':length', $length, PDO::PARAM_INT);
     } else { 
         $stmt = $dbc->prepare("SELECT * FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC");
     }
