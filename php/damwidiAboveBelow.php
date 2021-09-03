@@ -129,11 +129,13 @@ function returnHistoricalData($symbol, $length=0, $verbose = false ){
     $stmt->execute();
 
     $result = $stmt->fetchall(PDO::FETCH_ASSOC);
-    if ($version=='v2') {
-        return array_reverse($result);
-    } else {
-        if (!$verbose) echo json_encode(array_reverse($result));
-    }
+    return array_reverse($result);
+
+    // if ($version=='v2') {
+    //     return array_reverse($result);
+    // } else {
+    //     if (!$verbose) echo json_encode(array_reverse($result));
+    // }
 
 }
 
