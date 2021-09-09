@@ -144,7 +144,8 @@ function createAllocationData($heatMapData, $verbose){
 
         // summary data
         $sectorSummaryData = array(
-            'type'         => 'Y',
+            'type'         => 'Y',  // Y = summarY
+            'name'         => $sectorData['name'],
             'description'  => $sectorData['name'],
             'currentValue' => $allocationData[$sector]['currentValue'],
             'change'       => $allocationData[$sector]['change'],
@@ -425,6 +426,7 @@ function buildAllocationTable(){
 function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allocationData, & $damwidiBasis){
     $allocationData[$symbol]['symbol']        = $symbol;
     $allocationData[$symbol]['sector']        = $sector;
+    $allocationData[$symbol]['name']          = $data['name'];
     $allocationData[$symbol]['description']   = $data['description'];
     $allocationData[$symbol]['type']          = $data['type'];
     
