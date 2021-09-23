@@ -15,6 +15,22 @@ function updatePerformanceData($verbose, $debug){
     // load all sectors, stocks, index and fund
     $sectors = loadSectors('SKIF');
 
+    // if symbol is passed as query parameter, only update that single sector/symbol, used to update single row in performance table
+    if (isset($_GET['symbol'])) {
+        $symbol  = $_GET['symbol'];
+        
+        // verify symbol is in sectors array
+        if (array_key_exists($symbol, $sectors)) {
+            // $sectors = $sectors[$symbol];
+
+            $sectors = array_intersect_key($sectors, array_flip(array($symbol)));
+        } else {
+            show($symbol.' is not in performance table, execution terminated');
+            die();
+        }
+
+    }
+
     // load timeframe details
     $timeFrames = json_decode(file_get_contents("./config/comparison.json"),1);
 
