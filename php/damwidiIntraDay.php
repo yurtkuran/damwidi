@@ -273,8 +273,8 @@ function createPortfolioData($heatMapData, $verbose){
         if($sectorData['shares']>0 ){
             $portfolioData[$sector]['sector']        = $sector;
             $portfolioData[$sector]['last']          = number_format($sectorData['last'],2);
-            $portfolioData[$sector]['change']        = number_format(abs($sectorData['last']-$sectorData['prevClose']),2);
-            $portfolioData[$sector]['changePercent'] = number_format(abs(100*($sectorData['last']-$sectorData['prevClose'])/$sectorData['prevClose']),2);
+            $portfolioData[$sector]['change']        = $sectorData['prevClose'] <> 0 ? number_format(abs($sectorData['last']-$sectorData['prevClose']),2) : 0;
+            $portfolioData[$sector]['changePercent'] = $sectorData['prevClose'] <> 0 ? number_format(abs(100*($sectorData['last']-$sectorData['prevClose'])/$sectorData['prevClose']),2) : 0;
 
             if ($sector <> 'DAM') {
                 $portfolioData[$sector]['value']         = number_format($sectorData['last']*$sectorData['shares'],2);
