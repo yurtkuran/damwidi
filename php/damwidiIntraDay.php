@@ -63,6 +63,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
 
     // sort data by gain high to low
     uasort($heatMapData, function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
+    if($verbose) show('Heat Map Data:');
     if($verbose) show($heatMapData);
 
     $intraDayData =  array(

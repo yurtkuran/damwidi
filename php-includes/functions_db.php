@@ -2,16 +2,17 @@
 # Connect to the Database:
 function connect(){
     try {
-        $host = MySQLHOST;      // Host name
-
+        
         if (ENV == 'development') {
             // local server
             $name = 'damwidi_v2';   // Database name
+            $host = MySQLHOST;      // Host name
             $user = MySQLUSERNAME;  // Username
             $pass = MySQLPASSWORD;  // Password
         } elseif (ENV == 'production') {
             // hostgator
             $name = 'yurtkura_damwidi'; // Database name
+            $host = HOSTGATORUSERHOST;  // Host name
             $user = HOSTGATORUSERNAME;  // Username
             $pass = HOSTGATORPASSWORD;  // Password
         }

@@ -174,8 +174,8 @@ function savePerformanceData($performanceData){
         $stmt->bindParam(':basis',         $data['basis']);
         $stmt->bindParam(':shares',        $data['shares']);
         $stmt->bindParam(':weight',        $data['weight']);
-        $stmt->bindParam(':effectiveDate', $data['effectiveDate']);
-        $stmt->bindParam(':fetchedDate',   $data['fetchedDate']);
+        $stmt->bindValue(':effectiveDate', $data['effectiveDate'] != '0000-00-00' ? $data['effectiveDate'] : null);
+        $stmt->bindValue(':fetchedDate',   $data['fetchedDate']   != '0000-00-00' ? $data['fetchedDate']   : null);
         $stmt->execute();
     }
 }
