@@ -230,7 +230,7 @@ function parseTransaction($transaction){
     if (strpos("BS", $parse['type']) !== FALSE) {
         $start = strpos( $transaction, " ");
         $end   = strpos( $transaction, "SHARES");
-        $parse['shares'] =  (int)substr( $transaction, ($start+1), ($end-$start-1) ) * ($parse['type'] == 'S' ? -1 : 1);
+        $parse['shares'] =  (float)substr( $transaction, ($start+1), ($end-$start-1) ) * ($parse['type'] == 'S' ? -1 : 1);
     }
 
     // show($parse);

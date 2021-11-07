@@ -353,7 +353,7 @@ function buildPortfolioTable(){
                 <td class="text-center" ><?=$sector['sector']?></td>
                 <td class="text-left"   ><?=trim($sector['description'])?></td>
                 <td class="text-right"  ><?=number_format($sector['basis'],2)?> </td>
-                <td class="text-right"  ><?=$sector['shares']?> </td>
+                <td class="text-right"  ><?=number_format($sector['shares'],3)?> </td>
                 <td class="text-right"  ><?=number_format($sector['previous'],2)?> </td>
                 <td class="text-right"  id="last<?=$sector['sector']?>"></td>
                 <td class="text-center" id="change<?=$sector['sector']?>"></td>
@@ -395,7 +395,7 @@ function buildAllocationTable(){
             <tr class=<?= $class ?>>
                 <td class="text-left" ><?=$sector['symbol']?></td>
                 <td class="text-left"   ><?=trim($sector['description'])?></td>
-                <td class="text-right"  id="shares<?=$sector['symbol']?>"> <?= (!strpos($sector['symbol'],'Total') ? number_format($sector['shares'],0) : '')?></td>
+                <td class="text-right"  id="shares<?=$sector['symbol']?>"> <?= (!strpos($sector['symbol'],'Total') ? number_format($sector['shares'],3) : '')?></td>
                 <td class="text-right"  id="value<?=$sector['symbol']?>" > <?=($sector['type']=='C' ? number_format($sector['basis'],2) :'')?></td>
                 <td class="text-right"  id="change<?=$sector['symbol']?>"> </td>
                 <td class="text-right"  id="allocation<?=$sector['symbol']?>"></td>
@@ -443,10 +443,10 @@ function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allo
         $allocationData[$symbol]['last']          = $heatMapData[$symbol]['last'];
         $allocationData[$symbol]['currentValue']  = $data['shares'] * $heatMapData[$symbol]['last'];
         $allocationData[$symbol]['allocation']    = (($data['shares'] * $heatMapData[$symbol]['last']) / $heatMapData['DAM']['last'])*100;
-        $allocationData[$symbol]['shares']        = (int)   $data['shares'];
+        $allocationData[$symbol]['shares']        = (float) $data['shares'];
         $allocationData[$symbol]['basis']         = (float) $data['basis'];
         $allocationData[$symbol]['change']        = $data['shares'] * ($heatMapData[$symbol]['last'] - $data['basis']);
-        $allocationData[$symbol]['changePercent'] = ($data['shares'] ? ($heatMapData[$symbol]['last'] / $allocationData[$symbol]['basis'] - 1)*100 : 0);
+        $allocationData[$symbol]['changePercent'] = ($data['shares'] != 0 ? ($heatMapData[$symbol]['last'] / $allocationData[$symbol]['basis'] - 1)*100 : 0);
         $damwidiBasis                            += $data['shares'] * $data['basis'];
     } else if ($data['type'] == 'Y') {
         $allocationData[$symbol]['currentValue']  = $data['currentValue'];
