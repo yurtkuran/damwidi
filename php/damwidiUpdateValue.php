@@ -265,7 +265,7 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
             case 'S':
                 $openPositions[$transaction['symbol']]['shares']   += $transaction['shares'];
                 $openPositions[$transaction['symbol']]['purchase'] += $transaction['amount'];
-                if ($openPositions[$transaction['symbol']]['shares'] == 0) unset($openPositions[$transaction['symbol']]);
+                if (round($openPositions[$transaction['symbol']]['shares'],5) == 0) unset($openPositions[$transaction['symbol']]);
                 break;
             case 'D':
                 if (array_key_exists ( $transaction['symbol'] , $openPositions )){
