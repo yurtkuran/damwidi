@@ -227,6 +227,11 @@ switch($mode){
         }
         break;
 
+    case 'yahooQuote':
+        retrieveYahooQuote("fxg", $verbose);
+        
+        break;
+
     default:
         // no valid mode supplied
 } 

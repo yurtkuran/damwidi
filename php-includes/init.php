@@ -34,6 +34,7 @@ include_once 'php/dataHandlerHistorical.php';
 include_once 'php/dataHandlerIEX.php';
 include_once 'php/dataHandlerMySQL.php';
 include_once 'php/dataHandlerTradier.php';
+include_once 'php/dataHandlerAWS.php';
 
 // load AirTable API wrapper
 // https://github.com/sleiman/airtable-php

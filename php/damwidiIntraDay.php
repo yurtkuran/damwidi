@@ -37,22 +37,29 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $symbols = rtrim($symbols, ','); // remove final comma
 
     // retrieve realtime batch quotes
-    $priceData = retrieveIEXBatchData($symbols);  //saveData, verbose, debug 
+    $priceData = retrieveIEXBatchData($symbols, false, false, false);  //saveData, verbose, debug 
     
     // create heatmap data
     $heatMapData = array();
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
 
+        if($priceData[$symbol]['quote']['latestSource'] == 'Previous close') {
+            if($verbose) show('No IEX latest price: '.$symbol);
+            $latestPrice = retrieveYahooQuote($symbol, $verbose)['regularMarketPrice'];
+        } else {
+            $latestPrice = $priceData[$symbol]['quote']['latestPrice'];
+        }
+
         $heatMapData[$sector['sector']]=array(
             "sector"        => $sector['sector'],
             "openPosition"  => $sector['shares']>0 ? true : false,
             "shares"        => $sector['shares'],
             "basis"         => $sector['basis'],
-            "last"          => $priceData[$symbol]['quote']['latestPrice'],
-            "currentValue"  => $sector['shares'] * $priceData[$symbol]['quote']['latestPrice'],
+            "last"          => $latestPrice,
+            "currentValue"  => $sector['shares'] * $latestPrice,
             "prevClose"     => $sector['previous'],
-            "gain"          => calculateGain($priceData[$symbol]['quote']['latestPrice'], $priceData[$symbol]['quote']['previousClose']),
+            "gain"          => calculateGain($latestPrice, $priceData[$symbol]['quote']['previousClose']),
             "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['quote']['latestUpdate']/1000),
             "description"   => $sector['description']
         );
