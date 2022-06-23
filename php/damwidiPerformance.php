@@ -103,7 +103,7 @@ function updatePerformanceData($verbose, $debug){
 
     if ($verbose) show($start." start");
     show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
-    writeAirTableRecord($table, $start, $duration);
+    // writeAirTableRecord($table, $start, $duration);
 }
 
 // add/remove individual stocks from preformance table

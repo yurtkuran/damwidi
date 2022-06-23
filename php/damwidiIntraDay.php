@@ -233,7 +233,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         $data[$position]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
         $data[$position]['priceLast']  = $heatMapData[$position]['last'];
         $data[$position]['pricePreviousClose']  = $heatMapData[$position]['prevClose'];
-        $data[$position]['priceGain']  = round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2);
+        $data[$position]['priceGain']  = $positionBasis['price'] != 0 ? round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2) : 0;
         $data[$position]['spyBasis']   = floatval(number_format($spyBasis,2));        
         $data[$position]['spyLast']    = $heatMapData['SPY']['last'];
         $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
@@ -245,7 +245,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
 
             $data[$position]['purchases'][$i]['dateBasis']  = $positionData['purchases'][$i];
             $data[$position]['purchases'][$i]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
-            $data[$position]['purchases'][$i]['priceGain']  = round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2);
+            $data[$position]['purchases'][$i]['priceGain']  = $positionBasis['price'] != 0 ? round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2) : 0;
             $data[$position]['purchases'][$i]['spyBasis']   = floatval(number_format($spyBasis,2));    
             $data[$position]['purchases'][$i]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
         }
