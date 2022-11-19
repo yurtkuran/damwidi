@@ -6,12 +6,14 @@ include_once 'php-includes/init.php';
 // setup environment defaults
 $verbose = FALSE; 
 $debug   = FALSE;
+$stdin   = FALSE;
 
 if (defined('STDIN')) {
     // command line
     $mode    = isset($argv[1]) ? $argv[1] : NULL;
     $verbose = (isset($argv[2]) and $argv[2]) == 1 ? TRUE : FALSE;
     $debug   = (isset($argv[3]) and $argv[3]) == 1 ? TRUE : FALSE;
+    $stdin   = TRUE;
 } else {
     // web call
     $mode    = isset($_GET['mode']) ? $_GET['mode'] : NULL;
@@ -53,7 +55,7 @@ switch($mode){
         break;
 
     case 'updatePerformanceData':
-        updatePerformanceData($verbose, $debug);
+        updatePerformanceData($verbose, $debug, $stdin);
         break;
 
     case 'updateSPKeyData':
@@ -179,7 +181,7 @@ switch($mode){
         break;
 
     case 'test2':
-        if(ENV == 'development') retrieveIEXBatchData('spy', false, $verbose, $debug);
+        if(ENV == 'development') echo "this is a test \r\n";
         break;
         
     case 'keystats':

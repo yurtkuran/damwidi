@@ -42,7 +42,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
 
             if (array_key_exists('Information', $data)){
                 $attempts++;
-                sleep(rand(2,10));                //randon backoff time
+                ratelimit();                      //randon backoff time
             } else {
                 $dataOK = true;
             }

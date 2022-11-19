@@ -1,6 +1,6 @@
 <?php
 // update fields in the `data_performance` table for sectors, index and cash
-function updatePerformanceData($verbose, $debug){
+function updatePerformanceData($verbose, $debug, $stdin = false){
     if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");  
 
     // store start time used to determine function duration
@@ -37,7 +37,7 @@ function updatePerformanceData($verbose, $debug){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, true, false);  // loadNewData, saveData, verbose, debug
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, $verbose, $debug);  // loadNewData, saveData, verbose, debug
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
         } else {
@@ -102,7 +102,11 @@ function updatePerformanceData($verbose, $debug){
     $table    = "performance";
 
     if ($verbose) show($start." start");
-    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+    if (!$stdin) {
+        show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+    } else {
+        echo $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+    }
     // writeAirTableRecord($table, $start, $duration);
 }
 
