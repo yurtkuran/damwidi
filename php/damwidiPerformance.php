@@ -94,7 +94,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     saveCashBalance(returnCashBalance($lastRefreshed), $lastRefreshed); // write to MySQL database
 
     if ($verbose) show($performanceData);
-    save("./data/performanceData.json", $performanceData);
+    // save("./data/performanceData.json", $performanceData);
 
     // create notifications
     $end      = date('Y-m-d H:i:s');
@@ -105,7 +105,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     if (!$stdin) {
         show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
     } else {
-        echo $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+        echo $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)))."\r\n";;
     }
     // writeAirTableRecord($table, $start, $duration);
 }
