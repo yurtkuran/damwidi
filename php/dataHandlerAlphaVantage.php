@@ -31,7 +31,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
     $filename = "./data/data_price_alpha_".$interval."_".$symbol.".json";
 
     $attempts    = 1;
-    $maxAttempts = 2;
+    $maxAttempts = 5;
     $dataOK = false;
     if ($loadNewData) {
         do {
