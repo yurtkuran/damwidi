@@ -6,7 +6,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
     switch(strtolower($interval)){
         case 'daily':
             $key = "Time Series (Daily)";
-            $function = "TIME_SERIES_DAILY";
+            $function = "TIME_SERIES_DAILY_ADJUSTED";
             break;
         case 'weekly':
             $key = "Weekly Time Series";
@@ -30,7 +30,8 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
 
     $filename = "./data/data_price_alpha_".$interval."_".$symbol.".json";
 
-    $attempts = 1;
+    $attempts    = 1;
+    $maxAttempts = 2;
     $dataOK = false;
     if ($loadNewData) {
         do {
@@ -41,11 +42,11 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
 
             if (array_key_exists('Information', $data)){
                 $attempts++;
-                sleep(rand(2,10));
+                sleep(rand(2,10));                //randon backoff time
             } else {
                 $dataOK = true;
             }
-        } while (!$dataOK);
+        } while (!$dataOK && $attempts <= $maxAttempts);
 
         if ($saveData) save($filename, $data);
         if ($debug) save(  "./tmp/data_price_alpha_".$symbol."_".date('YmdHis').".json", $data);
@@ -66,7 +67,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
         'startTome' => $startDate,
     );
 
-    if ( !(strpos($response,'200') === false) or !$loadNewData ) {
+    if ( (!(strpos($response,'200') === false) or !$loadNewData) && $dataOK ) {
         $dataSet['lastRefreshed']       = $seriesData['Meta Data']['3. Last Refreshed'];
         $dataSet['Meta Data']['status'] = 'success';
         foreach($seriesData[$key] as $candle => $data){

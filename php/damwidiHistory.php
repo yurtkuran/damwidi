@@ -49,7 +49,7 @@ function updateHistoryTable($verbose = false, $debug = false){
 
     if ($verbose) show($start." start");
     show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
-    writeAirTableRecord($table, $start, $duration);
+    // writeAirTableRecord($table, $start, $duration);
 }
 
 function determineStartDate($sector, $firstDate){
