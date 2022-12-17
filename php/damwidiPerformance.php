@@ -17,7 +17,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
 
     // if symbol is passed as query parameter, only update that single sector/symbol, used to update single row in performance table
     if (isset($_GET['symbol'])) {
-        $symbol  = $_GET['symbol'];
+        $symbol  = strtoupper($_GET['symbol']);
         
         // verify symbol is in sectors array
         if (array_key_exists($symbol, $sectors)) {
