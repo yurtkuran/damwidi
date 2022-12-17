@@ -442,25 +442,30 @@ function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allo
         $allocationData[$symbol]['last']          = $data['basis'];
         $allocationData[$symbol]['currentValue']  = $data['basis'];
         $allocationData[$symbol]['basis']         = $data['basis'];
-        $allocationData[$symbol]['allocation']    = ($allocationData[$symbol]['currentValue'] / $heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['allocation']    = calculateAllocation($allocationData[$symbol]['currentValue'], $heatMapData['DAM']['last']);
         $allocationData[$symbol]['shares']        = 1;
         $allocationData[$symbol]['change']        = 0;
         $damwidiBasis                            += $data['shares'] * $data['basis'];
+        $allocationData[$symbol]['valid']         = $allocationData[$symbol]['allocation'] == -1 ? false : true;
+
     } else if ($data['type'] == 'S' or $data['type'] == 'K' or $data['type'] == 'I') {
         $allocationData[$symbol]['last']          = $heatMapData[$symbol]['last'];
         $allocationData[$symbol]['currentValue']  = $data['shares'] * $heatMapData[$symbol]['last'];
-        $allocationData[$symbol]['allocation']    = (($data['shares'] * $heatMapData[$symbol]['last']) / $heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['allocation']    = calculateAllocation(($data['shares'] * $heatMapData[$symbol]['last']), $heatMapData['DAM']['last']);
         $allocationData[$symbol]['shares']        = (float) $data['shares'];
         $allocationData[$symbol]['basis']         = (float) $data['basis'];
         $allocationData[$symbol]['change']        = $data['shares'] * ($heatMapData[$symbol]['last'] - $data['basis']);
         $allocationData[$symbol]['changePercent'] = ($data['shares'] != 0 ? ($heatMapData[$symbol]['last'] / $allocationData[$symbol]['basis'] - 1)*100 : 0);
         $damwidiBasis                            += $data['shares'] * $data['basis'];
+        $allocationData[$symbol]['valid']         = $allocationData[$symbol]['allocation'] == -1 ? false : true;
+
     } else if ($data['type'] == 'Y') {
         $allocationData[$symbol]['currentValue']  = $data['currentValue'];
-        $allocationData[$symbol]['allocation']    = ($data['currentValue'] / $heatMapData['DAM']['last'])*100;
+        $allocationData[$symbol]['allocation']    = calculateAllocation($data['currentValue'], $heatMapData['DAM']['last']);
         $allocationData[$symbol]['shares']        = null;
         $allocationData[$symbol]['change']        = $data['change'];
-        $allocationData[$symbol]['changePercent'] = ($data['change']/($data['currentValue']  - $data['change']))*100;
+        $allocationData[$symbol]['changePercent'] = calculateChangePercent($data['change'], $data['currentValue']);
+        $allocationData[$symbol]['valid']         = $allocationData[$symbol]['allocation'] == -1 || $allocationData[$symbol]['changePercent'] == -1 ? false : true;
     } 
 
     if ($data['type'] == 'S' or $data['type'] == 'Y') {
@@ -472,6 +477,20 @@ function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allo
         $allocationData[$symbol]['impliedOverUnder']        = $allocationData[$symbol]['implied'] - $data['weight']/100 * $heatMapData['DAM']['last'];
         $allocationData[$symbol]['impliedOverUnderPercent'] = $allocationData[$symbol]['impliedPercent'] - $data['weight'];
     }
+}
+
+// allocation data helper functions
+
+// return allocation percentage of position value versus damwidi value
+// check to see if damidi value is valid (i.e. != 0)
+function calculateAllocation($value, $damwidi) {
+    return $damwidi !=0 ?  100*($value / $damwidi) : -1;
+}
+
+// return percentage change
+// check to see if current value is valid (i.e. != 0)
+function calculateChangePercent($change, $currentValue) {
+    return $currentValue !=0 ?  100*($change / $currentValue - $change) : -1;
 }
 
 ?>
