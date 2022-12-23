@@ -1,12 +1,12 @@
 <?php
 
 // update `data_history` table
-function updateHistoryTable($verbose = false, $debug = false){
-    if ($verbose) show("--- UPDATE HISTORY TABLE ---");  
+function updateHistoryTable($verbose = false, $debug = false, $stdin = false){
+    if ($verbose) show("--- UPDATE HISTORY TABLE ---");
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
-    
+
 
     // determine opening date of fund
     $dbc = connect();
@@ -43,13 +43,20 @@ function updateHistoryTable($verbose = false, $debug = false){
     }
 
     // create notifications
-    $end      = date('Y-m-d H:i:s');
-    $duration = strtotime($end)-strtotime($start);
-    $table    = "history";
+    $end          = date('Y-m-d H:i:s');
+    $duration     = strtotime($end)-strtotime($start);
+    $table        = "history";
+    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
+    $notification = $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+
+    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
-    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
-    // writeAirTableRecord($table, $start, $duration);
+    if (!$stdin) {
+        show($notification);
+    } else {
+        echo $notification."\r\n";;
+    }
 }
 
 function determineStartDate($sector, $firstDate){

@@ -55,12 +55,12 @@ switch($mode){
     // the following four functions run daily to update mySQL databases
     // 1
     case 'updateBivioTransactions':
-        updateBivioTransactions($verbose);
+        updateBivioTransactions($verbose, $debug, $stdin);
         break;
 
     // 2
     case 'updateValueTable':
-        updateValueTable($verbose, $debug);
+        updateValueTable($verbose, $debug, $stdin);
         break;
 
     // 3
@@ -70,7 +70,7 @@ switch($mode){
 
     // 4
     case 'updateHistoryTable':
-        updateHistoryTable($verbose, $debug);
+        updateHistoryTable($verbose, $debug, $stdin);
         break;
 
     // the following are required API endpoints

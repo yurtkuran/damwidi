@@ -108,6 +108,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     $table        = "performance";
     $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
     $notification = $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+
     Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
@@ -116,7 +117,6 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     } else {
         echo $notification."\r\n";;
     }
-    // writeAirTableRecord($table, $start, $duration);
 }
 
 // add/remove individual stocks from preformance table
@@ -161,7 +161,7 @@ function returnBasisData($lastRefreshed, $performanceData){
             $performanceData[$sector]['basis']  = $openPositions[$sector]['basis'];
             $performanceData[$sector]['shares'] = $openPositions[$sector]['shares'];
         } else {
-            Logs::$logger->notice(str_pad($sector, 6)." - setting shares and basis to 0");
+            Logs::$logger->info(str_pad($sector, 6)." - setting shares and basis to 0");
             $performanceData[$sector]['basis']  = 0;
             $performanceData[$sector]['shares'] = 0;
         }
