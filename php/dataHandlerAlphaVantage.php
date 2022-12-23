@@ -20,7 +20,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
     $URL .= "&apikey="    .alphaVantageAPIkey;
 
     // determine output size
-    if ( ((time() - strtotime($startDate)) / 86400) <=100 ){  // determine if <= 100 data points is needed
+    if ( date_diff(date_create($startDate), date_create("now"))->format('%a') <=100 ){  // determine if <= 100 data points are needed
         $URL .= "&outputsize=compact";
     } else {
         $URL .= "&outputsize=full";
@@ -33,23 +33,40 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
     $attempts    = 1;
     $maxAttempts = 5;
     $dataOK = false;
+    $dataArray = array();
     if ($loadNewData) {
         do {
+            Logs::$logger->info(str_pad($symbol, 6)." - retrieve Alpha data, attempt ".$attempts);
+
             $json     = file_get_contents($URL);  //retrieve data
             $response = $http_response_header[0]; //http response information
             $url      = $URL;                     //alphavantage URL
             $data     = json_decode($json,1);
 
+            $dataArray[$symbol."-".$attempts] = $data;
+            if (array_key_exists('Time Series (Daily)',$dataArray[$symbol."-".$attempts])) unset($dataArray[$symbol."-".$attempts]['Time Series (Daily)']);
+
             if (array_key_exists('Information', $data)){
+                Logs::$logger->notice(str_pad($symbol, 6)." - failed retrieve Alpha ", [
+                    "keys" => array_keys($data),
+                    "information" => $data['Information']
+                ]);
+
                 $attempts++;
-                ratelimit();                      //randon backoff time
+                ratelimit();                      //random backoff time
             } else {
                 $dataOK = true;
             }
         } while (!$dataOK && $attempts <= $maxAttempts);
 
+        if ($debug) save(  "./tmp/data_price_alpha_".$symbol.".json", array(
+            'attempts' => $attempts,
+            'url'      => $url,
+            'data'     => $dataArray,
+            'response' => $http_response_header
+        ));
+
         if ($saveData) save($filename, $data);
-        if ($debug) save(  "./tmp/data_price_alpha_".$symbol."_".date('YmdHis').".json", $data);
     } else {
         $json     = file_get_contents($filename); //load data from file, for development
         $response = "loaded from file";
@@ -172,7 +189,7 @@ function retrieveBatchDataAlphaV2($symbols, $loadNewData = true, $saveData = fal
         }
     }
     die();
-    
+
     $filename = "./data/data_price_alpha_batch.json";
 
     $seriesData = json_decode($json,1);
