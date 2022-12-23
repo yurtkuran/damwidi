@@ -27,8 +27,3 @@ data/*.sql
 php-includes/definedConstants.php
 config/password.txt
 
-#fav icons
-faviconGreenDown.ico
-faviconGreenUp.ico
-faviconRedDown.ico
-faviconRedUp.ico

@@ -109,7 +109,7 @@ function returnTransactions($verbose, $debug){
 }
 
 // retrieve recent transactions from bivio.com and add to `data_transactions` table
-function updateBivioTransactions($verbose){
+function updateBivioTransactions($verbose, $debug, $stdin = false){
     if ($verbose) show("--- UPDATE BIVIO TRANSACTIONS ---");
 
     // store start time used to determine function duration
@@ -170,13 +170,20 @@ function updateBivioTransactions($verbose){
     curl_close($ch);
 
     // create notifications
-    $end      = date('Y-m-d H:i:s');
-    $duration = strtotime($end)-strtotime($start);
-    $table    = "bivio transactions";
+    $end          = date('Y-m-d H:i:s');
+    $duration     = strtotime($end)-strtotime($start);
+    $table        = "bivio transactions";
+    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
+    $notification = $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+
+    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
-    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
-    // writeAirTableRecord($table, $start, $duration);
+    if (!$stdin) {
+        show($notification);
+    } else {
+        echo $notification."\r\n";;
+    }
 }
 
 function parseTransaction($transaction){
