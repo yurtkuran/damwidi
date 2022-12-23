@@ -11,6 +11,12 @@ archieve/*
 tmp/*
 cookies/*
 
+#ignore packages
+vendor/
+
+#composer
+composer.phar
+
 #ignore data files & directories
 data/performanceData.json
 data-etf/
@@ -19,6 +25,7 @@ data/*.sql
 #ignore environment files
 .env
 php-includes/definedConstants.php
+config/password.txt
 
 #fav icons
 faviconGreenDown.ico

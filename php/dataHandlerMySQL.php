@@ -26,7 +26,7 @@ function loadSectors($mask = 'CISFK', $rawQuery = null){
     // add sector symbol back into the array
     foreach($result as $data){
         $sectors[$data['sector']] = $data;
-    }    
+    }
 
     return $sectors;
 }
@@ -49,7 +49,7 @@ function loadAllocations(){
     // add sector symbol back into the array
     foreach($result as $data){
         $sectors[$data['symbol']] = $data;
-    }  
+    }
 
     return $sectors;
 }
@@ -74,13 +74,13 @@ function loadDamwidiBasket(){
 
 function loadPositionBasis($symbol, $date){
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT 
+    $stmt = $dbc->prepare("SELECT
                                  `symbol`,
                                  `transaction_date` AS 'date',
                                  `shares`,
-                                 abs(`amount` / `shares`) AS 'price'  
-                           FROM  `data_transactions` 
-                           WHERE `symbol` = :symbol AND `transaction_date` = :date AND `type` = 'B' 
+                                 abs(`amount` / `shares`) AS 'price'
+                           FROM  `data_transactions`
+                           WHERE `symbol` = :symbol AND `transaction_date` = :date AND `type` = 'B'
                            ORDER BY `transaction_date` DESC
                            LIMIT 1 ");
 
@@ -111,10 +111,10 @@ function saveDamwidiBasket($symbol, $description, $exists = FALSE){
         $stmt = $dbc->prepare("UPDATE `data_basket` SET description = :description, dateLastVisited = :dateLastVisited, visitCount = visitCount+1 WHERE symbol = :symbol");
     } else {
         $stmt = $dbc->prepare("INSERT INTO `data_basket` (symbol, description, dateAdded, dateLastVisited, visitCount) VALUES (:symbol, :description, :dateAdded, :dateLastVisited, 1)");
-        $stmt->bindValue(':dateAdded', date('Y-m-d H:i:s') );        
+        $stmt->bindValue(':dateAdded', date('Y-m-d H:i:s') );
     }
     $stmt->bindParam(':symbol', $symbol);
-    $stmt->bindParam(':description', $description); 
+    $stmt->bindParam(':description', $description);
     $stmt->bindValue(':dateLastVisited', date('Y-m-d H:i:s') );
     $stmt->execute();
 }
@@ -157,7 +157,7 @@ function savePerformanceData($performanceData){
     // prepare sql and bind parameters
     $stmt = $dbc->prepare("UPDATE `data_performance`
                            SET    1wk = :1wk, 2wk = :2wk, 4wk = :4wk, 8wk = :8wk, 1qtr = :1qtr, 1yr = :1yr, ytd = :ytd, previous = :previous, `as-of` = :asof,
-                                  basis = :basis, shares = :shares, weight = :weight, effectiveDate = :effectiveDate, fetchedDate = :fetchedDate
+                                  basis = :basis, shares = :shares
                            WHERE  sector = :sector");
 
     foreach($performanceData as $sector => $data){
@@ -173,9 +173,9 @@ function savePerformanceData($performanceData){
         $stmt->bindParam(':asof',          $data['as-of']);
         $stmt->bindParam(':basis',         $data['basis']);
         $stmt->bindParam(':shares',        $data['shares']);
-        $stmt->bindParam(':weight',        $data['weight']);
-        $stmt->bindValue(':effectiveDate', $data['effectiveDate'] != '0000-00-00' ? $data['effectiveDate'] : null);
-        $stmt->bindValue(':fetchedDate',   $data['fetchedDate']   != '0000-00-00' ? $data['fetchedDate']   : null);
+        // $stmt->bindParam(':weight',        $data['weight']);
+        // $stmt->bindValue(':effectiveDate', $data['effectiveDate'] != '0000-00-00' ? $data['effectiveDate'] : null);
+        // $stmt->bindValue(':fetchedDate',   $data['fetchedDate']   != '0000-00-00' ? $data['fetchedDate']   : null);
         $stmt->execute();
     }
 }
@@ -185,7 +185,7 @@ function saveSPKeyData($symbol, $keyData){
     $dbc = connect();
 
     // prepare sql and bind parameters
-    $stmt = $dbc->prepare("UPDATE `sp_holdings` 
+    $stmt = $dbc->prepare("UPDATE `sp_holdings`
                            SET     employees           = :employees,
                                    marketcap           = :marketcap,
                                    sharesOutstanding   = :sharesOutstanding,

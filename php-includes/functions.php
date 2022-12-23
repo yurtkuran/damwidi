@@ -36,7 +36,7 @@ function curl_get_contents($url){
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-    curl_setopt($ch, CURLOPT_SSLVERSION,6); 
+    curl_setopt($ch, CURLOPT_SSLVERSION,6);
     $response = curl_exec($ch);
 
     if ($response === FALSE) die(curl_error($ch));
@@ -91,9 +91,9 @@ function rateLimit(){
     sleep(rand(20,25));
 }
 
-function save($filename, $data){
+function save($filename, $data, $mode = "w"){
     $json = json_encode($data);
-    $file = fopen($filename, "w");
+    $file = fopen($filename, $mode);
     fwrite($file, $json);
     fclose($file);
 }
@@ -147,6 +147,6 @@ function UUIDv4(){
 function round_up($number, $precision = 2){
     $fig = pow(10, $precision);
     return (ceil($number * $fig) / $fig);
-} 
+}
 
 ?>

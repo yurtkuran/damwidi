@@ -1,14 +1,16 @@
 <?php
 // update fields in the `data_performance` table for sectors, index and cash
 function updatePerformanceData($verbose, $debug, $stdin = false){
-    if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");  
+    if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");
+    Logs::$logger->info("start update performance");
+
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
 
     // load previous 2 years of data
     $startDate = date('Y-m-d', strtotime('-2 years'));
-    
+
     // add and remove stock positions from performance MySQL table
     refreshPerformanceTable($verbose);
 
@@ -18,7 +20,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     // if symbol is passed as query parameter, only update that single sector/symbol, used to update single row in performance table
     if (isset($_GET['symbol'])) {
         $symbol  = strtoupper($_GET['symbol']);
-        
+
         // verify symbol is in sectors array
         if (array_key_exists($symbol, $sectors)) {
             // $sectors = $sectors[$symbol];
@@ -28,7 +30,6 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
             show($symbol.' is not in performance table, execution terminated');
             die();
         }
-
     }
 
     // load timeframe details
@@ -37,9 +38,11 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, $verbose, $debug);  // loadNewData, saveData, verbose, debug
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, $verbose, true);  // loadNewData, saveData, verbose, debug
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
+
+
         } else {
             $priceData     = returnDamwidiData();
             $lastRefreshed = array_keys($priceData)[0];
@@ -52,10 +55,10 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
             'previous'      => current($previous)['close'],
 
             // sector weights data
-            'weight'            => $sector['weight'],
-            'effectiveDate'     => $sector['effectiveDate'],
-            'fetchedDate'       => $sector['effectiveDate'],
-            'sectorDescription' => $sector['sectorDescription']
+            // 'weight'            => $sector['weight'],
+            // 'effectiveDate'     => $sector['effectiveDate'],
+            // 'fetchedDate'       => $sector['effectiveDate'],
+            // 'sectorDescription' => $sector['sectorDescription']
         );
 
         // loop through all timeframes, add gain data
@@ -88,24 +91,30 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     $performanceData = returnBasisData($lastRefreshed, $performanceData); // add basis & share data
 
     // $performanceData = returnSectorWeights($performanceData); // add sector weights
-
     savePerformanceData($performanceData, $verbose); // write to MySQL database
 
     saveCashBalance(returnCashBalance($lastRefreshed), $lastRefreshed); // write to MySQL database
 
     if ($verbose) show($performanceData);
-    // save("./data/performanceData.json", $performanceData);
+
+    save("./data/performanceData.json", array(
+        'lastRefreshed'  => $lastRefreshed,
+        'performanceData' => $performanceData,
+    ));
 
     // create notifications
-    $end      = date('Y-m-d H:i:s');
-    $duration = strtotime($end)-strtotime($start);
-    $table    = "performance";
+    $end          = date('Y-m-d H:i:s');
+    $duration     = strtotime($end)-strtotime($start);
+    $table        = "performance";
+    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
+    $notification = $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
     if (!$stdin) {
-        show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
+        show($notification);
     } else {
-        echo $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)))."\r\n";;
+        echo $notification."\r\n";;
     }
     // writeAirTableRecord($table, $start, $duration);
 }
@@ -152,6 +161,7 @@ function returnBasisData($lastRefreshed, $performanceData){
             $performanceData[$sector]['basis']  = $openPositions[$sector]['basis'];
             $performanceData[$sector]['shares'] = $openPositions[$sector]['shares'];
         } else {
+            Logs::$logger->notice(str_pad($sector, 6)." - setting shares and basis to 0");
             $performanceData[$sector]['basis']  = 0;
             $performanceData[$sector]['shares'] = 0;
         }
@@ -227,11 +237,11 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
 
     // MySQL query to retrieve performance data
     $query = 'SELECT * FROM `data_performance` WHERE INSTR(\'SIFK\', `type`) ORDER BY FIELD(`type`, "F", "I", "S", "K"), `sector`';
-    
+
     if ($version==='v2') {
         $timeframe = $_GET['timeframe'];
         $sectors = loadSectors(null, $query);
-        
+
         // add sector timeframe data for chart.js
         $i = 0;
         $labels  = array();
@@ -259,7 +269,7 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
             'SPY'      => $SPY,
             'labels'   => $labels,
             'datasets' => [$dataset]
-        ); 
+        );
     } else if ($version === 'v4'){
         // $data = loadRawQuery($query);
         $data = loadSectors(null, $query);

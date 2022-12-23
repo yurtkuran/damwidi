@@ -2,22 +2,14 @@
 # Connect to the Database:
 function connect(){
     try {
-        
-        if (ENV == 'development') {
-            // local server
-            $name = 'damwidi_v2';   // Database name
-            $host = MySQLHOST;      // Host name
-            $user = MySQLUSERNAME;  // Username
-            $pass = MySQLPASSWORD;  // Password
-        } elseif (ENV == 'production') {
-            // hostgator
-            $name = 'yurtkura_damwidi'; // Database name
-            $host = HOSTGATORUSERHOST;  // Host name
-            $user = HOSTGATORUSERNAME;  // Username
-            $pass = HOSTGATORPASSWORD;  // Password
-        }
 
-        $dbc = new PDO("mysql:host=$host;dbname=$name", $user, $pass);
+        $name = constant(ENV."_DBNAME");      // Database name
+        $host = constant(ENV."_DBHOST");      // Host name
+        $user = constant(ENV."_USERNAME");    // Username
+        $pass = constant(ENV."_PASSWORD");    // Password
+
+        $dbc = new PDO("mysql:host=$host; dbname=$name", $user, $pass);
+
         $connect = $dbc;
     }
     catch(PDOException $e) {

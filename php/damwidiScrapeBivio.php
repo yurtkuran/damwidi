@@ -3,20 +3,20 @@
 function bivioLogin($verbose){
     // options
     $login_email      = 'erol@yurtkuran.net';
-    $login_pass       = BIVIOPASSWORD;  
+    $login_pass       = BIVIOPASSWORD;
     $cookie_file_path = './cookies/cookies.txt';
 
     // https://www.bivio.com/pub/login?c=aMTM_%21bMTQ_%21eZjABAWYxAQFmMgEBdgEx%21zYU5nX18_&f1=Secure%20Login&tz=240&v=2&x1=erol%40yurtkuran.net&x2=XqRh863M7tBAdf
 
     //login form action url
     $url       = "https://www.bivio.com/pub/login";
-    $postinfo  = "tz=240";
+    $postinfo  = "tz=300";
     $postinfo .= "&v=2";
-    $postinfo .= "&c=aMTM_%21bMTQ_%21eZjABAWYxAQFmMgEBdgEx%21zYU5nX18_";
+    $postinfo .= "&c=aMTM_!bMTQ_!eZjABAWYxAQFmMgEBdgEx!zYU5nX18_";
     $postinfo .= "&x1=".$login_email;
     $postinfo .= "&x2=".$login_pass;
     $postinfo .= "&f1=Secure+Login";
-    
+
     if ($verbose) show($url."?".$postinfo);
 
     $ch = curl_init();
@@ -110,7 +110,7 @@ function returnTransactions($verbose, $debug){
 
 // retrieve recent transactions from bivio.com and add to `data_transactions` table
 function updateBivioTransactions($verbose){
-    if ($verbose) show("--- UPDATE BIVIO TRANSACTIONS ---");    
+    if ($verbose) show("--- UPDATE BIVIO TRANSACTIONS ---");
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
@@ -151,7 +151,7 @@ function updateBivioTransactions($verbose){
                 default:
                 // symbol okay
             }
-                
+
             if ($verbose) show($transaction);
             saveTransactionData($transaction); //update database
 
