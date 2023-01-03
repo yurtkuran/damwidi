@@ -135,7 +135,7 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
 
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
 
-                if(ENV == 'PROD') sendSMS('docker damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
+                if(ENV == 'PROD') sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
 
             } else {
                 if (array_key_exists($date, $dataLog)){

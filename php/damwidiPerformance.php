@@ -38,7 +38,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, $verbose, true);  // loadNewData, saveData, verbose, debug
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
 
@@ -83,7 +83,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
         $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        rateLimit();
+        if(!$chartData['cached']) rateLimit();
 
         if($debug) break;
     }

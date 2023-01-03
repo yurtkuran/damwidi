@@ -4,7 +4,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
     if ($verbose) show("get historical data \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     // list of data providers
-    $dataProviders = array('alphaVantage'); 
+    $dataProviders = array('alphaVantage');
 
     // convert to array if single symbol
     $symbols = (is_array($symbols) ? $symbols : array($symbols));
@@ -22,9 +22,14 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
             }
         } else {
             foreach($dataProviders as $provider){
+                if ($verbose) show($provider." - ".$symbol);
                 switch($provider){
                     case 'alphaVantage':
-                        $historicalData  = retrievePriceDataAlpha($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+                        $historicalData  = retrievePriceDataAlpha($symbol, 'daily', $startDate, false, false, false, 30);  // saveData, verbose, debug, cacheAge
+
+                        // if not cached, sleep for a random amount of time to prevent rate limiting from AlphaVantage
+                        if(!$historicalData['cached']) rateLimit();
+
                         break;
                     case 'barChart':
                         $historicalData  = retrievePriceDataBarChart($symbol, 'daily', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
@@ -45,8 +50,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                 }
             }
         }
-        // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        rateLimit();
+
     }
 
     if ($verbose) show($dataset);

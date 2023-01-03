@@ -7,13 +7,15 @@ COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
 # Install necessary packages
-RUN apt-get update && \
-    apt-get install \
-    libzip-dev \
+RUN apt-get update
+
+RUN apt-get install \
     wget \
     git \
     unzip \
-    php-mysql \
+    libzip-dev \
+    openssl \
+    libssl-dev \
     -y --no-install-recommends
 
 # Install PHP Extensions
@@ -23,11 +25,18 @@ RUN docker-php-ext-install -j "$(nproc)" \
     mysqli \
     zip
 
-RUN pecl install -o -f xdebug-3.1.5 \
-    && docker-php-ext-enable xdebug
+RUN docker-php-ext-install zip pdo_mysql
 
-# Copy composer installable
-#COPY ./install-composer.sh ./
+# mongoDb driver
+RUN pecl install mongodb
+RUN echo "extension=mongodb.so" >> /usr/local/etc/php/conf.d/mongodb.ini
+
+# Xdebug
+RUN pecl install -o -f xdebug-3.1.5
+RUN docker-php-ext-enable xdebug
+
+# # Copy composer installable
+# #COPY ./install-composer.sh ./
 
 # Copy php.ini
 COPY ./php.ini /usr/local/etc/php/
