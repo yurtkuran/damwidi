@@ -86,8 +86,8 @@ function priceGain($priceData, $index0, $index1, $roundDigits = 2){
     return $priceGain;
 }
 
+// sleep for a random amount of time to prevent rate limiting
 function rateLimit(){
-    // sleep for a random amount of time to prevent rate limiting from AlphaVantage
     sleep(rand(20,25));
 }
 

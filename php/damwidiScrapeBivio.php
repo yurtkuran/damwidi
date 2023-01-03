@@ -202,16 +202,16 @@ function parseTransaction($transaction){
         $parse['type'] = 'R';
 
     } else if (strpos($transaction, 'EXPENSE') !== FALSE ) {
-         $parse['type'] = 'E';
+        $parse['type'] = 'E';
 
     } else if (strpos($transaction, 'SPLIT') !== FALSE ) {
-         $parse['type'] = 'L';
+        $parse['type'] = 'L';
 
     } else if (strpos($transaction, 'WITHDRAWL') !== FALSE ) {
-         $parse['type'] = 'W';
+        $parse['type'] = 'W';
 
     } else {
-        $parse['type'] = 'X';
+        $parse['type'] = 'X'; // unknown
     }
 
     $parse['symbol'] = "";

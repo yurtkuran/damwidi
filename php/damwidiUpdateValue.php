@@ -2,7 +2,7 @@
 
 // update cash, SPY fields in `data_value` table
 function updateValueTable($verbose = false, $debug = false){
-    if ($verbose) show("--- UPDATE VALUE TABLE ---");  
+    if ($verbose) show("--- UPDATE VALUE TABLE ---");
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
@@ -94,19 +94,19 @@ function updateValueTable($verbose = false, $debug = false){
 
                 if ($unstickError == 0) break;
             }
-            
+
             $valueData['market_value']  = $marketValue[$provider]['close'];
             $valueData['account_value'] = $marketValue[$provider]['close'] + $valueData['cash'];
             $valueData['share_value']   = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,8);
             $valueData['share_value']   = round($valueData['share_value'],7);
             $valueData['share_value']   = round($valueData['share_value'],6);
             // $valueData['share_value']   = round(($valueData['cash'] + $marketValue[$source]['close'])/$totalShares,6);
-            
+
             $valueData['open']          = ($valueData['cash'] + $marketValue[$provider]['open'])  / $totalShares;
             $valueData['high']          = ($valueData['cash'] + $marketValue[$provider]['high'])  / $totalShares;
             $valueData['low']           = ($valueData['cash'] + $marketValue[$provider]['low'])   / $totalShares;
             $valueData['close']         = ($valueData['cash'] + $marketValue[$provider]['close']) / $totalShares;
-            
+
             $valueData['source']        = $provider;
 
             if ($verbose) show($date.' - '.$provider);
@@ -132,10 +132,10 @@ function updateValueTable($verbose = false, $debug = false){
                     $dataLog[$date]['positions'][$symbol]['shares'] = $data['shares'];
                     $dataLog[$date]['positions'][$symbol]['close']  = $historicalData[$provider][$symbol][$date]['close'];
                 }
-            
+
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
 
-                if(ENV == 'production') sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
+                if(ENV == 'PROD') sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
 
             } else {
                 if (array_key_exists($date, $dataLog)){

@@ -1,5 +1,5 @@
 <?php
-function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = true, $saveData = false, $verbose = false, $debug = false){
+function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = false, $verbose = false, $debug = false, $cacheAge = 15){
     //
     // use https://httpstat.us/ to test the HTML response
     //
@@ -8,39 +8,68 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
             $key = "Time Series (Daily)";
             $function = "TIME_SERIES_DAILY_ADJUSTED";
             break;
-        case 'weekly':
-            $key = "Weekly Time Series";
-            $function = "TIME_SERIES_WEEKLY";
-            break;
     }
 
+    // create alphavantage URL
     $URL  = alphaVantageURL;
     $URL .= "?function="  .$function;
     $URL .= "&symbol="    .$symbol;
     $URL .= "&apikey="    .alphaVantageAPIkey;
+    $URL .= "&outputsize=full";
 
     // determine output size
-    if ( ((time() - strtotime($startDate)) / 86400) <=100 ){  // determine if <= 100 data points is needed
-        $URL .= "&outputsize=compact";
-    } else {
-        $URL .= "&outputsize=full";
-    }
+    // if ( date_diff(date_create($startDate), date_create("now"))->format('%a') <= 100 ){  // determine if <= 100 data points are needed
+    //     $URL .= "&outputsize=compact";
+    // } else {
+    //     $URL .= "&outputsize=full";
+    // }
 
-    if ($verbose) show($URL);
-
+    // create filename to save data
     $filename = "./data/data_price_alpha_".$interval."_".$symbol.".json";
 
-    $attempts    = 1;
-    $maxAttempts = 5;
-    $dataOK = false;
-    if ($loadNewData) {
-        do {
-            $json     = file_get_contents($URL);  //retrieve data
-            $response = $http_response_header[0]; //http response information
-            $url      = $URL;                     //alphavantage URL
-            $data     = json_decode($json,1);
+    // connect to mongoDB
+    $mongoURI   = "mongodb+srv://".MONGOUSERNAME.":".MONGOPASSWORD."@cluster0.j2v6w.mongodb.net/?retryWrites=true&w=majority";
+    $client     = new MongoDB\Client($mongoURI);
+    $collection = $client->damwidi->alphavantageCache;
 
-            if (array_key_exists('Information', $data)){
+    // find cached data
+    $loadNewData = true;
+    $doc         = $collection->findOne(['symbol' => $symbol]);
+    if (!is_null($doc)) {
+        $alphaData = json_decode(MongoDB\BSON\toJSON(MongoDB\BSON\fromPHP($doc)),1);
+        $id        = $alphaData['_id']['$oid'];
+        if (time() - $alphaData['createdAt'] < ($cacheAge * 60)){
+            $loadNewData = false;
+            if ($verbose) show($symbol." - current - ".$id);
+        } else {
+            $collection->deleteOne(['_id' => new MongoDB\BSON\ObjectID($id)]);
+            if ($verbose) show($symbol." - not current - deleted - ".$id);
+        }
+    }
+
+    // load data from AlphaVantage
+    if ($loadNewData) {
+        $attempts    = 1;
+        $maxAttempts = 5;
+        $dataOK = false;
+        $dataArray = array();
+
+        do {
+            Logs::$logger->info(str_pad($symbol, 6)." - retrieve Alpha data, attempt ".$attempts);
+
+            $json       = file_get_contents($URL);  //retrieve data
+            $response   = $http_response_header[0]; //http response information
+            $url        = $URL;                     //alphavantage URL
+            $seriesData = json_decode($json,1);
+
+            $dataArray[$symbol."-".$attempts] = $seriesData;
+            if (array_key_exists('Time Series (Daily)',$dataArray[$symbol."-".$attempts])) unset($dataArray[$symbol."-".$attempts]['Time Series (Daily)']);
+
+            if (array_key_exists('Information', $seriesData)){
+                Logs::$logger->notice(str_pad($symbol, 6)." - failed retrieve Alpha ", [
+                    "keys"        => array_keys($seriesData),
+                    "information" => $seriesData['Information']
+                ]);
                 $attempts++;
                 ratelimit();                      //randon backoff time
             } else {
@@ -48,44 +77,74 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $loadNewData = t
             }
         } while (!$dataOK && $attempts <= $maxAttempts);
 
-        if ($saveData) save($filename, $data);
-        if ($debug) save(  "./tmp/data_price_alpha_".$symbol."_".date('YmdHis').".json", $data);
-    } else {
-        $json     = file_get_contents($filename); //load data from file, for development
-        $response = "loaded from file";
-        $url      = $filename;                    //filename
-    }
-    $seriesData = json_decode($json,1);
+        $dataSet = array(
+            'symbol'    => $symbol,
+            'retrieved' =>  date('Y-m-d H:i:s'),
+            'createdAt' => time(),
+            'interval'  => $interval,
+            'function'  => $function,
+            'Meta Data' => array(
+                'url'       => $url,
+                'attempts'  => $attempts,
+                'response'  => $response,
+                'startTime' => $startDate,
+            ),
+            'AlphaVantage' => $seriesData
+        );
 
-    // if ($verbose) show($http_response_header);
+        if ( !(strpos($response,'200') === false) && $dataOK ) {
+            $dataSet['lastRefreshed']              = $seriesData['Meta Data']['3. Last Refreshed'];
+            $dataSet['Meta Data']['status']        = 'success';
+            $dataSet['Meta Data']['outputSize']    = $seriesData['Meta Data']['4. Output Size'];
+            $dataSet['Meta Data']['outputCount']   = count($seriesData[$key]);
+            $dataSet['Meta Data']['information']   = $seriesData['Meta Data']['1. Information'];
+            $dataSet['Meta Data']['http response'] = $http_response_header[0];
 
-    $dataSet['Meta Data'] = array(
-        'symbol'    => $symbol,
-        'url'       => $url,
-        'attempts'  => $attempts,
-        'response'  => $response,
-        'startTome' => $startDate,
-    );
+            // save raw data to MongoDB cache
+            $collection->insertOne($dataSet);
+            if ($verbose) show($symbol." - inserted");
 
-    if ( (!(strpos($response,'200') === false) or !$loadNewData) && $dataOK ) {
-        $dataSet['lastRefreshed']       = $seriesData['Meta Data']['3. Last Refreshed'];
-        $dataSet['Meta Data']['status'] = 'success';
-        foreach($seriesData[$key] as $candle => $data){
-            if ($candle >= $startDate ) {
-                $dataSet['seriesData'][$candle] = array(
-                    "open"  => $data['1. open'],
-                    "high"  => $data['2. high'],
-                    "low"   => $data['3. low'],
-                    "close" => $data['4. close'],
-                );
-            }
+            // remove raw data from returned array
+            unset($dataSet['AlphaVantage']);
+
+            // set cahced flag
+            $dataSet['cached'] = false;
+
+        } else {
+            $dataSet['status'] = 'fail';
         }
+
+        if ($debug) save(  "./tmp/data_price_alpha_".$symbol.".json", array(
+            'attempts' => $attempts,
+            'url'      => $url,
+            'data'     => $dataArray,
+            'response' => $http_response_header
+        ));
+
+        if ($saveData) save($filename, $seriesData);
     } else {
-        $dataSet['status'] = 'fail';
+        // use cached data
+        $dataSet           = $alphaData;
+        $dataSet['cached'] = true;
+        $seriesData = $alphaData['AlphaVantage'];
+
+        // remove raw data from returned array
+        unset($dataSet['AlphaVantage']);
+    }
+
+    // format return data
+    foreach($seriesData[$key] as $candle => $data){
+        if ($candle >= $startDate ) {
+            $dataSet['seriesData'][$candle] = array(
+                "open"  => $data['1. open'],
+                "high"  => $data['2. high'],
+                "low"   => $data['3. low'],
+                "close" => $data['4. close'],
+            );
+        }
     }
 
     if ($verbose) show($dataSet['Meta Data']);
-    // if ($verbose) show($dataSet['seriesData']);
     return $dataSet;
 }
 
@@ -172,7 +231,7 @@ function retrieveBatchDataAlphaV2($symbols, $loadNewData = true, $saveData = fal
         }
     }
     die();
-    
+
     $filename = "./data/data_price_alpha_batch.json";
 
     $seriesData = json_decode($json,1);

@@ -4,7 +4,7 @@
 include_once 'php-includes/init.php';
 
 // setup environment defaults
-$verbose = FALSE; 
+$verbose = FALSE;
 $debug   = FALSE;
 $stdin   = FALSE;
 
@@ -167,23 +167,26 @@ switch($mode){
         break;
 
     case 'environment':
+        show(ENV);
+        show(date('Y-m-d H:i:s'));
         show(php_uname());
         show(stristr(php_uname(),'ubuntu') ? 'local' : 'host' );
         phpinfo();
         break;
-    
-    // test functions - used only in development
-    case 'test':
-        if(ENV == 'development') {
-            show(returnFormatDetails('rs'));
 
-        } 
+    //
+    // test functions - used only in DEV
+    case 'test1':
+
         break;
 
     case 'test2':
-        if(ENV == 'development') echo "this is a test \r\n";
+        if(ENV == 'DEV') {
+            $startDate = date('Y-m-d', strtotime('-1 years'));
+            $alphaData = retrievePriceDataAlpha('AMZN', 'daily', $startDate, $saveData = false, $verbose = true, $debug);
+        }
         break;
-        
+
     case 'keystats':
         if(ENV == 'development' and isset($_GET['symbol'])) {
 
@@ -191,9 +194,9 @@ switch($mode){
             $URL  = iexURL;
             $URL .= 'stock/'.$symbol.'/stats';
             $URL .= '?token='.iexPK;
-        
+
             if ($verbose) show($URL);
-        
+
             $json = file_get_contents($URL);      //retrieve data
             $data = json_decode($json,1);
 
@@ -201,7 +204,7 @@ switch($mode){
         } else {
             show('not set');
         }
-        break;      
+        break;
 
     case 'accountDetails':
         if(ENV == 'development') {
@@ -213,7 +216,7 @@ switch($mode){
             $URL  = iexURL.'account/usage?token='.iexSK;
             $json = file_get_contents($URL);      //retrieve data
             show(json_decode($json,1));
-        } 
+        }
         break;
 
     case 'bivioValuation':
@@ -231,10 +234,10 @@ switch($mode){
 
     case 'yahooQuote':
         retrieveYahooQuote("fxg", $verbose);
-        
+
         break;
 
     default:
         // no valid mode supplied
-} 
+}
 ?>

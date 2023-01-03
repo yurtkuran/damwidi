@@ -1,14 +1,14 @@
 <?php
 // update fields in the `data_performance` table for sectors, index and cash
 function updatePerformanceData($verbose, $debug, $stdin = false){
-    if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");  
+    if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
 
     // load previous 2 years of data
     $startDate = date('Y-m-d', strtotime('-2 years'));
-    
+
     // add and remove stock positions from performance MySQL table
     refreshPerformanceTable($verbose);
 
@@ -18,7 +18,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     // if symbol is passed as query parameter, only update that single sector/symbol, used to update single row in performance table
     if (isset($_GET['symbol'])) {
         $symbol  = strtoupper($_GET['symbol']);
-        
+
         // verify symbol is in sectors array
         if (array_key_exists($symbol, $sectors)) {
             // $sectors = $sectors[$symbol];
@@ -37,7 +37,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     // loop through all sectors
     foreach($sectors as $sector){
         if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, true, false, $verbose, $debug);  // loadNewData, saveData, verbose, debug
+            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
         } else {
@@ -80,7 +80,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
         $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
 
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        rateLimit();
+        if(!$chartData['cached']) rateLimit();
 
         if($debug) break;
     }
@@ -227,11 +227,11 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
 
     // MySQL query to retrieve performance data
     $query = 'SELECT * FROM `data_performance` WHERE INSTR(\'SIFK\', `type`) ORDER BY FIELD(`type`, "F", "I", "S", "K"), `sector`';
-    
+
     if ($version==='v2') {
         $timeframe = $_GET['timeframe'];
         $sectors = loadSectors(null, $query);
-        
+
         // add sector timeframe data for chart.js
         $i = 0;
         $labels  = array();
@@ -259,7 +259,7 @@ function returnSectorTimeframePerformanceData($verbose, $debug){
             'SPY'      => $SPY,
             'labels'   => $labels,
             'datasets' => [$dataset]
-        ); 
+        );
     } else if ($version === 'v4'){
         // $data = loadRawQuery($query);
         $data = loadSectors(null, $query);
