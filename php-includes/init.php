@@ -1,10 +1,11 @@
 <?php
+include_once 'globals.php';
+
 ini_set('max_execution_time', 1200); // increase execution time
 date_default_timezone_set('America/New_York');
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
 
 // error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // ini_set('display_errors', false); // Error display
@@ -41,4 +42,6 @@ include_once 'php/dataHandlerAWS.php';
 include_once 'php-includes/Airtable.php';
 include_once 'php-includes/Request.php';
 include_once 'php-includes/Response.php';
+
+require "vendor/autoload.php";
 // ?>

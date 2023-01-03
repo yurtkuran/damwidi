@@ -1,7 +1,7 @@
 <?php
 
 // update cash, SPY fields in `data_value` table
-function updateValueTable($verbose = false, $debug = false){
+function updateValueTable($verbose = false, $debug = false, $stdin = false){
     if ($verbose) show("--- UPDATE VALUE TABLE ---");
 
     // store start time used to determine function duration
@@ -163,13 +163,20 @@ function updateValueTable($verbose = false, $debug = false){
     curl_close($ch);
 
     // create notifications
-    $end      = date('Y-m-d H:i:s');
-    $duration = strtotime($end)-strtotime($start);
-    $table    = "value";
+    $end          = date('Y-m-d H:i:s');
+    $duration     = strtotime($end)-strtotime($start);
+    $table        = "value";
+    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
+    $notification = $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+
+    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
-    show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start))));
-    // writeAirTableRecord($table, $start, $duration);
+    if (!$stdin) {
+        show($notification);
+    } else {
+        echo $notification."\r\n";;
+    }
 }
 
 // query `data_transaction` table to return a list of all positions (open or closed) between two dates

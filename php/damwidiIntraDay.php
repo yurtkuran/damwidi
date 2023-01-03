@@ -21,6 +21,10 @@ function returnDetails($verbose, $debug){
 
 // return IntraDay data
 function returnIntraDayData($verbose, $debug, $api = false){
+
+    // store start time used to determine function duration
+    $start = date('Y-m-d H:i:s');
+
     $sectors = loadSectors('SIK');
     if($verbose) show('Complete Sector List:');
     if($verbose) show($sectors);
@@ -37,8 +41,8 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $symbols = rtrim($symbols, ','); // remove final comma
 
     // retrieve realtime batch quotes
-    $priceData = retrieveIEXBatchData($symbols, false, false, false);  //saveData, verbose, debug 
-    
+    $priceData = retrieveIEXBatchData($symbols, false, false, false);  //saveData, verbose, debug
+
     // create heatmap data
     $heatMapData = array();
     foreach($sectors as $sector){
@@ -84,7 +88,15 @@ function returnIntraDayData($verbose, $debug, $api = false){
     );
 
     if($verbose) show($intraDayData);
-    
+
+    // create log
+    $end      = date('Y-m-d H:i:s');
+    $duration = strtotime($end)-strtotime($start);
+    $table    = "intraday lookup";
+    $log      = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
+
+    Logs::$logger->info($log);
+
     if($api){
         return $intraDayData;
     } else {
@@ -133,17 +145,17 @@ function createHeatMapData($heatMapData, $verbose){
 }
 
 function createAllocationData($heatMapData, $verbose){
-    
+
     // load data
     $query      = 'SELECT * FROM `data_performance` WHERE INSTR(\'CIS\', `type`) ORDER BY FIELD(`type`, "C", "I", "S"), `weight` DESC, `sector`';
     $sectors    = loadSectors(null, $query);                    // load data for SPY, cash, sectors and stocks
     $stocks     = loadRawQuery('CALL stock_allocation()');      // load stock-to-sector data
     $stocksData = loadSectors('K');                             // load data for stocks
-    
+
     // init data variables & array
     $allocationData      = array();
     $damwidiBasis        = 0;
-    $summaryCurrentValue = 0;  
+    $summaryCurrentValue = 0;
 
     // loop through sectors
     foreach($sectors as $sector => $sectorData){
@@ -159,7 +171,7 @@ function createAllocationData($heatMapData, $verbose){
             'change'       => $allocationData[$sector]['change'],
             'weight'       => $sectorData['weight'],
         );
-        
+
         // loop through stocks
         foreach($stocks as $stock){
             if($stock['sector'] == $sector) {
@@ -172,7 +184,7 @@ function createAllocationData($heatMapData, $verbose){
                 $sectorSummaryData['change']       += $allocationData[$symbol]['change'];
             }
         }
-        
+
         if ($sectorSummary) insertIntoAllocationData($sector.'_Total', $sector, $sectorSummaryData, $heatMapData, $allocationData, $damwidiBasis);
 
         if (!$sectorSummary and $sectorData['type'] == 'S') $allocationData[$sector]['type'] = 'Y'; // convert setor only row to summary
@@ -234,7 +246,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         $data[$position]['priceLast']  = $heatMapData[$position]['last'];
         $data[$position]['pricePreviousClose']  = $heatMapData[$position]['prevClose'];
         $data[$position]['priceGain']  = $positionBasis['price'] != 0 ? round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2) : 0;
-        $data[$position]['spyBasis']   = floatval(number_format($spyBasis,2));        
+        $data[$position]['spyBasis']   = floatval(number_format($spyBasis,2));
         $data[$position]['spyLast']    = $heatMapData['SPY']['last'];
         $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
 
@@ -246,7 +258,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
             $data[$position]['purchases'][$i]['dateBasis']  = $positionData['purchases'][$i];
             $data[$position]['purchases'][$i]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
             $data[$position]['purchases'][$i]['priceGain']  = $positionBasis['price'] != 0 ? round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2) : 0;
-            $data[$position]['purchases'][$i]['spyBasis']   = floatval(number_format($spyBasis,2));    
+            $data[$position]['purchases'][$i]['spyBasis']   = floatval(number_format($spyBasis,2));
             $data[$position]['purchases'][$i]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
         }
 
@@ -264,13 +276,13 @@ function createPerformacneData($heatMapData, $positions, $verbose){
     }
     // show('test');
     return array(
-        'data'        => $data, 
-        'categories'  => $categories, 
-        'seriesPrice' => $seriesPrice, 
+        'data'        => $data,
+        'categories'  => $categories,
+        'seriesPrice' => $seriesPrice,
         'seriesSPY'   => $seriesSPY,
         'seriesDate'  => $seriesDate
     );
-    
+
 }
 
 // create data used in the intraday portfilio table
@@ -437,7 +449,7 @@ function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allo
     $allocationData[$symbol]['name']          = $data['name'];
     $allocationData[$symbol]['description']   = $data['description'];
     $allocationData[$symbol]['type']          = $data['type'];
-    
+
     if ($data['type'] == 'C') { //cash
         $allocationData[$symbol]['last']          = $data['basis'];
         $allocationData[$symbol]['currentValue']  = $data['basis'];
@@ -466,7 +478,7 @@ function insertIntoAllocationData($symbol, $sector, $data, $heatMapData, & $allo
         $allocationData[$symbol]['change']        = $data['change'];
         $allocationData[$symbol]['changePercent'] = calculateChangePercent($data['change'], $data['currentValue']);
         $allocationData[$symbol]['valid']         = $allocationData[$symbol]['allocation'] == -1 || $allocationData[$symbol]['changePercent'] == -1 ? false : true;
-    } 
+    }
 
     if ($data['type'] == 'S' or $data['type'] == 'Y') {
         $allocationData[$symbol]['weight']                  = $data['weight']/100 * $heatMapData['DAM']['last'];

@@ -71,11 +71,18 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
                     "information" => $seriesData['Information']
                 ]);
                 $attempts++;
-                ratelimit();                      //randon backoff time
+                ratelimit();                      //random backoff time
             } else {
                 $dataOK = true;
             }
         } while (!$dataOK && $attempts <= $maxAttempts);
+
+        if ($debug) save(  "./tmp/data_price_alpha_".$symbol.".json", array(
+            'attempts' => $attempts,
+            'url'      => $url,
+            'data'     => $dataArray,
+            'response' => $http_response_header
+        ));
 
         $dataSet = array(
             'symbol'    => $symbol,
@@ -231,6 +238,7 @@ function retrieveBatchDataAlphaV2($symbols, $loadNewData = true, $saveData = fal
         }
     }
     die();
+
 
     $filename = "./data/data_price_alpha_batch.json";
 
