@@ -115,6 +115,8 @@ switch($mode){
 
     case 'test2':
         if(ENV == 'DEV') {
+            $startDate = date('Y-m-d', strtotime('-1 years'));
+            $alphaData = retrievePriceDataAlpha('AMZN', 'daily', $startDate, $saveData = false, $verbose = true, $debug);
         }
         break;
 
