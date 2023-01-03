@@ -17,7 +17,14 @@ vendor/
 #composer
 composer.phar
 
+#ignore packages
+vendor/
+
+#composer
+composer.phar
+
 #ignore data files & directories
+data/data_price_alpha_daily_*
 data/performanceData.json
 data-etf/
 data/*.sql

@@ -101,17 +101,20 @@ switch($mode){
 
     case 'environment':
         show(ENV);
+        show(date('Y-m-d H:i:s'));
         show(php_uname());
         phpinfo();
         break;
 
     //
     // test functions - used only in DEV
-    case 'test':
+    case 'test1':
+        if(ENV == 'DEV') {
+        }
         break;
 
     case 'test2':
-    if(ENV == 'DEV') {
+        if(ENV == 'DEV') {
         }
         break;
 
