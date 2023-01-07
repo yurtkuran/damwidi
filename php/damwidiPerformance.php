@@ -143,8 +143,11 @@ function refreshPerformanceTable($verbose){
     // remove any stocks from performance table that are not in open positions
     foreach ($stocks as $stock => $position){
         if(!array_key_exists($stock,$openPositions)){
-            if ($verbose) show($stock.' removed from Performance table');
             removePerformanceStock($stock);
+
+            $log = $stock.' removed from Performance table';
+            Logs::$logger->info($log);
+            if ($verbose) show($log);
         }
     }
 }
