@@ -28,24 +28,24 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
     $filename = "./data/data_price_alpha_".$interval."_".$symbol.".json";
 
     // connect to mongoDB
-    $mongoURI   = "mongodb+srv://".MONGOUSERNAME.":".MONGOPASSWORD."@cluster0.j2v6w.mongodb.net/?retryWrites=true&w=majority";
-    $client     = new MongoDB\Client($mongoURI);
-    $collection = $client->damwidi->alphavantageCache;
+    // $mongoURI   = "mongodb+srv://".MONGOUSERNAME.":".MONGOPASSWORD."@cluster0.j2v6w.mongodb.net/?retryWrites=true&w=majority";
+    // $client     = new MongoDB\Client($mongoURI);
+    // $collection = $client->damwidi->alphavantageCache;
 
     // find cached data
     $loadNewData = true;
-    $doc         = $collection->findOne(['symbol' => $symbol]);
-    if (!is_null($doc)) {
-        $alphaData = json_decode(MongoDB\BSON\toJSON(MongoDB\BSON\fromPHP($doc)),1);
-        $id        = $alphaData['_id']['$oid'];
-        if (time() - $alphaData['createdAt'] < ($cacheAge * 60)){
-            $loadNewData = false;
-            if ($verbose) show($symbol." - current - ".$id);
-        } else {
-            $collection->deleteOne(['_id' => new MongoDB\BSON\ObjectID($id)]);
-            if ($verbose) show($symbol." - not current - deleted - ".$id);
-        }
-    }
+    // $doc         = $collection->findOne(['symbol' => $symbol]);
+    // if (!is_null($doc)) {
+    //     $alphaData = json_decode(MongoDB\BSON\toJSON(MongoDB\BSON\fromPHP($doc)),1);
+    //     $id        = $alphaData['_id']['$oid'];
+    //     if (time() - $alphaData['createdAt'] < ($cacheAge * 60)){
+    //         $loadNewData = false;
+    //         if ($verbose) show($symbol." - current - ".$id);
+    //     } else {
+    //         $collection->deleteOne(['_id' => new MongoDB\BSON\ObjectID($id)]);
+    //         if ($verbose) show($symbol." - not current - deleted - ".$id);
+    //     }
+    // }
 
     // load data from AlphaVantage
     if ($loadNewData) {
