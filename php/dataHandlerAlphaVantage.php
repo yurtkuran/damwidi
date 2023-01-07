@@ -121,8 +121,8 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
             $dataSet['Meta Data']['http response'] = $http_response_header[0];
 
             // save raw data to MongoDB cache
-            $collection->insertOne($dataSet);
-            if ($verbose) show($symbol." - inserted");
+            // $collection->insertOne($dataSet);
+            // if ($verbose) show($symbol." - inserted");
 
             // remove raw data from returned array
             unset($dataSet['AlphaVantage']);
