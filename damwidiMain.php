@@ -114,6 +114,7 @@ switch($mode){
     // test functions - used only in DEV
     case 'test1':
         if(ENV == 'DEV') {
+            sleep(2);
         }
         break;
 

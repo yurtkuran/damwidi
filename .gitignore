@@ -28,6 +28,7 @@ data/data_price_alpha_daily_*
 data/performanceData.json
 data-etf/
 data/*.sql
+logs/
 
 #ignore environment files
 .env

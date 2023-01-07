@@ -107,7 +107,8 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     $duration     = strtotime($end)-strtotime($start);
     $table        = "performance";
     $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
-    $notification = $end." - ".$table." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+    $notification = $end." - ".str_pad($table, 20)." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
+
 
     Logs::$logger->info($log);
 

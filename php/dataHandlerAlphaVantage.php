@@ -49,32 +49,45 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
 
     // load data from AlphaVantage
     if ($loadNewData) {
-        $attempts    = 1;
-        $maxAttempts = 5;
-        $dataOK = false;
-        $dataArray = array();
+        $attempts         = 1;
+        $maxAttempts      = 5;
+        $dataOK           = false;
+        $exceptionOccured = false;
+        $dataArray        = array();
 
         do {
             Logs::$logger->info(str_pad($symbol, 6)." - retrieve Alpha data, attempt ".$attempts);
 
-            $json       = file_get_contents($URL);  //retrieve data
-            $response   = $http_response_header[0]; //http response information
-            $url        = $URL;                     //alphavantage URL
-            $seriesData = json_decode($json,1);
-
-            $dataArray[$symbol."-".$attempts] = $seriesData;
-            if (array_key_exists('Time Series (Daily)',$dataArray[$symbol."-".$attempts])) unset($dataArray[$symbol."-".$attempts]['Time Series (Daily)']);
-
-            if (array_key_exists('Information', $seriesData)){
-                Logs::$logger->notice(str_pad($symbol, 6)." - failed retrieve Alpha ", [
-                    "keys"        => array_keys($seriesData),
-                    "information" => $seriesData['Information']
-                ]);
-                $attempts++;
-                ratelimit();                      //random backoff time
-            } else {
-                $dataOK = true;
+            try {
+                $json = file_get_contents($URL);  //retrieve data
+            } catch(Exception $e) {
+                Logs::$logger->notice($e->getMessage());
+                $exceptionOccured = true;
             }
+
+            if (!$exceptionOccured) {
+                $response   = $http_response_header[0]; //http response information
+                $url        = $URL;                     //alphavantage URL
+                $seriesData = json_decode($json,1);
+
+                $dataArray[$symbol."-".$attempts] = $seriesData;
+                if (array_key_exists('Time Series (Daily)',$dataArray[$symbol."-".$attempts])) unset($dataArray[$symbol."-".$attempts]['Time Series (Daily)']);
+
+                if (array_key_exists('Information', $seriesData)){
+                    Logs::$logger->notice(str_pad($symbol, 6)." - failed retrieve Alpha ", [
+                        "keys"        => array_keys($seriesData),
+                        "information" => $seriesData['Information']
+                    ]);
+                    $attempts++;
+                    ratelimit(); //random backoff time
+                } else {
+                    $dataOK = true;
+                }
+            } else {
+                $attempts++;
+                ratelimit(); //random backoff time
+            }
+
         } while (!$dataOK && $attempts <= $maxAttempts);
 
         if ($debug) save(  "./tmp/data_price_alpha_".$symbol.".json", array(
