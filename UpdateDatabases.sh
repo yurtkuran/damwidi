@@ -1,7 +1,9 @@
 #!/bin/bash
 
-damwidiCmd="php damwidiMain.php"
+damwidiCmd="/usr/local/bin/php damwidiMain.php"
+#damwidiCmd="php damwidiMain.php"
 
+cd /home3/yurtkura/public_html/DAMWIDIsite
 echo 'update damwidi databases start:' $(date +"%Y-%m-%d %T") > ./logs/updateDatabases.txt
 eval "$damwidiCmd" updateBivioTransactions    >> ./logs/updateDatabases.txt && \
     eval "$damwidiCmd" updatePerformanceData  >> ./logs/updateDatabases.txt && \
