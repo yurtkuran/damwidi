@@ -134,6 +134,7 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
                 }
 
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
+                Logs::$logger->notice('value - '.$date.' - damwidi unstick: '.$unstickDeltaMsg);
 
                 if(ENV == 'PROD') sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
 
@@ -142,6 +143,7 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
                     // key already exists, remove data
                     unset($dataLog[$date]);
                 }
+                Logs::$logger->info('value - '.$date." - okay");
             }
         }
 
