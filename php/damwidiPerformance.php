@@ -118,6 +118,8 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     } else {
         echo $notification."\r\n";;
     }
+
+    return true;
 }
 
 // add/remove individual stocks from preformance table
@@ -151,6 +153,8 @@ function refreshPerformanceTable($verbose){
             if ($verbose) show($log);
         }
     }
+
+    return true;
 }
 
 // return shares and basis detail in `data_performance` table

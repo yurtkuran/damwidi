@@ -27,31 +27,13 @@ if (defined('STDIN')) {
 }
 
 switch($mode){
-    case 'updateDatabases':
-        // correct order of operation:
-        // 1. updateBivioTransactions
-        // 2. updatePerformanceData
-        // 3. updateValueTable
-        // 4. updateHistoryTable
-
-        $start = date('Y-m-d H:i:s');               // store start time used to determine function duration
-        updateBivioTransactions($verbose);
-        updatePerformanceData($verbose, $debug);
-        sleep(10);
-        updateValueTable($verbose, $debug);
-        sleep(10);
-        updateHistoryTable($verbose, $debug);
-
-        // create notifications
-        $end      = date('Y-m-d H:i:s');
-        $duration = strtotime($end)-strtotime($start);
-        $table    = "complete update";
-
-        if ($verbose) show($start." start");
-        show($end." - ".$table." - ".date('H:i:s', mktime(0, 0, $duration)));
-        writeAirTableRecord($table, $start, $duration);
-        break;
-
+    //
+    // correct order of operation:
+    // 1. updateBivioTransactions
+    // 2. updatePerformanceData
+    // 3. updateValueTable
+    // 4. updateHistoryTable
+    //
     // the following four functions run daily to update mySQL databases
     // 1
     case 'updateBivioTransactions':
@@ -112,17 +94,7 @@ switch($mode){
         break;
 
     // test functions - used only in DEV
-    case 'test1':
-        if(ENV == 'DEV') {
-            sleep(2);
-        }
-        break;
-
-    case 'test2':
-        if(ENV == 'DEV') {
-            $startDate = date('Y-m-d', strtotime('-1 years'));
-            $alphaData = retrievePriceDataAlpha('AMZN', 'daily', $startDate, $saveData = false, $verbose = true, $debug);
-        }
+    case 'test':
         break;
 
     default:

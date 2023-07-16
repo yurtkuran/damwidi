@@ -1,5 +1,4 @@
 <?php
-
 function retrieveIEXBatchData($symbol, $saveData = false, $verbose = false, $debug = false){
 
     $URL  = iexURL;

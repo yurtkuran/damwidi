@@ -120,25 +120,6 @@ function stDev($array) {
     return (float) sqrt($fVariance/count($array));
 }
 
-function writeAirTableRecord($table, $start = NULL, $duration = NULL){
-    $airtable = new Airtable(array(
-        'api_key'   => AIRTABLEAPI_KEY,
-        'base'      => AIRTABLEBASE_ID,
-    ));
-
-    // Create an array with all the fields you want
-    $details = array(
-        'table'     => $table,
-        'datetime'  => date('Y-m-d H:i'),
-        'start'     => $start,
-        'duration'  => $duration,
-        'server'    => stristr(php_uname(),'ubuntu') ? 'local' : 'host'
-    );
-
-    // Save to Airtable
-    $record = $airtable->saveContent("damwidi", $details);
-}
-
 function UUIDv4(){
     $url = 'https://www.uuidgenerator.net/api/version4';
     return file_get_contents($url);

@@ -65,6 +65,10 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
                 $exceptionOccured = true;
             }
 
+            if (!isset($http_response_header) || (isset($http_response_header) && count($http_response_header) === 0)){
+                $exceptionOccured = true;
+            }
+
             if (!$exceptionOccured) {
                 $response   = $http_response_header[0]; //http response information
                 $url        = $URL;                     //alphavantage URL
@@ -85,6 +89,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
                 }
             } else {
                 $attempts++;
+                $exceptionOccured = false;
                 ratelimit(); //random backoff time
             }
 

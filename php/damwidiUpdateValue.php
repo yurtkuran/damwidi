@@ -47,7 +47,7 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
 
     // calculate damwidi market value
     $allPositions   = returnAllPositions($startDate, $endDate); // get list of all postions (open or closed) within start/end dates
-    $historicalData = getHistory($allPositions, $startDate, $endDate, false, false); // get historical prices from alphaVantage and barChart -- verbose, debug
+    $historicalData = getHistory($allPositions, $startDate, $endDate, false, false); // get historical prices
 
     // open cURL session to scrape damwidi value from Bivio
     $ch = bivioLogin($verbose);
@@ -180,6 +180,8 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
     } else {
         echo $notification."\r\n";;
     }
+
+    return true;
 }
 
 // query `data_transaction` table to return a list of all positions (open or closed) between two dates
