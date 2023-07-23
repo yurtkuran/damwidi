@@ -6,7 +6,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
     switch(strtolower($interval)){
         case 'daily':
             $key = "Time Series (Daily)";
-            $function = "TIME_SERIES_DAILY_ADJUSTED";
+            $function = "TIME_SERIES_DAILY";
             break;
     }
 
