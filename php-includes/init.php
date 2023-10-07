@@ -21,6 +21,7 @@ include_once 'php/damwidiUpdateValue.php';
 include_once 'php/damwidiUtilities.php';
 
 // data services
+include_once 'php-services/returnHttpResponseCode.php';
 include_once 'php-services/dataHandlerAlphaVantage.php';
 include_once 'php-services/dataHandlerIEX.php';
 

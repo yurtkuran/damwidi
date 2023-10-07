@@ -95,9 +95,22 @@ switch($mode){
 
     // test functions - used only in DEV
     case 'test':
+        $symbol = isset($_GET['symbol']) ? $_GET['symbol'] : null;
+        if (!is_null($symbol)) {
+            $quote = retrieveYahooQuote($symbol, $verbose); //['regularMarketPrice'];
+
+            if (isset($quote['regularMarketPrice'])) {
+                show($quote);
+
+            } else {
+                show("not set");
+            }
+        } else {
+            echo "no symbol";
+        }
         break;
 
     default:
-        // no valid mode supplied
+    // no valid mode supplied
 }
 ?>

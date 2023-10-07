@@ -41,11 +41,10 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
             $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
             $priceData     = $chartData['seriesData'];
             $lastRefreshed = $chartData['lastRefreshed'];
-
-
         } else {
             $priceData     = returnDamwidiData();
             $lastRefreshed = array_keys($priceData)[0];
+            $chartData['cached'] = true;
         }
 
         // init array

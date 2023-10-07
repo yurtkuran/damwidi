@@ -41,18 +41,42 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $symbols = rtrim($symbols, ','); // remove final comma
 
     // retrieve realtime batch quotes
-    $priceData = retrieveIEXBatchData($symbols, false, false, false);  //saveData, verbose, debug
+    $response = retrieveIEXBatchData($symbols, false, false, false);  //saveData, verbose, debug
+
+    if ($response['responseCode'] !== '200' ) {
+        http_response_code(400);
+        if(!$verbose) echo json_encode(
+            array(
+            'responseCode' => $response['responseCode'],
+            'response'     => $response['response']
+            )
+        );
+        return null;
+    } 
 
     // create heatmap data
+    $priceData = $response['data'];
     $heatMapData = array();
+    $excludedSymbols = array();
+    $dataComplete = true;
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
 
-        if($priceData[$symbol]['quote']['latestSource'] == 'Previous close') {
-            if($verbose) show('No IEX latest price: '.$symbol);
-            $latestPrice = retrieveYahooQuote($symbol, $verbose)['regularMarketPrice'];
-        } else {
+        if( isset($priceData[$symbol]) && isset($priceData[$symbol]['quote']) && $priceData[$symbol]['quote']['latestSource'] != 'Previous close' ){
             $latestPrice = $priceData[$symbol]['quote']['latestPrice'];
+            $source = 'iex';
+            if($verbose) show('IEX latest price:   '.$symbol);
+        } else {
+            $response = retrieveYahooQuote($symbol, $verbose);
+            if ( isset($response['regularMarketPrice'])) {
+                $latestPrice = $response['regularMarketPrice'];
+                $source = 'yahoo';
+                if($verbose) show('Yahoo latest price: '.$symbol);
+            } else {
+                $dataComplete = false;
+                $excludedSymbols = array_push($symbol);
+                continue;
+            }
         }
 
         $heatMapData[$sector['sector']]=array(
@@ -65,7 +89,8 @@ function returnIntraDayData($verbose, $debug, $api = false){
             "prevClose"     => $sector['previous'],
             "gain"          => calculateGain($latestPrice, $priceData[$symbol]['quote']['previousClose']),
             "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['quote']['latestUpdate']/1000),
-            "description"   => $sector['description']
+            "description"   => $sector['description'],
+            "source"        => $source
         );
     }
 
@@ -94,8 +119,15 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $duration = strtotime($end)-strtotime($start);
     $table    = "intraday lookup";
     $log      = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
-
     Logs::$logger->info($log);
+
+    // create status array
+    $status = array(
+        'dataComplete'     => $dataComplete,
+        'eexcludedSymbols' => $excludedSymbols,
+        'duration'         => $duration
+    );
+    array_merge($intraDayData, $status);
 
     if($api){
         return $intraDayData;
