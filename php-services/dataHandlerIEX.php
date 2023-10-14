@@ -8,19 +8,25 @@ function retrieveIEXBatchData($symbol, $saveData = false, $verbose = false, $deb
     if ($verbose) show($URL);
 
     // $json     = curl_get_contents($URL);      //retrieve data
-    $json     = file_get_contents($URL);  //retrieve data
-    $response = $http_response_header; //http response information
+    $json     = @file_get_contents($URL);  //retrieve data
+    $response = $http_response_header;     //http response information
 
     $header = $http_response_header;
     $response = returnHttpResponseCode($header);
+    $data = array();
 
-    $data = json_decode($json,1);
 
-    if ($verbose) show($data);
+    if ($json) {
+        $data = json_decode($json,1);
+        if ($verbose) show($data);
+    } else {
+        if ($verbose) show($response);
+    }
+
     return array(
         'responseCode' => $response['responseCode'],
         'response'     => $response['response'],
-        'data'          => $data);
+        'data'         => $data);
 }
 
 function retrieveIEXCompanyData($symbol, $saveData = false, $verbose = false, $debug = false){
