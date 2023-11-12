@@ -30,7 +30,7 @@ function updateHistoryTable($verbose = false, $debug = false, $stdin = false){
         if ($endDate >= $startDate) {
             $historicalData = getHistory($sector['sector'], $startDate, $endDate, false, false);  // verbose, debug
             if (!empty($historicalData)) {
-                $historicalData = $historicalData['alphaVantage'];
+                $historicalData = $historicalData['polygon'];
                 saveHistoricalData($historicalData);
                 $count = count($historicalData[$symbol]);
             }

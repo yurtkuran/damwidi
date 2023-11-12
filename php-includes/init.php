@@ -23,14 +23,15 @@ include_once 'php/damwidiUtilities.php';
 // data services
 include_once 'php-services/returnHttpResponseCode.php';
 include_once 'php-services/dataHandlerAlphaVantage.php';
+include_once 'php-services/dataHandlerBarChart.php';
+include_once 'php-services/dataHandlerFinnhub.php';
 include_once 'php-services/dataHandlerIEX.php';
+include_once 'php-services/dataHandlerPolygon.php';
+include_once 'php-services/dataHandlerTradier.php';
 
-include_once 'php/dataHandlerBarChart.php';
 include_once 'php/dataHandlerEodHistorical.php';
-include_once 'php/dataHandlerFinnhub.php';
 include_once 'php/dataHandlerHistorical.php';
 include_once 'php/dataHandlerMySQL.php';
-include_once 'php/dataHandlerTradier.php';
 include_once 'php/dataHandlerAWS.php';
 
 // dependencies

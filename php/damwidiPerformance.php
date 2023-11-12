@@ -37,14 +37,22 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
 
     // loop through all sectors
     foreach($sectors as $sector){
-        if ($sector['sector'] <> 'DAM' ){
-            $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
-            $priceData     = $chartData['seriesData'];
-            $lastRefreshed = $chartData['lastRefreshed'];
-        } else {
-            $priceData     = returnDamwidiData();
-            $lastRefreshed = array_keys($priceData)[0];
-            $chartData['cached'] = true;
+        switch ($sector['sector']) {
+            case 'OBDC':
+                $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
+                $priceData     = $chartData['seriesData'];
+                $lastRefreshed = $chartData['lastRefreshed'];
+                break;
+            case 'DAM':
+                $priceData     = returnDamwidiData();
+                $lastRefreshed = array_keys($priceData)[0];
+                $chartData['cached'] = true;
+                break;
+            default: 
+                $chartData     = retrievePriceDataPolygon($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
+                $priceData     = $chartData['seriesData'];
+                $lastRefreshed = $chartData['lastRefreshed'];
+                break;
         }
 
         // init array
@@ -220,8 +228,15 @@ function returnYTDData($sector, $lastRefreshed, $performanceData, $priceData, $v
 
     // determine previous close index in array
     $i = 0;
+    $dataSize = count($priceData);
+
     while(array_keys($priceData)[$i] >= $startDate){
         $i++;
+        if ($i >= $dataSize) {
+            $i--;
+            if ($verbose) show($sector.' - incomplete history data');
+            break;
+        }
     }
 
     // calculate YTD price gain

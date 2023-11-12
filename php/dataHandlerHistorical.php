@@ -4,7 +4,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
     if ($verbose) show("get historical data \n"."start date: ".$startDate."\n"."end date:   ".$endDate);
 
     // list of data providers
-    $dataProviders = array('alphaVantage');
+    $dataProviders = array('polygon');
 
     // convert to array if single symbol
     $symbols = (is_array($symbols) ? $symbols : array($symbols));
@@ -39,6 +39,13 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                         break;
                     case 'eod':
                         $historicalData  = retrievePriceEodHistorical($symbol, 'D', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
+                        break;
+                    case 'polygon':
+                        $historicalData  = retrievePriceDataPolygon($symbol, 'daily', $startDate, false, false, false, 30);  // saveData, verbose, debug, cacheAge
+
+                        // if not cached, sleep for a random amount of time to prevent rate limiting from AlphaVantage
+                        if(!$historicalData['cached']) rateLimit();
+
                         break;
                 }
                 if (array_key_exists('seriesData', $historicalData)) { // determine if seriesData exists
