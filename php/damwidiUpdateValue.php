@@ -43,7 +43,7 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
     $marketHolidays = getMarketCalendar($startDate, $endDate, true, false, $verbose, $debug ); // loadNewData, saveData, verbose, debug
 
     // get historical SPY data
-    $historicalSPYData = getHistory('SPY', $startDate, $endDate, false, false)['alphaVantage']['SPY']; //verbose, debug
+    $historicalSPYData = getHistory('SPY', $startDate, $endDate, false, false)['polygon']['SPY']; //verbose, debug
 
     // calculate damwidi market value
     $allPositions   = returnAllPositions($startDate, $endDate); // get list of all postions (open or closed) within start/end dates
