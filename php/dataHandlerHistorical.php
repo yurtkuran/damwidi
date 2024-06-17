@@ -44,7 +44,7 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                         $historicalData  = retrievePriceDataPolygon($symbol, 'daily', $startDate, false, false, false, 30);  // saveData, verbose, debug, cacheAge
 
                         // if not cached, sleep for a random amount of time to prevent rate limiting from AlphaVantage
-                        if(!$historicalData['cached']) rateLimit();
+                        // if(!$historicalData['cached']) rateLimit();
 
                         break;
                 }

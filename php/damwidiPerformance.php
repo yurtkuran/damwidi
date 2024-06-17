@@ -42,6 +42,10 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
                 $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
+
+                // sleep for a random amount of time to prevent rate limiting from AlphaVantage
+                if(!$chartData['cached']) //rateLimit();
+
                 break;
             case 'DAM':
                 $priceData     = returnDamwidiData();
@@ -88,9 +92,6 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
 
         // add YTD data
         $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
-
-        // sleep for a random amount of time to prevent rate limiting from AlphaVantage
-        if(!$chartData['cached']) rateLimit();
 
         if($debug) break;
     }
@@ -140,10 +141,16 @@ function refreshPerformanceTable($verbose){
 
     // add new stock positions to performance table
     foreach ($openPositions as $symbol => $position){
-        if(!array_key_exists($symbol,$sectors)){
-            $companyData = retrieveIEXCompanyData($symbol);
-            if ($verbose) show($symbol.', '.$companyData['companyName']);
-            insertPerformanceStock($symbol, $companyData['companyName']);
+        if(!array_key_exists($symbol, $sectors)){
+            $companyData = retrieveCompanyDataPolygon($symbol);
+            $companyName = $companyData['status'] == 'OK' ? $companyData['results']['name'] : $symbol;
+
+            if ($verbose) show($symbol.', '.$companyName);
+            insertPerformanceStock($symbol, $companyName);
+
+            $log = $symbol.' added to Performance table';
+            Logs::$logger->info($log);
+            if ($verbose) show($log);
         }
     }
 

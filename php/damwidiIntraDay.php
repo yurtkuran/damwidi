@@ -41,7 +41,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $symbols = rtrim($symbols, ','); // remove final comma
 
     // retrieve realtime batch quotes
-    $response = retrieveIEXBatchData($symbols, false, false, false);  //saveData, verbose, debug
+    $response = retrieveBatchDataPolygon($symbols, false, false, false);  //saveData, verbose, debug
 
     if ($response['responseCode'] !== '200' ) {
         http_response_code(400);
@@ -62,10 +62,10 @@ function returnIntraDayData($verbose, $debug, $api = false){
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
 
-        if( isset($priceData[$symbol]) && isset($priceData[$symbol]['quote']) && $priceData[$symbol]['quote']['latestSource'] != 'Previous close' ){
+        if( isset($priceData[$symbol]) && isset($priceData[$symbol]['quote']) ){
             $latestPrice = $priceData[$symbol]['quote']['latestPrice'];
-            $source = 'iex';
-            if($verbose) show('IEX latest price:   '.$symbol);
+            $source = $response['source'];
+            if($verbose) show($source.' latest price:   '.$symbol.' - '.$latestPrice);
         } else {
             $response = retrieveYahooQuote($symbol, $verbose);
             if ( isset($response['regularMarketPrice'])) {
@@ -87,8 +87,8 @@ function returnIntraDayData($verbose, $debug, $api = false){
             "last"          => $latestPrice,
             "currentValue"  => $sector['shares'] * $latestPrice,
             "prevClose"     => $sector['previous'],
-            "gain"          => calculateGain($latestPrice, $priceData[$symbol]['quote']['previousClose']),
-            "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['quote']['latestUpdate']/1000),
+            "gain"          => calculateGain($latestPrice, $priceData[$symbol]['prevDay']['close']),
+            "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['updated']/1e9),
             "description"   => $sector['description'],
             "source"        => $source
         );

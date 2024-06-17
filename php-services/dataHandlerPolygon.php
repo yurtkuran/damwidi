@@ -18,7 +18,7 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $saveData = fa
     $URL .= $symbol;
     $URL .= "/range/".$multiplier."/".$timespan."/";
     $URL .= $startDate."/".$endDate."/";
-    $URL .= "?adjusted=true&sort=desc";
+    $URL .= "?adjusted=false&sort=desc";
     $URL .= "&apiKey=".polygonKey;
 
     // create filename to save data
@@ -60,14 +60,14 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $saveData = fa
                         "response" => $seriesData
                     ]);
                     $attempts++;
-                    ratelimit(); //random backoff time
+                    //ratelimit(); //random backoff time
                 } else {
                     $dataOK = true;
                 }
             } else {
                 $attempts++;
                 $exceptionOccured = false;
-                ratelimit(); //random backoff time
+                // ratelimit(); //random backoff time
             }
 
         } while (!$dataOK && $attempts <= $maxAttempts);
@@ -136,6 +136,74 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $saveData = fa
 
     if ($verbose) show($dataSet['Meta Data']);
     return $dataSet;
+}
+
+function retrieveBatchDataPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
+
+    // https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=AAPL,NVDA&apiKey=Vvy94KTuAHToQ9W7ISHusgsTGu1YoKln
+
+    $URL  = polygonUrl.'v2/snapshot/locale/us/markets/stocks/tickers';
+    $URL .= '?apiKey='.polygonKey;
+    $URL .= '&tickers='.$symbol;
+
+    if ($verbose) show($URL);
+
+    // $json     = curl_get_contents($URL);      //retrieve data
+    $json     = @file_get_contents($URL);  //retrieve data
+    $response = $http_response_header;     //http response information
+
+    $header = $http_response_header;
+    $response = returnHttpResponseCode($header);
+    $data = array();
+
+
+    if ($json) {
+        $seriesData = json_decode($json,1);
+        foreach($seriesData['tickers'] as $candle) {
+            $data[$candle['ticker']] = array(
+                'quote' => array(
+                    'open'  => $candle['day']['o'],
+                    'high'  => $candle['day']['h'],
+                    'low'   => $candle['day']['l'],
+                    'close' => $candle['day']['c'],
+                    'latestPrice' => $candle['day']['c'],
+                ),
+                'prevDay' => array(
+                    'open'  => $candle['prevDay']['o'],
+                    'high'  => $candle['prevDay']['h'],
+                    'low'   => $candle['prevDay']['l'],
+                    'close' => $candle['prevDay']['c'],
+                ),
+                'todaysChange'     => $candle["todaysChange"],
+                'todaysChangePerc' => $candle["todaysChangePerc"],
+                'updated'          => $candle["updated"]
+            );
+        }
+        if ($verbose) show($data);
+    } else {
+        if ($verbose) show($response);
+    }
+
+    return array(
+        'responseCode' => $response['responseCode'],
+        'response'     => $response['response'],
+        'source'       => 'polygon',
+        'data'         => $data);
+}
+
+function retrieveCompanyDataPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
+
+    $URL  = polygonUrl.'v3/reference/tickers';
+    $URL .= '/'.$symbol;
+    $URL .= '?apiKey='.polygonKey;
+
+    if ($verbose) show($URL);
+
+    $json = curl_get_contents($URL);      //retrieve data
+    $data = json_decode($json,1);
+
+    if ($verbose) show($data);
+    return $data;
 }
 
 ?>
