@@ -274,6 +274,7 @@ function returnOpenPositions($date, $verbose = false, $debug = false){
                         'dividend'  => 0
                     );
                 }
+                if (round($openPositions[$transaction['symbol']]['shares'],5) == 0) unset($openPositions[$transaction['symbol']]);
                 break;
             case 'S':
                 $openPositions[$transaction['symbol']]['shares']   += $transaction['shares'];

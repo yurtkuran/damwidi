@@ -53,7 +53,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
                 $chartData['cached'] = true;
                 break;
             default: 
-                $chartData     = retrievePriceDataPolygon($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
+                $chartData     = retrievePriceDataPolygon($sector['sector'], 'daily', $startDate, true, false, $verbose, true, 30);  // splitAdjusted, saveData, verbose, debug, cacheAge
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
                 break;

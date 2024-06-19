@@ -258,6 +258,8 @@ function createAllocationData($heatMapData, $verbose){
 
 // build data object for performance graph
 function createPerformacneData($heatMapData, $positions, $verbose){
+    $now = date('Y-m-d');
+
     $data        = array();
     $categories  = array();
     $seriesPrice = array();
@@ -282,14 +284,27 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         $data[$position]['spyLast']    = $heatMapData['SPY']['last'];
         $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
 
+        $splits = retrieveStockSplitsPolygon($position);
+
         // create array of all open purchases
         for ($i=0; $i < count($positionData['purchases']); $i++) {
             $positionBasis = loadPositionBasis($position, $positionData['purchases'][$i]);
             $spyBasis      = loadHistoricalBasis('SPY',$positionData['purchases'][$i])['close'];
+            $priceBasis    = $positionBasis['price'];
+            $dateBasis     = $positionData['purchases'][$i];
 
-            $data[$position]['purchases'][$i]['dateBasis']  = $positionData['purchases'][$i];
-            $data[$position]['purchases'][$i]['priceBasis'] = floatval(number_format($positionBasis['price'],2,'.',''));
-            $data[$position]['purchases'][$i]['priceGain']  = $positionBasis['price'] != 0 ? round(100*($heatMapData[$position]['last']-$positionBasis['price'])/$positionBasis['price'], 2) : 0;
+            // adjuest purchase for splits
+            foreach($splits['results'] as $split) {
+                $splitDate = $split['execution_date'];
+                if ($dateBasis <= $splitDate && $now >= $splitDate) {
+                    $splitRatio = $split['split_to']/$split['split_from'];
+                    $priceBasis = $priceBasis / $splitRatio;
+                }
+            }
+
+            $data[$position]['purchases'][$i]['dateBasis']  = $dateBasis;
+            $data[$position]['purchases'][$i]['priceBasis'] = floatval(number_format($priceBasis,2,'.',''));
+            $data[$position]['purchases'][$i]['priceGain']  = $priceBasis != 0 ? round(100*($heatMapData[$position]['last']-$priceBasis)/$priceBasis, 2) : 0;
             $data[$position]['purchases'][$i]['spyBasis']   = floatval(number_format($spyBasis,2));
             $data[$position]['purchases'][$i]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
         }
@@ -324,12 +339,12 @@ function createPortfolioData($heatMapData, $verbose){
         if($sectorData['shares']>0 ){
             $portfolioData[$sector]['sector']        = $sector;
             $portfolioData[$sector]['last']          = number_format($sectorData['last'],2);
-            $portfolioData[$sector]['change']        = $sectorData['prevClose'] <> 0 ? number_format(abs($sectorData['last']-$sectorData['prevClose']),2) : 0;
-            $portfolioData[$sector]['changePercent'] = $sectorData['prevClose'] <> 0 ? number_format(abs(100*($sectorData['last']-$sectorData['prevClose'])/$sectorData['prevClose']),2) : 0;
+            $portfolioData[$sector]['change']        = $sectorData['prevClose'] <> 0 ? number_format(abs($sectorData['last']-$sectorData['prevClose']),2, '.', '') : 0;
+            $portfolioData[$sector]['changePercent'] = $sectorData['prevClose'] <> 0 ? number_format(abs(100*($sectorData['last']-$sectorData['prevClose'])/$sectorData['prevClose']),2, '.', '') : 0;
 
             if ($sector <> 'DAM') {
-                $portfolioData[$sector]['value']         = number_format($sectorData['last']*$sectorData['shares'],2);
-                $portfolioData[$sector]['valueChange']   = number_format($portfolioData[$sector]['change']*$sectorData['shares'],2);
+                $portfolioData[$sector]['value']         = number_format($sectorData['last']*$sectorData['shares'],2, '.', '');
+                $portfolioData[$sector]['valueChange']   = number_format($portfolioData[$sector]['change']*$sectorData['shares'],2, '.', '');
             } else {
                 $portfolioData[$sector]['value']         = number_format($sectorData['last'],2);
                 $portfolioData[$sector]['valueChange']   = $portfolioData[$sector]['change'];

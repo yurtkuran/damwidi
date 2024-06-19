@@ -1,5 +1,5 @@
 <?php
-function retrievePriceDataPolygon($symbol, $interval, $startDate, $saveData = false, $verbose = false, $debug = false, $cacheAge = 15){
+function retrievePriceDataPolygon($symbol, $interval, $startDate, $splitAdjusted = false, $saveData = false, $verbose = false, $debug = false, $cacheAge = 15){
     $source = 'polygon';
     //
     // use https://httpstat.us/ to test the HTML response
@@ -12,13 +12,14 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $saveData = fa
     }
 
     $endDate = date('Y-m-d');
+    $adjusted = $splitAdjusted ? 'true' : 'false';
 
     // create URL
     $URL  = "https://api.polygon.io/v2/aggs/ticker/";
     $URL .= $symbol;
     $URL .= "/range/".$multiplier."/".$timespan."/";
     $URL .= $startDate."/".$endDate."/";
-    $URL .= "?adjusted=false&sort=desc";
+    $URL .= "?adjusted=".$adjusted."&sort=desc";
     $URL .= "&apiKey=".polygonKey;
 
     // create filename to save data
@@ -140,8 +141,6 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $saveData = fa
 
 function retrieveBatchDataPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
 
-    // https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=AAPL,NVDA&apiKey=Vvy94KTuAHToQ9W7ISHusgsTGu1YoKln
-
     $URL  = polygonUrl.'v2/snapshot/locale/us/markets/stocks/tickers';
     $URL .= '?apiKey='.polygonKey;
     $URL .= '&tickers='.$symbol;
@@ -196,6 +195,21 @@ function retrieveCompanyDataPolygon($symbol, $saveData = false, $verbose = false
     $URL  = polygonUrl.'v3/reference/tickers';
     $URL .= '/'.$symbol;
     $URL .= '?apiKey='.polygonKey;
+
+    if ($verbose) show($URL);
+
+    $json = curl_get_contents($URL);      //retrieve data
+    $data = json_decode($json,1);
+
+    if ($verbose) show($data);
+    return $data;
+}
+
+function retrieveStockSplitsPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
+
+    $URL  = polygonUrl.'v3/reference/splits';
+    $URL .= '?ticker='.$symbol;
+    $URL .= '&apiKey='.polygonKey;
 
     if ($verbose) show($URL);
 
