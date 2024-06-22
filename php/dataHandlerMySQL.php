@@ -72,24 +72,18 @@ function loadDamwidiBasket(){
     return $result;
 }
 
-function loadPositionBasis($symbol, $date){
+function loadPositionBasis($symbol){
     $dbc = connect();
-    $stmt = $dbc->prepare("SELECT
-                                 `symbol`,
-                                 `transaction_date` AS 'date',
-                                 `shares`,
-                                 abs(`amount` / `shares`) AS 'price'
-                           FROM  `data_transactions`
-                           WHERE `symbol` = :symbol AND `transaction_date` = :date AND `type` = 'B'
-                           ORDER BY `transaction_date` DESC
-                           LIMIT 1 ");
+    $stmt = $dbc->prepare("SELECT   `transaction_date`, `symbol`, `transaction_date` AS 'date', `shares`, abs(`amount` / `shares`) AS 'price'
+                           FROM     `data_transactions`
+                           WHERE    `symbol` = :symbol AND `type` = 'B'
+                           ORDER BY `transaction_date` DESC ");
 
     $stmt->bindParam(':symbol', $symbol);
-    $stmt->bindParam(':date',   $date);
     $stmt->execute();
-    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+    $result = $stmt->fetchall(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
 
-    return $result[0];
+    return $result;
 }
 
 function loadHistoricalBasis($symbol, $date){
@@ -102,6 +96,17 @@ function loadHistoricalBasis($symbol, $date){
     $result = $stmt->fetchall(PDO::FETCH_ASSOC);
 
     return $result[0];
+}
+
+function loadHistory($symbol){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT date, data_history.* FROM `data_history` WHERE `symbol` = :symbol ORDER BY `date` DESC");
+
+    $stmt->bindParam(':symbol', $symbol);
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
+
+    return $result;
 }
 
 // save damwidi basket details

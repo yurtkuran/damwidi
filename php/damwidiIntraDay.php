@@ -19,15 +19,69 @@ function returnDetails($verbose, $debug){
     echo json_encode($data);
 }
 
-// build heat map data array
-function getHeatMapData(){}
-
 // return IntraDay data
 function returnIntraDayData($verbose, $debug, $api = false){
 
     // store start time used to determine function duration
     $start = floor(microtime(true) * 1000);
 
+    $data = getHeatMapData($verbose);
+    $heatMapData   = $data['heatMapData'];
+    $openPositions = $data['openPositions'];
+
+    $heatMapEnd = floor(microtime(true) * 1000);
+    $heatMapDuration = $heatMapEnd - $start;
+    if($verbose) show('Heat Map Data:');
+    if($verbose) show($heatMapData);
+
+    $intraDayData =  array(
+        'time'             => $heatMapData['DAM']['lastRefreshed'],
+        'graphHeatMap'     => createHeatMapData($heatMapData, $verbose),
+        'portfolioTable'   => createPortfolioData($heatMapData, $verbose),
+        'allocationTable'  => createAllocationData($heatMapData, $verbose),
+        'performanceData'  => createPerformacneData($heatMapData, $openPositions, $verbose),
+        'heatMapData'      => createPortfolioData_v4($heatMapData, $verbose),
+        'intraDay'         => $heatMapData
+    );
+    
+
+    $durations = array(
+        'intraDay' => $heatMapDuration
+    );
+    foreach($intraDayData as $key => $value) {
+        if (is_array($value) && array_key_exists('duration', $value)) {
+            $durations[$key] = $value['duration'];
+            unset($intraDayData[$key]['duration']);
+        }
+    }
+
+    if($verbose) show($intraDayData);
+
+    // create log
+    $end      = floor(microtime(true) * 1000);
+    $duration = $end-$start;
+    $table    = "intraday lookup";
+    $log      = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
+    Logs::$logger->info($log);
+
+    // create status array
+    $intraDayData['status'] = array(
+        'dataComplete'     => $data['dataComplete'],
+        'excludedSymbols'  => $data['excludedSymbols'],
+        'duration'         => $duration,
+        'durations'        => $durations
+    );
+
+    header('Content-Type: application/json; charset=utf-8');
+    if($api){
+        return $intraDayData;
+    } else {
+        if(!$verbose)echo json_encode($intraDayData);
+    }
+}
+
+// build heat map data array
+function getHeatMapData($verbose){
     $sectors = loadSectors('SIK');
     if($verbose) show('Complete Sector List:');
     if($verbose) show($sectors);
@@ -102,55 +156,13 @@ function returnIntraDayData($verbose, $debug, $api = false){
 
     // sort data by gain high to low
     uasort($heatMapData, function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
-    $heatMapEnd = floor(microtime(true) * 1000);
-    $heatMapDuration = $heatMapEnd - $start;
-    if($verbose) show('Heat Map Data:');
-    if($verbose) show($heatMapData);
+    return array(
+        'heatMapData'     => $heatMapData,
+        'openPositions'   => $openPositions,
+        'dataComplete'    => $dataComplete,
+        'excludedSymbols' => $excludedSymbols
 
-    $intraDayData =  array(
-        'time'             => $heatMapData['DAM']['lastRefreshed'],
-        'graphHeatMap'     => createHeatMapData($heatMapData, $verbose),
-        'portfolioTable'   => createPortfolioData($heatMapData, $verbose),
-        'allocationTable'  => createAllocationData($heatMapData, $verbose),
-        'performanceData'  => createPerformacneData($heatMapData, $openPositions, $verbose),
-        'heatMapData'      => createPortfolioData_v4($heatMapData, $verbose),
-        'intraDay'         => $heatMapData
     );
-    
-
-    $durations = array(
-        'intraDay' => $heatMapDuration
-    );
-    foreach($intraDayData as $key => $value) {
-        if (is_array($value) && array_key_exists('duration', $value)) {
-            $durations[$key] = $value['duration'];
-            unset($intraDayData[$key]['duration']);
-        }
-    }
-
-    if($verbose) show($intraDayData);
-
-    // create log
-    $end      = floor(microtime(true) * 1000);
-    $duration = $end-$start;
-    $table    = "intraday lookup";
-    $log      = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
-    Logs::$logger->info($log);
-
-    // create status array
-    $intraDayData['status'] = array(
-        'dataComplete'     => $dataComplete,
-        'excludedSymbols'  => $excludedSymbols,
-        'duration'         => $duration,
-        'durations'        => $durations
-    );
-
-    header('Content-Type: application/json; charset=utf-8');
-    if($api){
-        return $intraDayData;
-    } else {
-        if(!$verbose)echo json_encode($intraDayData);
-    }
 }
 
 // create chart.js labels and data
@@ -293,13 +305,18 @@ function createPerformacneData($heatMapData, $positions, $verbose){
     $seriesSPY   = array();
     $seriesDate  = array();
 
-    // sort openpositions alphabetically
+    // sort open positions alphabetically
     ksort($positions, SORT_STRING);
+
+    $spyData = loadHistory('SPY');
 
     // loop through open positions
     foreach($positions as $position => $positionData){
-        $positionBasis = loadPositionBasis($position, end($positionData['purchases']));
-        $spyBasis = loadHistoricalBasis('SPY',$positionBasis['date'])['close'];
+        $positionBasisData =  loadPositionBasis($position);
+
+        $dateBasis = end($positionData['purchases']);
+        $positionBasis = $positionBasisData[$dateBasis];
+        $spyBasis = $spyData[$dateBasis]['close'];
 
         $data[$position]['symbol']     = $position;
         $data[$position]['dateBasis']  = $positionBasis['date'];
@@ -312,13 +329,14 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
 
         $splits = retrieveStockSplitsPolygon($position);
+        // $splits['results'] =  array();
 
         // create array of all open purchases
         for ($i=0; $i < count($positionData['purchases']); $i++) {
-            $positionBasis = loadPositionBasis($position, $positionData['purchases'][$i]);
-            $spyBasis      = loadHistoricalBasis('SPY',$positionData['purchases'][$i])['close'];
-            $priceBasis    = $positionBasis['price'];
-            $dateBasis     = $positionData['purchases'][$i];
+            $purchaseDate = $positionData['purchases'][$i];
+            $spyBasis     = $spyData[$purchaseDate]['close'];
+            $priceBasis   = $positionBasisData[$purchaseDate]['price'];
+            $dateBasis    = $positionData['purchases'][$i];
 
             // adjuest purchase for splits
             foreach($splits['results'] as $split) {
