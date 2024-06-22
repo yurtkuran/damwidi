@@ -19,11 +19,14 @@ function returnDetails($verbose, $debug){
     echo json_encode($data);
 }
 
+// build heat map data array
+function getHeatMapData(){}
+
 // return IntraDay data
 function returnIntraDayData($verbose, $debug, $api = false){
 
     // store start time used to determine function duration
-    $start = date('Y-m-d H:i:s');
+    $start = floor(microtime(true) * 1000);
 
     $sectors = loadSectors('SIK');
     if($verbose) show('Complete Sector List:');
@@ -99,6 +102,8 @@ function returnIntraDayData($verbose, $debug, $api = false){
 
     // sort data by gain high to low
     uasort($heatMapData, function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
+    $heatMapEnd = floor(microtime(true) * 1000);
+    $heatMapDuration = $heatMapEnd - $start;
     if($verbose) show('Heat Map Data:');
     if($verbose) show($heatMapData);
 
@@ -111,24 +116,36 @@ function returnIntraDayData($verbose, $debug, $api = false){
         'heatMapData'      => createPortfolioData_v4($heatMapData, $verbose),
         'intraDay'         => $heatMapData
     );
+    
+
+    $durations = array(
+        'intraDay' => $heatMapDuration
+    );
+    foreach($intraDayData as $key => $value) {
+        if (is_array($value) && array_key_exists('duration', $value)) {
+            $durations[$key] = $value['duration'];
+            unset($intraDayData[$key]['duration']);
+        }
+    }
 
     if($verbose) show($intraDayData);
 
     // create log
-    $end      = date('Y-m-d H:i:s');
-    $duration = strtotime($end)-strtotime($start);
+    $end      = floor(microtime(true) * 1000);
+    $duration = $end-$start;
     $table    = "intraday lookup";
     $log      = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
     Logs::$logger->info($log);
 
     // create status array
-    $status = array(
+    $intraDayData['status'] = array(
         'dataComplete'     => $dataComplete,
-        'eexcludedSymbols' => $excludedSymbols,
-        'duration'         => $duration
+        'excludedSymbols'  => $excludedSymbols,
+        'duration'         => $duration,
+        'durations'        => $durations
     );
-    array_merge($intraDayData, $status);
 
+    header('Content-Type: application/json; charset=utf-8');
     if($api){
         return $intraDayData;
     } else {
@@ -138,6 +155,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
 
 // create chart.js labels and data
 function createHeatMapData($heatMapData, $verbose){
+    $start = floor(microtime(true) * 1000);
     $i = 0;
 
     $labels  = array();
@@ -169,14 +187,19 @@ function createHeatMapData($heatMapData, $verbose){
 
         $i++;
     }
+    $end = floor(microtime(true) * 1000);
+    $duration = $end - $start;
+    $allocationData['duratiomn'] = $duration;
 
     return array(
         'labels'   => $labels,
-        'datasets' => [$dataset]
+        'datasets' => [$dataset],
+        'duration' => $duration,
     );
 }
 
 function createAllocationData($heatMapData, $verbose){
+    $start = floor(microtime(true) * 1000);
 
     // load data
     $query      = 'SELECT * FROM `data_performance` WHERE INSTR(\'CIS\', `type`) ORDER BY FIELD(`type`, "C", "I", "S"), `weight` DESC, `sector`';
@@ -252,12 +275,16 @@ function createAllocationData($heatMapData, $verbose){
             $sector['impliedOverUnderPercent'] = number_format($sector['impliedOverUnderPercent'],1).'%';
         }
     }
+    $end = floor(microtime(true) * 1000);
+    $duration = $end - $start;
+    $allocationData['duration'] = $duration;
 
     return $allocationData;
 }
 
 // build data object for performance graph
 function createPerformacneData($heatMapData, $positions, $verbose){
+    $start = floor(microtime(true) * 1000);
     $now = date('Y-m-d');
 
     $data        = array();
@@ -321,19 +348,22 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         // create date array
         array_push($seriesDate, $data[$position]['dateBasis']);
     }
-    // show('test');
+    $end = floor(microtime(true) * 1000);
+    $duration = $end - $start;
     return array(
         'data'        => $data,
         'categories'  => $categories,
         'seriesPrice' => $seriesPrice,
         'seriesSPY'   => $seriesSPY,
-        'seriesDate'  => $seriesDate
+        'seriesDate'  => $seriesDate,
+        'duration'    => $duration,
     );
 
 }
 
-// create data used in the intraday portfilio table
+// create data used in the intraday portfilio table 
 function createPortfolioData($heatMapData, $verbose){
+    $start = floor(microtime(true) * 1000);
     $portfolioData = array();
     foreach($heatMapData as $sector => $sectorData){
         if($sectorData['shares']>0 ){
@@ -363,15 +393,22 @@ function createPortfolioData($heatMapData, $verbose){
             }
         }
     }
+    $end = floor(microtime(true) * 1000);
+    $duration = $end - $start;
+    $portfolioData['duration'] = $duration;
     return $portfolioData;
 }
 
 // create data used in the intraday portfilio table for v4 of site
 function createPortfolioData_v4($heatMapData, $verbose){
+    $start = floor(microtime(true) * 1000);
     $portfolioData = array();
     foreach($heatMapData as $symbol => $data){
         if($data['shares']>0) array_push($portfolioData, $data);
     }
+    $end = floor(microtime(true) * 1000);
+    $duration = $end - $start;
+    $portfolioData['duration'] = $duration;
     return $portfolioData;
 }
 
