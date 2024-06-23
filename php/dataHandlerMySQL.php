@@ -109,6 +109,18 @@ function loadHistory($symbol){
     return $result;
 }
 
+function loadSplits($symbol){
+    $dbc = connect();
+    $stmt = $dbc->prepare("SELECT date, data_splits.* FROM `data_splits` WHERE `symbol` = :symbol ORDER BY `date` DESC");
+
+    $stmt->bindParam(':symbol', $symbol);
+    $stmt->execute();
+    $result = $stmt->fetchall(PDO::FETCH_ASSOC);
+
+    return $result;
+}
+
+
 // save damwidi basket details
 function saveDamwidiBasket($symbol, $description, $exists = FALSE){
     $dbc = connect();

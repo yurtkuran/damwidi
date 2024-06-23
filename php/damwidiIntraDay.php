@@ -328,8 +328,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
         $data[$position]['spyLast']    = $heatMapData['SPY']['last'];
         $data[$position]['spyGain']    = round(100*($heatMapData['SPY']['last']-$spyBasis)/$spyBasis, 2);
 
-        // $splits = retrieveStockSplitsPolygon($position);
-        $splits['results'] =  array();
+        $splits = loadSplits($position);
 
         // create array of all open purchases
         for ($i=0; $i < count($positionData['purchases']); $i++) {
@@ -339,8 +338,8 @@ function createPerformacneData($heatMapData, $positions, $verbose){
             $dateBasis    = $positionData['purchases'][$i];
 
             // adjuest purchase for splits
-            foreach($splits['results'] as $split) {
-                $splitDate = $split['execution_date'];
+            foreach($splits as $split) {
+                $splitDate = $split['date'];
                 if ($dateBasis <= $splitDate && $now >= $splitDate) {
                     $splitRatio = $split['split_to']/$split['split_from'];
                     $priceBasis = $priceBasis / $splitRatio;

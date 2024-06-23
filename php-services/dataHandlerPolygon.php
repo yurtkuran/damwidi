@@ -161,11 +161,11 @@ function retrieveBatchDataPolygon($symbol, $saveData = false, $verbose = false, 
         foreach($seriesData['tickers'] as $candle) {
             $data[$candle['ticker']] = array(
                 'quote' => array(
-                    'open'  => $candle['day']['o'],
-                    'high'  => $candle['day']['h'],
-                    'low'   => $candle['day']['l'],
-                    'close' => $candle['day']['c'],
-                    'latestPrice' => $candle['day']['c'],
+                    'open'  => $candle['day']['o'] != 0 ? $candle['day']['o'] : $candle['prevDay']['o'],
+                    'high'  => $candle['day']['h'] != 0 ? $candle['day']['h'] : $candle['prevDay']['h'],
+                    'low'   => $candle['day']['l'] != 0 ? $candle['day']['l'] : $candle['prevDay']['l'],
+                    'close' => $candle['day']['c'] != 0 ? $candle['day']['c'] : $candle['prevDay']['c'],
+                    'latestPrice' => $candle['day']['c'] != 0 ? $candle['day']['c'] : $candle['prevDay']['c'],
                 ),
                 'prevDay' => array(
                     'open'  => $candle['prevDay']['o'],
