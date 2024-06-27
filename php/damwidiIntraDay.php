@@ -41,7 +41,8 @@ function returnIntraDayData($verbose, $debug, $api = false){
         'allocationTable'  => createAllocationData($heatMapData, $verbose),
         'performanceData'  => createPerformacneData($heatMapData, $openPositions, $verbose),
         'heatMapData'      => createPortfolioData_v4($heatMapData, $verbose),
-        'intraDay'         => $heatMapData
+        'intraDay'         => $heatMapData,
+        'marketStatus'     => $data['marketStatus']
     );
     
 
@@ -57,12 +58,18 @@ function returnIntraDayData($verbose, $debug, $api = false){
 
     if($verbose) show($intraDayData);
 
+  
+
     // create log
     $end      = floor(microtime(true) * 1000);
     $duration = $end-$start;
-    $table    = "intraday lookup";
-    $log      = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
-    Logs::$logger->info($log);
+    $log = array(
+        'action'      => 'intraday lookup',
+        'start'       => date('Y-m-d H:i:s', $start/1000),
+        'duration'    => $duration,
+        'env'         => ENV
+    );
+    Logs::$logger->info(json_encode($log));
 
     // create status array
     $intraDayData['status'] = array(
@@ -97,8 +104,15 @@ function getHeatMapData($verbose){
     }
     $symbols = rtrim($symbols, ','); // remove final comma
 
-    // retrieve realtime batch quotes
-    $response = retrieveBatchDataPolygon($symbols, false, false, false);  //saveData, verbose, debug
+    $preMarket = false;
+    $marketStatus = retrieveMarketStatusPolygon(false, false, false);  //saveData, verbose, debug
+
+    if ($marketStatus['market'] != 'open' && $marketStatus['earlyHours']) {
+        $preMarket = true;
+        $response = getBatchPreMarket($sectors, false, false, false);  //saveData, verbose, debug
+    } else {
+        $response = retrieveBatchDataPolygon($symbols, false, false, false);  //saveData, verbose, debug
+    }
 
     if ($response['responseCode'] !== '200' ) {
         http_response_code(400);
@@ -143,7 +157,7 @@ function getHeatMapData($verbose){
             "basis"         => $sector['basis'],
             "last"          => $latestPrice,
             "currentValue"  => $sector['shares'] * $latestPrice,
-            "prevClose"     => $sector['previous'],
+            "prevClose"     => $preMarket ? $sector['2day'] : $sector['previous'],
             "gain"          => calculateGain($latestPrice, $priceData[$symbol]['prevDay']['close']),
             "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['updated']/1e9),
             "description"   => $sector['description'],
@@ -160,7 +174,8 @@ function getHeatMapData($verbose){
         'heatMapData'     => $heatMapData,
         'openPositions'   => $openPositions,
         'dataComplete'    => $dataComplete,
-        'excludedSymbols' => $excludedSymbols
+        'excludedSymbols' => $excludedSymbols,
+        'marketStatus'    => $marketStatus
 
     );
 }
@@ -604,6 +619,31 @@ function calculateAllocation($value, $damwidi) {
 // check to see if current value is valid (i.e. != 0)
 function calculateChangePercent($change, $currentValue) {
     return $currentValue !=0 ?  100*($change / $currentValue - $change) : -1;
+}
+
+function getBatchPreMarket($sectors, $saveData = false, $verbose = false, $debug = false){
+
+    foreach($sectors as $sector) {
+        $data[$sector['sector']] = array(
+            'quote' => array(
+                'close'       => $sector['1day'],
+                'latestPrice' => $sector['1day'],
+            ),
+            'prevDay' => array(
+                'close' => $sector['2day'],
+            ),
+            // todo: update these fields
+            // 'todaysChange'     => $candle["todaysChange"],
+            // 'todaysChangePerc' => $candle["todaysChangePerc"],
+            'updated'          => strtotime($sector['previousDate']) * 1e9
+        );
+    
+    }
+    return array(
+        'responseCode' => '200',
+        'source'       => 'polygon',
+        'data'         => $data
+    );
 }
 
 ?>

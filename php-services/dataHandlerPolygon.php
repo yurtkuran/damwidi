@@ -14,13 +14,13 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $splitAdjusted
     $endDate = date('Y-m-d');
     $adjusted = $splitAdjusted ? 'true' : 'false';
 
-    // create URL
-    $URL  = "https://api.polygon.io/v2/aggs/ticker/";
-    $URL .= $symbol;
-    $URL .= "/range/".$multiplier."/".$timespan."/";
-    $URL .= $startDate."/".$endDate."/";
-    $URL .= "?adjusted=".$adjusted."&sort=desc";
-    $URL .= "&apiKey=".polygonKey;
+    // create url
+    $url  = POLYGONURL."v2/aggs/ticker/";
+    $url .= $symbol;
+    $url .= "/range/".$multiplier."/".$timespan."/";
+    $url .= $startDate."/".$endDate."/";
+    $url .= "?adjusted=".$adjusted."&sort=desc";
+    $url .= "&apiKey=".POLYGONKEY;
 
     // create filename to save data
     $filename = "./data/data_price_".$source."_".$interval."_".$symbol.".json";
@@ -39,7 +39,7 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $splitAdjusted
             Logs::$logger->info(str_pad($symbol, 6)." - retrieve ".$source." data, attempt ".$attempts);
 
             try {
-                $json = file_get_contents($URL);  //retrieve data
+                $json = file_get_contents($url);  //retrieve data
             } catch(Exception $e) {
                 Logs::$logger->notice($e->getMessage());
                 $exceptionOccured = true;
@@ -51,7 +51,7 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $splitAdjusted
 
             if (!$exceptionOccured) {
                 $response   = array_values(array_filter($http_response_header, function($v) {return strpos($v,'HTTP/1.1 200 OK') !== false;}))[0];
-                $url        = $URL;                
+                $url        = $url;                
                 $seriesData = json_decode($json,1);
 
                 $dataArray[$symbol."-".$attempts] = $seriesData;
@@ -139,16 +139,16 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $splitAdjusted
     return $dataSet;
 }
 
-function retrieveBatchDataPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
+function retrieveBatchDataPolygon($symbols, $saveData = false, $verbose = false, $debug = false){
 
-    $URL  = polygonUrl.'v2/snapshot/locale/us/markets/stocks/tickers';
-    $URL .= '?apiKey='.polygonKey;
-    $URL .= '&tickers='.$symbol;
+    $url  = POLYGONURL.'v2/snapshot/locale/us/markets/stocks/tickers';
+    $url .= '?apiKey='.POLYGONKEY;
+    $url .= '&tickers='.$symbols;
 
-    if ($verbose) show($URL);
+    if ($verbose) show($url);
 
-    // $json     = curl_get_contents($URL);      //retrieve data
-    $json     = @file_get_contents($URL);  //retrieve data
+    // $json     = curl_get_contents($url);      //retrieve data
+    $json     = @file_get_contents($url);  //retrieve data
     $response = $http_response_header;     //http response information
 
     $header = $http_response_header;
@@ -187,18 +187,67 @@ function retrieveBatchDataPolygon($symbol, $saveData = false, $verbose = false, 
         'responseCode' => $response['responseCode'],
         'response'     => $response['response'],
         'source'       => 'polygon',
-        'data'         => $data);
+        'data'         => $data
+    );
+}
+
+function retrieveBatchHistoricalDataPolygon($symbols, $saveData = false, $verbose = false, $debug = false){
+
+    if ($verbose) show($url);
+    
+    $data    = array();
+    $symbols = explode(',', $symbols);
+    foreach($symbols as $symbol) {
+        $url      = createPolygonAggUrl($symbol);
+        $json     = @file_get_contents($url);  //retrieve data
+        $response = $http_response_header;     //http response information
+        $header   = $http_response_header;
+        $response = returnHttpResponseCode($header);
+
+        
+        if ($verbose) show($url);
+
+        if ($json) {
+            $seriesData = json_decode($json,1);
+            $seriesData = $seriesData['results'];
+            $data[$symbol] = array(
+                'quote' => array(
+                    'open'  => $seriesData[0]['o'],
+                    'high'  => $seriesData[0]['h'],
+                    'low'   => $seriesData[0]['l'],
+                    'close' => $seriesData[0]['c'],
+                    'latestPrice' => $seriesData[0]['c'],
+                ),
+                'prevDay' => array(
+                    'open'  => $seriesData[1]['o'],
+                    'high'  => $seriesData[1]['h'],
+                    'low'   => $seriesData[1]['l'],
+                    'close' => $seriesData[1]['c'],
+                ),
+                // todo: update these fields
+                // 'todaysChange'     => $candle["todaysChange"],
+                // 'todaysChangePerc' => $candle["todaysChangePerc"],
+                'updated'          => $seriesData[0]['t']
+            );
+        }
+    }
+    return array(
+        'responseCode' => '200',
+        'response'     => $response['response'],
+        'source'       => 'polygon',
+        'data'         => $data
+    );
 }
 
 function retrieveCompanyDataPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
 
-    $URL  = polygonUrl.'v3/reference/tickers';
-    $URL .= '/'.$symbol;
-    $URL .= '?apiKey='.polygonKey;
+    $url  = POLYGONURL.'v3/reference/tickers';
+    $url .= '/'.$symbol;
+    $url .= '?apiKey='.POLYGONKEY;
 
-    if ($verbose) show($URL);
+    if ($verbose) show($url);
 
-    $json = curl_get_contents($URL);      //retrieve data
+    $json = curl_get_contents($url);      //retrieve data
     $data = json_decode($json,1);
 
     if ($verbose) show($data);
@@ -207,17 +256,38 @@ function retrieveCompanyDataPolygon($symbol, $saveData = false, $verbose = false
 
 function retrieveStockSplitsPolygon($symbol, $saveData = false, $verbose = false, $debug = false){
 
-    $URL  = polygonUrl.'v3/reference/splits';
-    $URL .= '?ticker='.$symbol;
-    $URL .= '&apiKey='.polygonKey;
+    $url  = POLYGONURL.'v3/reference/splits';
+    $url .= '?ticker='.$symbol;
+    $url .= '&apiKey='.POLYGONKEY;
 
-    if ($verbose) show($URL);
+    if ($verbose) show($url);
 
-    $json = curl_get_contents($URL);      //retrieve data
+    $json = curl_get_contents($url);      //retrieve data
     $data = json_decode($json,1);
 
     if ($verbose) show($data);
     return $data;
+}
+
+function retrieveMarketStatusPolygon($saveData = false, $verbose = false, $debug = false){
+
+    $url  = POLYGONURL.'v1/marketstatus/now';
+    $url .= '?apiKey='.POLYGONKEY;
+
+    if ($verbose) show($url);
+
+    $json = curl_get_contents($url);      //retrieve data
+    $data = json_decode($json,1);
+
+    if ($verbose) show($data);
+    return $data;
+}
+
+function createPolygonAggUrl($symbol) {
+    $startDate = date('Y-m-d', strtotime('-7 days'));
+    $endDate   = date('Y-m-d');
+
+    return POLYGONURL."v2/aggs/ticker/".$symbol."/range/1/day/".$startDate."/".$endDate."/?adjusted=true&sort=desc&limit=2&apiKey=".POLYGONKEY;
 }
 
 ?>

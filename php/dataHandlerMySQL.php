@@ -173,12 +173,16 @@ function savePerformanceData($performanceData){
 
     // prepare sql and bind parameters
     $stmt = $dbc->prepare("UPDATE `data_performance`
-                           SET    1wk = :1wk, 2wk = :2wk, 4wk = :4wk, 8wk = :8wk, 1qtr = :1qtr, 1yr = :1yr, ytd = :ytd, previous = :previous, `as-of` = :asof,
-                                  basis = :basis, shares = :shares
+                           SET    1day = :1day, 2day = :2day, 3day = :3day, 4day = :4day, 1wk = :1wk, 2wk = :2wk, 4wk = :4wk, 8wk = :8wk, 1qtr = :1qtr, 1yr = :1yr, ytd = :ytd, previous = :previous,
+                                  previousDate = :previousDate, `as-of` = :asof, basis = :basis, shares = :shares
                            WHERE  sector = :sector");
 
     foreach($performanceData as $sector => $data){
         $stmt->bindParam(':sector',        $sector);
+        $stmt->bindParam(':1day',          $data['1day']);
+        $stmt->bindParam(':2day',          $data['2day']);
+        $stmt->bindParam(':3day',          $data['3day']);
+        $stmt->bindParam(':4day',          $data['4day']);
         $stmt->bindParam(':1wk',           $data['1wk']);
         $stmt->bindParam(':2wk',           $data['2wk']);
         $stmt->bindParam(':4wk',           $data['4wk']);
@@ -187,6 +191,7 @@ function savePerformanceData($performanceData){
         $stmt->bindParam(':1yr',           $data['1yr']);
         $stmt->bindParam(':ytd',           $data['YTD']);
         $stmt->bindParam(':previous',      $data['previous']);
+        $stmt->bindParam(':previousDate',  $data['previousDate']);
         $stmt->bindParam(':asof',          $data['as-of']);
         $stmt->bindParam(':basis',         $data['basis']);
         $stmt->bindParam(':shares',        $data['shares']);

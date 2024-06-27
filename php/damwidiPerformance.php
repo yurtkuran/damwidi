@@ -76,13 +76,20 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
         $priceGain = array();
         foreach($timeFrames as $timeFrame){
 
-            $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays'], 3)['gain'];
+            if ($timeFrame['relative']) {
+                $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays'], 3)['gain'];
+            } else {
+                $candle = array_slice($priceData, $timeFrame['lengthDays']-1, 1); 
+                $closePrice = $candle[key($candle)]['close'];
+                $performanceData[$sector['sector']][$timeFrame['period']] = $closePrice;
+            }
 
             $priceGain[$timeFrame['period']] = array_merge(array(
                 'startDate' => (count($priceData) >= $timeFrame['lengthDays'] ? array_keys($priceData)[$timeFrame['lengthDays']] : '0'),
                 'endDate'   => array_keys($priceData)[0],
             ), priceGain($priceData, 0, $timeFrame['lengthDays'], 3));
         }
+        $performanceData[$sector['sector']]['previousDate'] = array_key_first($priceData);
 
         // add placeholder for YTD data
         $performanceData[$sector['sector']]['YTD'] = 0;
