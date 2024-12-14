@@ -169,7 +169,7 @@ function getHeatMapData($verbose){
     $heatMapData = damwidiGain($heatMapData, $verbose); // calculate current & previous damwidi value
 
     // sort data by gain high to low
-    uasort($heatMapData, function($a,$b) {return ($a['gain'] <=> $b['gain']) ; }); //sort desending
+    uasort($heatMapData, function($a,$b) {return ($b['gain'] <=> $a['gain']) ; }); //sort desending
     return array(
         'heatMapData'     => $heatMapData,
         'openPositions'   => $openPositions,
