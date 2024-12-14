@@ -65,7 +65,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
     $duration = $end-$start;
     $log = array(
         'action'      => 'intraday lookup',
-        'start'       => date('Y-m-d H:i:s', $start/1000),
+        'start'       => date('Y-m-d H:i:s', floor($start/1000)),
         'duration'    => $duration,
         'env'         => ENV
     );
