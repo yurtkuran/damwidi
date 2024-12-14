@@ -1,4 +1,4 @@
-FROM php:8.2.24-apache
+FROM php:7.4.33-apache
 
 # Copy virtual host into container
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
@@ -32,7 +32,8 @@ RUN pecl install mongodb
 RUN echo "extension=mongodb.so" >> /usr/local/etc/php/conf.d/mongodb.ini
 
 # Xdebug
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN pecl install -o -f xdebug-3.1.5
+RUN docker-php-ext-enable xdebug
 
 # # Copy composer installable
 # #COPY ./install-composer.sh ./

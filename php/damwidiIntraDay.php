@@ -159,7 +159,7 @@ function getHeatMapData($verbose){
             "currentValue"  => $sector['shares'] * $latestPrice,
             "prevClose"     => $preMarket ? $sector['2day'] : $sector['previous'],
             "gain"          => calculateGain($latestPrice, $priceData[$symbol]['prevDay']['close']),
-            "lastRefreshed" => date('Y-m-d h:i:s', $priceData[$symbol]['updated']/1e9),
+            "lastRefreshed" => date('Y-m-d h:i:s', floor($priceData[$symbol]['updated']/1e9)),
             "description"   => $sector['description'],
             "source"        => $source
         );
@@ -169,7 +169,7 @@ function getHeatMapData($verbose){
     $heatMapData = damwidiGain($heatMapData, $verbose); // calculate current & previous damwidi value
 
     // sort data by gain high to low
-    uasort($heatMapData, function($a,$b) {return ($a['gain'] < $b['gain']) ; }); //sort desending
+    uasort($heatMapData, function($a,$b) {return ($a['gain'] <=> $b['gain']) ; }); //sort desending
     return array(
         'heatMapData'     => $heatMapData,
         'openPositions'   => $openPositions,
