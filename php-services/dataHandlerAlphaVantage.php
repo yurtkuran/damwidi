@@ -15,7 +15,7 @@ function retrievePriceDataAlpha($symbol, $interval, $startDate, $saveData = fals
     $URL .= "?function="  .$function;
     $URL .= "&symbol="    .$symbol;
     $URL .= "&apikey="    .alphaVantageAPIkey;
-    $URL .= "&outputsize=full";
+    $URL .= "&outputsize=compact";
 
     // determine output size
     // if ( date_diff(date_create($startDate), date_create("now"))->format('%a') <= 100 ){  // determine if <= 100 data points are needed

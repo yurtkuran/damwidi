@@ -37,8 +37,13 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
 
     // loop through all sectors
     foreach($sectors as $sector){
-        switch ($sector['sector']) {
-            case 'OBDC':
+
+        // retrieve price data
+        // switch ($sector['sector']) {
+        $ticker = $sector['sector'];
+        switch (true) {
+            case in_array($ticker, [], true):
+                Logs::$logger->debug("AlphaVantage data retrieval for ".$sector['sector']);
                 $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
@@ -47,12 +52,14 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
                 if(!$chartData['cached']) //rateLimit();
 
                 break;
-            case 'DAM':
+            case in_array($ticker, ['DAM'], true):
+                Logs::$logger->debug("Damwidi data retrieval");
                 $priceData     = returnDamwidiData();
                 $lastRefreshed = array_keys($priceData)[0];
                 $chartData['cached'] = true;
                 break;
             default: 
+                Logs::$logger->debug("Polygon data retrieval for ".$sector['sector']);
                 $chartData     = retrievePriceDataPolygon($sector['sector'], 'daily', $startDate, true, false, $verbose, true, 30);  // splitAdjusted, saveData, verbose, debug, cacheAge
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
