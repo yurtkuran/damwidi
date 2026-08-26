@@ -56,6 +56,11 @@ switch($mode){
         break;
 
     // the following are required API endpoints
+
+    case 'returnAboveBelow':
+        returnAboveBelow($verbose, $debug);
+        break;
+
     case 'returnDamwidiOHLC':
         returnDamwidiOHLC($verbose, $debug);
         break;
@@ -68,9 +73,9 @@ switch($mode){
         returnSectorTimeframePerformanceData($verbose, $debug, isset($_GET['version']) ? $_GET['version'] : 'v1' );
         break;
 
-    case 'returnTransactions':
-        returnTransactions($verbose, $debug);
-        break;
+    // case 'returnTransactions':
+    //     returnTransactions($verbose, $debug);
+    //     break;
 
     case 'returnUnstickLog':
         echo json_encode(returnUnstickLogData());
