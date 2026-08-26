@@ -61,9 +61,9 @@ switch($mode){
         returnAboveBelow($verbose, $debug);
         break;
 
-    case 'returnDamwidiOHLC':
-        returnDamwidiOHLC($verbose, $debug);
-        break;
+    // case 'returnDamwidiOHLC':
+    //     returnDamwidiOHLC($verbose, $debug);
+    //     break;
 
     case 'returnIntraDayData':
         returnIntraDayData($verbose, $debug, false);
