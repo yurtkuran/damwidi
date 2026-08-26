@@ -58,7 +58,7 @@ function returnIntraDayData($verbose, $debug, $api = false){
 
     if($verbose) show($intraDayData);
 
-  
+
 
     // create log
     $end      = floor(microtime(true) * 1000);
@@ -123,7 +123,7 @@ function getHeatMapData($verbose){
             )
         );
         return null;
-    } 
+    }
 
     // create heatmap data
     $priceData = $response['data'];
@@ -393,7 +393,7 @@ function createPerformacneData($heatMapData, $positions, $verbose){
 
 }
 
-// create data used in the intraday portfilio table 
+// create data used in the intraday portfilio table
 function createPortfolioData($heatMapData, $verbose){
     $start = floor(microtime(true) * 1000);
     $portfolioData = array();
@@ -637,7 +637,7 @@ function getBatchPreMarket($sectors, $saveData = false, $verbose = false, $debug
             // 'todaysChangePerc' => $candle["todaysChangePerc"],
             'updated'          => strtotime($sector['previousDate']) * 1e9
         );
-    
+
     }
     return array(
         'responseCode' => '200',

@@ -56,11 +56,6 @@ switch($mode){
         break;
 
     // the following are required API endpoints
-
-    case 'returnAboveBelow':
-        returnAboveBelow($verbose, $debug);
-        break;
-
     case 'returnDamwidiOHLC':
         returnDamwidiOHLC($verbose, $debug);
         break;
