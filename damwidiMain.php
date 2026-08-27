@@ -66,12 +66,12 @@ switch($mode){
     //     break;
 
     case 'returnIntraDayData':
-        returnIntraDayData($verbose, $debug, false);
-        break;
+    //     returnIntraDayData($verbose, $debug, false);
+    //     break;
 
-    case 'returnSectorTimeframePerformanceData':
-        returnSectorTimeframePerformanceData($verbose, $debug, isset($_GET['version']) ? $_GET['version'] : 'v1' );
-        break;
+    // case 'returnSectorTimeframePerformanceData':
+    //     returnSectorTimeframePerformanceData($verbose, $debug, isset($_GET['version']) ? $_GET['version'] : 'v1' );
+    //     break;
 
     // case 'returnTransactions':
     //     returnTransactions($verbose, $debug);
