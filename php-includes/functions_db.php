@@ -1,22 +1,33 @@
 <?php
 # Connect to the Database:
-function connect(){
+function connect() {
     try {
+        $name = constant(ENV . "_DBNAME");
+        $host = constant(ENV . "_DBHOST");
+        $user = constant(ENV . "_USERNAME");
+        $pass = constant(ENV . "_PASSWORD");
 
-        $name = constant(ENV."_DBNAME");      // Database name
-        $host = constant(ENV."_DBHOST");      // Host name
-        $user = constant(ENV."_USERNAME");    // Username
-        $pass = constant(ENV."_PASSWORD");    // Password
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ];
 
-        $dbc = new PDO("mysql:host=$host; dbname=$name", $user, $pass);
+        // Require TLS for DigitalOcean MySQL
+        if (ENV === 'DO') {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/mysql/certs/ca.pem';
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        }
 
-        $connect = $dbc;
+        return new PDO(
+            "mysql:host=$host;dbname=$name",
+            $user,
+            $pass,
+            $options
+        );
+
+    } catch (PDOException $e) {
+        error_log("Database connection failed: " . $e->getMessage());
+        return 0;
     }
-    catch(PDOException $e) {
-        $connect = 0;
-        echo $e->getMessage();
-    }
-    return $connect;
 }
 
 function truncateTable($table){
