@@ -1,0 +1,18 @@
+FROM php:8.2-apache
+
+# Apache configuration
+COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
+
+# Install PHP extensions
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libzip-dev \
+    && docker-php-ext-install pdo_mysql mysqli zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Production PHP configuration
+COPY php.production.ini /usr/local/etc/php/conf.d/production.ini
+
+WORKDIR /var/www
+
+CMD ["apache2-foreground"]
