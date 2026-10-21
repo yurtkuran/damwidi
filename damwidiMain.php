@@ -37,7 +37,19 @@ switch($mode){
     // the following four functions run daily to update mySQL databases
     // 1
     case 'updateBivioTransactions':
-        updateBivioTransactions($verbose, $debug, $stdin);
+        if (!$stdin) {
+            http_response_code(403);
+            echo 'updateBivioTransactions is available from the command line only';
+            break;
+        }
+
+        try {
+            updateBivioTransactions($verbose, $debug, $stdin);
+        } catch (Throwable $e) {
+            error_log('Bivio transaction update failed: '.$e->getMessage());
+            fwrite(STDERR, 'Bivio transaction update failed: '.$e->getMessage().PHP_EOL);
+            exit(1);
+        }
         break;
 
     // 2
