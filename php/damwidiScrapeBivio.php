@@ -1,66 +1,169 @@
 <?php
+function bivioVerboseLog($verbose, $message, $context = null){
+    if (!$verbose) return;
+
+    $output = date('Y-m-d H:i:s').' - '.$message;
+    if ($context !== null) {
+        $encodedContext = json_encode($context, JSON_UNESCAPED_SLASHES);
+        if ($encodedContext !== FALSE) {
+            $output .= ' - '.$encodedContext;
+        }
+    }
+
+    if (defined('STDOUT')) {
+        fwrite(STDOUT, $output.PHP_EOL);
+    } else {
+        echo htmlspecialchars($output, ENT_QUOTES, 'UTF-8')."<br>\n";
+    }
+}
+
 // log into bivio.com
 function bivioLogin($verbose){
-    // options
-    $login_email      = 'erol@yurtkuran.net';
-    $login_pass       = BIVIOPASSWORD;
-    $cookie_file_path = './cookies/cookies.txt';
-
-    // https://www.bivio.com/pub/login?c=aMTM_%21bMTQ_%21eZjABAWYxAQFmMgEBdgEx%21zYU5nX18_&f1=Secure%20Login&tz=240&v=2&x1=erol%40yurtkuran.net&x2=XqRh863M7tBAdf
-
-    //login form action url
-    $url       = "https://www.bivio.com/pub/login";
-    $postinfo  = "tz=300";
-    $postinfo .= "&v=2";
-    $postinfo .= "&c=aMTM_!bMTQ_!eZjABAWYxAQFmMgEBdgEx!zYU5nX18_";
-    $postinfo .= "&x1=".$login_email;
-    $postinfo .= "&x2=".$login_pass;
-    $postinfo .= "&f1=Secure+Login";
-
-    if ($verbose) show($url."?".$postinfo);
-
-    $ch = curl_init();
-    curl_setopt ($ch, CURLOPT_URL, $url);
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-    curl_setopt ($ch, CURLOPT_SSLVERSION, 6);
-    curl_setopt ($ch, CURLOPT_POSTFIELDS, $postinfo);
-    curl_setopt ($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36");
-    curl_setopt ($ch, CURLOPT_TIMEOUT, 60);
-    curl_setopt ($ch, CURLOPT_COOKIEJAR, $cookie_file_path);
-    curl_setopt ($ch, CURLOPT_COOKIEFILE, $cookie_file_path);
-    curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt ($ch, CURLOPT_HEADER, 1);
-    curl_setopt ($ch, CURLOPT_ENCODING,"gzip");
-    curl_setopt ($ch, CURLOPT_POST, true);
-    curl_setopt ($ch, CURLOPT_FRESH_CONNECT , 1);
-
-    $loginp= curl_exec($ch);
-    if ($loginp === FALSE) {
-        die(curl_error($ch));
-    } else {
-        if ($verbose) show("Bivio login successful");
+    if (BIVIO_USERNAME === '' || BIVIO_PASSWORD === '') {
+        throw new RuntimeException('Bivio credentials are not configured');
     }
+
+    $url = "https://www.bivio.com/pub/login";
+    $ch = curl_init();
+    if ($ch === FALSE) {
+        throw new RuntimeException('Unable to initialize Bivio login request');
+    }
+
+    curl_setopt_array($ch, array(
+        CURLOPT_URL => $url,
+        CURLOPT_SSL_VERIFYPEER => TRUE,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_FOLLOWLOCATION => TRUE,
+        CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0 Safari/537.36",
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 60,
+        CURLOPT_COOKIEFILE => '',
+        CURLOPT_COOKIESESSION => TRUE,
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_HEADER => FALSE,
+        CURLOPT_ENCODING => "gzip"
+    ));
+
+    try {
+        bivioVerboseLog($verbose, 'Initializing Bivio login session');
+        $loginPage = curl_exec($ch);
+        if ($loginPage === FALSE) {
+            throw new RuntimeException('Bivio login page request failed with cURL error '.curl_errno($ch));
+        }
+        validateBivioHttpResponse($ch, $loginPage, 'login page request');
+
+        $loginFields = returnBivioLoginFields($loginPage);
+        $loginFields['x1'] = BIVIO_USERNAME;
+        $loginFields['x2'] = BIVIO_PASSWORD;
+
+        bivioVerboseLog($verbose, 'Authenticating with Bivio');
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($loginFields));
+
+        $loginResponse = curl_exec($ch);
+        if ($loginResponse === FALSE) {
+            throw new RuntimeException('Bivio login request failed with cURL error '.curl_errno($ch));
+        }
+        validateBivioHttpResponse($ch, $loginResponse, 'login');
+        if (preg_match('/<form[^>]*action=["\']?\/pub\/login|name=["\']?x2/i', $loginResponse)) {
+            throw new RuntimeException('Bivio authentication was not accepted');
+        }
+    } catch (Throwable $e) {
+        curl_close($ch);
+        throw $e;
+    }
+
+    bivioVerboseLog($verbose, 'Bivio login successful');
     return $ch;
 }
 
+function returnBivioLoginFields($response){
+    if (!preg_match('/<form\b[^>]*action=["\']\/pub\/login["\'][^>]*>(.*?)<\/form>/is', $response, $formMatch)) {
+        throw new RuntimeException('Bivio login form was not found');
+    }
+
+    preg_match_all('/<input\b[^>]*>/i', $formMatch[1], $inputMatches);
+    $loginFields = array();
+    foreach($inputMatches[0] as $input){
+        if (!preg_match('/\bname=["\']([^"\']*)["\']/i', $input, $nameMatch)) continue;
+
+        $value = '';
+        if (preg_match('/\bvalue=["\']([^"\']*)["\']/i', $input, $valueMatch)) {
+            $value = html_entity_decode($valueMatch[1], ENT_QUOTES, 'UTF-8');
+        }
+        $loginFields[$nameMatch[1]] = $value;
+    }
+
+    if (!array_key_exists('c', $loginFields) || !array_key_exists('x1', $loginFields) || !array_key_exists('x2', $loginFields)) {
+        throw new RuntimeException('Bivio login form is missing required fields');
+    }
+
+    return $loginFields;
+}
+
+function validateBivioHttpResponse($ch, $response, $context){
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($httpCode < 200 || $httpCode >= 300) {
+        throw new RuntimeException('Bivio '.$context.' returned HTTP status '.$httpCode);
+    }
+
+    if (!is_string($response) || trim($response) === '') {
+        throw new RuntimeException('Bivio '.$context.' returned an empty response');
+    }
+}
+
 // retrieve transactions from bivio.com
-function retrieveBivioTransactions($verbose){
-
-    // open cURL session to scrape damwidi value from Bivio
-    $ch = bivioLogin($verbose);
-
+function retrieveBivioTransactions($ch, $verbose){
     // retrieve latest transactions
     $URL = "https://www.bivio.com/get-csv/damwidi/accounting/account/detail.csv?p=16580800007";
     curl_setopt($ch, CURLOPT_URL, $URL);
     curl_setopt($ch, CURLOPT_HEADER, FALSE);
-    $response = explode( "\n", curl_exec($ch));
-    unset($response[count($response)-1]);  // remove last empty line
-    if ($verbose) show($response);
+    curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
+    $responseBody = curl_exec($ch);
+    if ($responseBody === FALSE) {
+        throw new RuntimeException('Bivio transaction download failed with cURL error '.curl_errno($ch));
+    }
 
-    // close cURL session
-    curl_close($ch);
+    validateBivioHttpResponse($ch, $responseBody, 'transaction download');
+
+    $contentType = strtolower((string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
+    if (strpos($contentType, 'text/html') !== FALSE || preg_match('/<html|<!doctype html/i', $responseBody)) {
+        throw new RuntimeException('Bivio transaction download returned HTML instead of CSV');
+    }
+
+    $response = explode( "\n", $responseBody);
+    if (trim($response[count($response)-1]) === '') {
+        unset($response[count($response)-1]);  // remove last empty line
+    }
+
+    if (empty($response)) {
+        throw new RuntimeException('Bivio transaction download did not contain CSV data');
+    }
+
+    foreach($response as &$responseRow){
+        $responseRow = rtrim($responseRow, "\r");
+    }
+    unset($responseRow);
+
+    $response[0] = preg_replace('/^\xEF\xBB\xBF/', '', $response[0]);
+    $headers = str_getcsv($response[0]);
+    $requiredHeaders = array('Date', 'Amount', 'Description');
+    if (!empty(array_diff($requiredHeaders, $headers))) {
+        throw new RuntimeException('Bivio transaction CSV is missing required columns');
+    }
+
+    if (count($response) < 2) {
+        throw new RuntimeException('Bivio transaction CSV did not contain any transaction rows');
+    }
+
+    for ($i=1; $i<count($response); $i++) {
+        if (count(str_getcsv($response[$i])) !== count($headers)) {
+            throw new RuntimeException('Bivio transaction CSV contains an invalid row');
+        }
+    }
+
+    bivioVerboseLog($verbose, 'Retrieved Bivio transaction CSV', array('rows' => count($response)-1));
 
     return $response;
 }
@@ -69,7 +172,17 @@ function retrieveBivioTransactions($verbose){
 function returnBivioValue($ch, $date, $verbose = false){
     $URL = "https://www.bivio.com/damwidi/accounting/reports/valuation?date=".$date;
     curl_setopt($ch, CURLOPT_URL, $URL);
+    curl_setopt($ch, CURLOPT_HEADER, FALSE);
+    curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
     $response = curl_exec($ch);
+    if ($response === FALSE) {
+        throw new RuntimeException('Bivio valuation download failed with cURL error '.curl_errno($ch));
+    }
+
+    validateBivioHttpResponse($ch, $response, 'valuation download');
+    if (preg_match('/<form[^>]*action=["\']?\/pub\/login|name=["\']?x2/i', $response)) {
+        throw new RuntimeException('Bivio session is not authenticated');
+    }
 
     // create array
     $valuation['date'] = $date;
@@ -78,6 +191,9 @@ function returnBivioValue($ch, $date, $verbose = false){
     $start = strpos($response, "Value of One Unit");
     $mid   = strpos($response, "<td class=\"b_align_e\" class=\"amount_cell\">", $start);
     $end   = strpos($response,"</td>", $mid);
+    if ($start === FALSE || $mid === FALSE || $end === FALSE) {
+        throw new RuntimeException('Bivio valuation response does not contain a unit value');
+    }
     $data  = substr($response, $mid, $end-$mid);
     $data  = floatval(preg_replace('/[^0-9\.]/', '', $data));
     $valuation['value'] = $data;
@@ -86,11 +202,14 @@ function returnBivioValue($ch, $date, $verbose = false){
     $start = strpos($response, "Total Number of Valuation Units to Date");
     $mid   = strpos($response, "<td class=\"b_align_e\" class=\"amount_cell\">", $start);
     $end   = strpos($response,"</td>", $mid);
+    if ($start === FALSE || $mid === FALSE || $end === FALSE) {
+        throw new RuntimeException('Bivio valuation response does not contain a unit count');
+    }
     $data  = substr($response, $mid, $end-$mid);
     $data  = floatval(preg_replace('/[^0-9\.]/', '', $data));
     $valuation['units'] = $data;
 
-    if ($verbose) show($valuation);
+    bivioVerboseLog($verbose, 'Retrieved Bivio valuation', $valuation);
     return $valuation;
 }
 
@@ -110,64 +229,64 @@ function returnTransactions($verbose, $debug){
 
 // retrieve recent transactions from bivio.com and add to `data_transactions` table
 function updateBivioTransactions($verbose, $debug, $stdin = false){
-    if ($verbose) show("--- UPDATE BIVIO TRANSACTIONS ---");
+    bivioVerboseLog($verbose, 'UPDATE BIVIO TRANSACTIONS');
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
+    bivioVerboseLog($verbose, 'Bivio transaction update started', array('start' => $start));
 
-    // open cURL session to scrape damwidi value from Bivio
-    $ch = bivioLogin($verbose);
+    $ch = null;
+    try {
+        // open cURL session and retrieve latest transactions from Bivio
+        $ch = bivioLogin($verbose);
+        $bivioTransactions = retrieveBivioTransactions($ch, $verbose);
 
-    // retrieve latest transactions
-    $bivioTransactions = retrieveBivioTransactions($verbose);
+        // determine latest detail date
+        $dbc = connect();
+        $stmt = $dbc->prepare("SELECT `transaction_date` FROM `data_transactions` ORDER BY `transaction_date` DESC LIMIT 1");
+        $stmt->execute();
+        $startDate = $stmt->fetch(PDO::FETCH_ASSOC);
+        $startDate = $startDate['transaction_date'];
+        bivioVerboseLog($verbose, 'Latest stored transaction date', array('date' => $startDate));
 
-    // determine latest detail date
-    $dbc = connect();
-    $stmt = $dbc->prepare("SELECT `transaction_date` FROM `data_transactions` ORDER BY `transaction_date` DESC LIMIT 1");
-    $stmt->execute();
-    $startDate = $stmt->fetch(PDO::FETCH_ASSOC);
-    $startDate = $startDate['transaction_date'];
-    if ($verbose) show("start date: ".$startDate);
+        // parse CSV file
+        $firstline = true;
+        for ($i=0; $i<= count($bivioTransactions)-1; $i++){
+            $transaction = array();
+            $data = str_getcsv($bivioTransactions[$i]);
+            $date = date('Y-m-d', strtotime($data['0']));
 
-    // parse CSV file
-    $firstline = true;
-    for ($i=0; $i<= count($bivioTransactions)-1; $i++){
-        $transaction = array();
-        $data = str_getcsv($bivioTransactions[$i]);
-        $date = date('Y-m-d', strtotime($data['0']));
+            if(!$firstline and $date > $startDate){
+                for ($j=0; $j<count($data); $j++){
+                    $transaction[$headers[$j]] = $data[$j];
+                }
+                $transaction['Date'] = date('Y-m-d', strtotime($transaction['Date']));
+                $transaction = array_merge( $transaction,  parseTransaction( $transaction['Description']) );
 
-        if(!$firstline and $date > $startDate){
-            for ($j=0; $j<count($data); $j++){
-                $transaction[$headers[$j]] = $data[$j];
+                // revise certain symbols, e.g. BRKB -> BRK.B
+                switch ($transaction['symbol']){
+                    case 'BRKB':
+                        $transaction['symbol'] = 'BRK.B';
+                        break;
+                    default:
+                    // symbol okay
+                }
+
+                bivioVerboseLog($verbose, 'Importing Bivio transaction', $transaction);
+                saveTransactionData($transaction); //update database
+
+            } else if ($firstline){
+                $headers = $data;
+                $firstline = false;
             }
-            $transaction['Date'] = date('Y-m-d', strtotime($transaction['Date']));
-            $transaction = array_merge( $transaction,  parseTransaction( $transaction['Description']) );
-
-            // revise certain symbols, e.g. BRKB -> BRK.B
-            switch ($transaction['symbol']){
-                case 'BRKB':
-                    $transaction['symbol'] = 'BRK.B';
-                    break;
-                default:
-                // symbol okay
-            }
-
-            if ($verbose) show($transaction);
-            saveTransactionData($transaction); //update database
-
-        } else if ($firstline){
-            $headers = $data;
-            $firstline = false;
+        }
+        $stmt = $dbc->prepare("ALTER TABLE `data_transactions` ORDER BY `transaction_date` ASC");
+        $stmt->execute();
+    } finally {
+        if ($ch !== null) {
+            curl_close($ch);
         }
     }
-    $stmt = $dbc->prepare("ALTER TABLE `data_transactions` ORDER BY `transaction_date` ASC");
-    $stmt->execute();
-
-    // close cURL session
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 1);
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 2);
-    curl_setopt ($ch, CURLOPT_SSLVERSION, 3);
-    curl_close($ch);
 
     // create notifications
     $end          = date('Y-m-d H:i:s');
@@ -178,7 +297,6 @@ function updateBivioTransactions($verbose, $debug, $stdin = false){
 
     Logs::$logger->info($log);
 
-    if ($verbose) show($start." start");
     if (!$stdin) {
         show($notification);
     } else {
