@@ -2,8 +2,6 @@
 // update fields in the `data_performance` table for sectors, index and cash
 function updatePerformanceData($verbose, $debug, $stdin = false){
     if ($verbose) show("--- UPDATE PERFORMANCE DATA ---");
-    Logs::$logger->info("start update performance");
-
 
     // store start time used to determine function duration
     $start = date('Y-m-d H:i:s');
@@ -36,6 +34,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
     $timeFrames = json_decode(file_get_contents("./config/comparison.json"),1);
 
     // loop through all sectors
+    $symbolsProcessed = 0;
     foreach($sectors as $sector){
 
         // retrieve price data
@@ -43,7 +42,10 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
         $ticker = $sector['sector'];
         switch (true) {
             case in_array($ticker, [], true):
-                Logs::$logger->debug("AlphaVantage data retrieval for ".$sector['sector']);
+                Logs::$logger->debug('market_data.retrieval.started', array(
+                    'provider' => 'alphavantage',
+                    'symbol' => $sector['sector'],
+                ));
                 $chartData     = retrievePriceDataAlpha($sector['sector'], 'daily', $startDate, false, $verbose, true, 30);  // saveData, verbose, debug, cacheAge
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
@@ -53,13 +55,19 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
 
                 break;
             case in_array($ticker, ['DAM'], true):
-                Logs::$logger->debug("Damwidi data retrieval");
+                Logs::$logger->debug('market_data.retrieval.started', array(
+                    'provider' => 'damwidi',
+                    'symbol' => $sector['sector'],
+                ));
                 $priceData     = returnDamwidiData();
                 $lastRefreshed = array_keys($priceData)[0];
                 $chartData['cached'] = true;
                 break;
             default: 
-                Logs::$logger->debug("Polygon data retrieval for ".$sector['sector']);
+                Logs::$logger->debug('market_data.retrieval.started', array(
+                    'provider' => 'polygon',
+                    'symbol' => $sector['sector'],
+                ));
                 $chartData     = retrievePriceDataPolygon($sector['sector'], 'daily', $startDate, true, false, $verbose, true, 30);  // splitAdjusted, saveData, verbose, debug, cacheAge
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
@@ -107,6 +115,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
         // add YTD data
         $performanceData = returnYTDData($sector['sector'], $lastRefreshed, $performanceData, $priceData, $verbose);
 
+        $symbolsProcessed++;
         if($debug) break;
     }
 
@@ -124,15 +133,15 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
         'performanceData' => $performanceData,
     ));
 
+    Logs::addJobResult(array(
+        'symbols_processed' => $symbolsProcessed,
+        'last_refreshed' => $lastRefreshed,
+    ));
+
     // create notifications
     $end          = date('Y-m-d H:i:s');
-    $duration     = strtotime($end)-strtotime($start);
     $table        = "performance";
-    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
     $notification = $end." - ".str_pad($table, 20)." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
-
-
-    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
     if (!$stdin) {
@@ -163,7 +172,7 @@ function refreshPerformanceTable($verbose){
             insertPerformanceStock($symbol, $companyName);
 
             $log = $symbol.' added to Performance table';
-            Logs::$logger->info($log);
+            Logs::$logger->info('performance.symbol.added', array('symbol' => $symbol));
             if ($verbose) show($log);
         }
     }
@@ -177,7 +186,7 @@ function refreshPerformanceTable($verbose){
             removePerformanceStock($stock);
 
             $log = $stock.' removed from Performance table';
-            Logs::$logger->info($log);
+            Logs::$logger->info('performance.symbol.removed', array('symbol' => $stock));
             if ($verbose) show($log);
         }
     }
@@ -197,7 +206,11 @@ function returnBasisData($lastRefreshed, $performanceData){
             $performanceData[$sector]['basis']  = $openPositions[$sector]['basis'];
             $performanceData[$sector]['shares'] = $openPositions[$sector]['shares'];
         } else {
-            Logs::$logger->info(str_pad($sector, 6)." - setting shares and basis to 0");
+            Logs::$logger->info('performance.position.defaulted', array(
+                'symbol' => $sector,
+                'shares' => 0,
+                'basis' => 0,
+            ));
             $performanceData[$sector]['basis']  = 0;
             $performanceData[$sector]['shares'] = 0;
         }

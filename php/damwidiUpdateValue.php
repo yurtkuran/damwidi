@@ -54,6 +54,8 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
 
     // loop through dates
     $date = $startDate;
+    $datesProcessed = 0;
+    $reconciliationNotices = 0;
     while ($date <= $endDate){
         $dow = date('w', strtotime($date)); //determing day of week, do not process if Sat or Sun
         $mktClosed = array_key_exists($date, $marketHolidays);
@@ -134,7 +136,11 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
                 }
 
                 $unstickDeltaMsg = ($dataLog[$date]['unstickDelta'] < 0 ? '-$' : '$').abs($dataLog[$date]['unstickDelta']);
-                Logs::$logger->notice('value - '.$date.' - damwidi unstick: '.$unstickDeltaMsg);
+                Logs::$logger->notice('value.reconciliation.mismatch', array(
+                    'date' => $date,
+                    'delta' => $dataLog[$date]['unstickDelta'],
+                ));
+                $reconciliationNotices++;
 
                 if(ENV == 'PROD') sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
 
@@ -143,8 +149,13 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
                     // key already exists, remove data
                     unset($dataLog[$date]);
                 }
-                Logs::$logger->info('value - '.$date." - okay");
+                Logs::$logger->info('value.reconciliation.completed', array(
+                    'date' => $date,
+                    'status' => 'ok',
+                ));
             }
+
+            $datesProcessed++;
         }
 
         $date = date('Y-m-d',strtotime($date . "+1 days"));
@@ -164,15 +175,17 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
     curl_setopt ($ch, CURLOPT_SSLVERSION, 3);
     curl_close($ch);
 
+    Logs::addJobResult(array(
+        'dates_processed' => $datesProcessed,
+        'reconciliation_notices' => $reconciliationNotices,
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+    ));
+
     // create notifications
     $end          = date('Y-m-d H:i:s');
-    $duration     = strtotime($end)-strtotime($start);
     $table        = "value";
-    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
     $notification = $end." - ".str_pad($table, 20)." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
-
-
-    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
     if (!$stdin) {

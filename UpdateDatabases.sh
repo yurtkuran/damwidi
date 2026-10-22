@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DAMWIDI_PLATFORM="${DAMWIDI_PLATFORM:-hostgator}"
+
 damwidiCmd="/usr/local/bin/php damwidiMain.php"
 #damwidiCmd="php damwidiMain.php"
 

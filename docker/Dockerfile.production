@@ -15,4 +15,8 @@ COPY php.production.ini /usr/local/etc/php/conf.d/production.ini
 
 WORKDIR /var/www
 
+# May be overridden at runtime when this image is used outside DigitalOcean.
+ENV DAMWIDI_PLATFORM=digitalocean \
+    TZ=America/New_York
+
 CMD ["apache2-foreground"]

@@ -21,6 +21,8 @@ function updateHistoryTable($verbose = false, $debug = false, $stdin = false){
     $endDate = date('Y-m-d',  strtotime(date('Y-m-d') . "-1 days"));
 
     // loop through sectors
+    $symbolsProcessed = 0;
+    $recordsWritten = 0;
     foreach($sectors as $sector){
         $symbol = $sector['sector'];
         $startDate = determineStartDate($sector['sector'], $firstDate);
@@ -38,19 +40,23 @@ function updateHistoryTable($verbose = false, $debug = false, $stdin = false){
 
         if ($verbose) show($sector['sector'].": update data_history table \n"."start date: ".$startDate."\n"."end date:   ".$endDate."\n"."added ".$count." record".($count <> 1 ?'s':''));
 
+        $symbolsProcessed++;
+        $recordsWritten += $count;
+
         // sleep for a random amount of time to prevent rate limiting from AlphaVantage
         // rateLimit();
     }
 
+    Logs::addJobResult(array(
+        'symbols_processed' => $symbolsProcessed,
+        'records_written' => $recordsWritten,
+        'end_date' => $endDate,
+    ));
+
     // create notifications
     $end          = date('Y-m-d H:i:s');
-    $duration     = strtotime($end)-strtotime($start);
     $table        = "history";
-    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
     $notification = $end." - ".str_pad($table, 20)." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
-
-
-    Logs::$logger->info($log);
 
     if ($verbose) show($start." start");
     if (!$stdin) {
