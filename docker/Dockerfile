@@ -1,4 +1,4 @@
-FROM php:8.2.24-apache
+FROM php:8.2.35-apache
 
 # Copy virtual host into container
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
@@ -26,10 +26,6 @@ RUN docker-php-ext-install -j "$(nproc)" \
     zip
 
 RUN docker-php-ext-install zip pdo_mysql
-
-# mongoDb driver
-RUN pecl install mongodb
-RUN echo "extension=mongodb.so" >> /usr/local/etc/php/conf.d/mongodb.ini
 
 # Xdebug
 RUN pecl install xdebug && docker-php-ext-enable xdebug
