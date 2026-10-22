@@ -1,20 +1,6 @@
 <?php
 function bivioVerboseLog($verbose, $message, $context = null){
-    if (!$verbose) return;
-
-    $output = date('Y-m-d H:i:s').' - '.$message;
-    if ($context !== null) {
-        $encodedContext = json_encode($context, JSON_UNESCAPED_SLASHES);
-        if ($encodedContext !== FALSE) {
-            $output .= ' - '.$encodedContext;
-        }
-    }
-
-    if (defined('STDOUT')) {
-        fwrite(STDOUT, $output.PHP_EOL);
-    } else {
-        echo htmlspecialchars($output, ENT_QUOTES, 'UTF-8')."<br>\n";
-    }
+    Logs::verbose($verbose, $message, $context);
 }
 
 // log into bivio.com
@@ -251,6 +237,7 @@ function updateBivioTransactions($verbose, $debug, $stdin = false){
 
         // parse CSV file
         $firstline = true;
+        $recordsWritten = 0;
         for ($i=0; $i<= count($bivioTransactions)-1; $i++){
             $transaction = array();
             $data = str_getcsv($bivioTransactions[$i]);
@@ -272,8 +259,13 @@ function updateBivioTransactions($verbose, $debug, $stdin = false){
                     // symbol okay
                 }
 
-                bivioVerboseLog($verbose, 'Importing Bivio transaction', $transaction);
+                bivioVerboseLog($verbose, 'Importing Bivio transaction', array(
+                    'date' => $transaction['Date'],
+                    'symbol' => $transaction['symbol'],
+                    'type' => $transaction['type'],
+                ));
                 saveTransactionData($transaction); //update database
+                $recordsWritten++;
 
             } else if ($firstline){
                 $headers = $data;
@@ -282,6 +274,13 @@ function updateBivioTransactions($verbose, $debug, $stdin = false){
         }
         $stmt = $dbc->prepare("ALTER TABLE `data_transactions` ORDER BY `transaction_date` ASC");
         $stmt->execute();
+
+        $recordsRetrieved = count($bivioTransactions)-1;
+        Logs::addJobResult(array(
+            'records_retrieved' => $recordsRetrieved,
+            'records_written' => $recordsWritten,
+            'records_skipped' => $recordsRetrieved-$recordsWritten,
+        ));
     } finally {
         if ($ch !== null) {
             curl_close($ch);
@@ -290,12 +289,8 @@ function updateBivioTransactions($verbose, $debug, $stdin = false){
 
     // create notifications
     $end          = date('Y-m-d H:i:s');
-    $duration     = strtotime($end)-strtotime($start);
     $table        = "bivio transactions";
-    $log          = date('i:s', mktime(0, 0, strtotime($end)-strtotime($start)))." - ".$table;
     $notification = $end." - ".str_pad($table, 20)." - ".date('H:i:s', mktime(0, 0, strtotime($end)-strtotime($start)));
-
-    Logs::$logger->info($log);
 
     if (!$stdin) {
         show($notification);

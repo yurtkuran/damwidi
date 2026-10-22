@@ -3,11 +3,6 @@
 
 include_once 'php-includes/init.php';
 
-use Monolog\Logger;
-use Logtail\Monolog\LogtailHandler;
-Logs::$logger = new Logger(ENV);
-Logs::$logger->pushHandler(new LogtailHandler(LOGTAIL_TOKEN));
-
 // setup environment defaults
 $verbose = FALSE;
 $debug   = FALSE;
@@ -24,6 +19,31 @@ if (defined('STDIN')) {
     $mode    = isset($_GET['mode']) ? $_GET['mode'] : NULL;
     $verbose = (isset($_GET['verbose']) and $_GET['verbose']) == 1 ? TRUE : FALSE;
     $debug   = (isset($_GET['debug']) and $_GET['debug']) == 1 ? TRUE : FALSE;
+}
+
+Logs::initialize(ENV, defined('LOGTAIL_TOKEN') ? LOGTAIL_TOKEN : '');
+
+function runScheduledJob($job, $callback, $stdin)
+{
+    $startedAt = Logs::startJob($job);
+
+    try {
+        call_user_func($callback);
+        Logs::completeJob($startedAt);
+        return true;
+    } catch (Throwable $e) {
+        Logs::failJob($startedAt, $e);
+        $message = $job.' failed: '.Logs::sanitizeMessage($e->getMessage());
+
+        if ($stdin && defined('STDERR')) {
+            fwrite(STDERR, $message.PHP_EOL);
+        } else {
+            http_response_code(500);
+            echo 'Scheduled update failed';
+        }
+
+        return false;
+    }
 }
 
 switch($mode){
@@ -43,28 +63,34 @@ switch($mode){
             break;
         }
 
-        try {
+        $success = runScheduledJob('updateBivioTransactions', function () use ($verbose, $debug, $stdin) {
             updateBivioTransactions($verbose, $debug, $stdin);
-        } catch (Throwable $e) {
-            error_log('Bivio transaction update failed: '.$e->getMessage());
-            fwrite(STDERR, 'Bivio transaction update failed: '.$e->getMessage().PHP_EOL);
-            exit(1);
-        }
+        }, $stdin);
+        if (!$success) exit(1);
         break;
 
     // 2
     case 'updatePerformanceData':
-        updatePerformanceData($verbose, $debug, $stdin);
+        $success = runScheduledJob('updatePerformanceData', function () use ($verbose, $debug, $stdin) {
+            updatePerformanceData($verbose, $debug, $stdin);
+        }, $stdin);
+        if (!$success && $stdin) exit(1);
         break;
 
     // 3
     case 'updateValueTable':
-        updateValueTable($verbose, $debug, $stdin);
+        $success = runScheduledJob('updateValueTable', function () use ($verbose, $debug, $stdin) {
+            updateValueTable($verbose, $debug, $stdin);
+        }, $stdin);
+        if (!$success && $stdin) exit(1);
         break;
 
     // 4
     case 'updateHistoryTable':
-        updateHistoryTable($verbose, $debug, $stdin);
+        $success = runScheduledJob('updateHistoryTable', function () use ($verbose, $debug, $stdin) {
+            updateHistoryTable($verbose, $debug, $stdin);
+        }, $stdin);
+        if (!$success && $stdin) exit(1);
         break;
 
     // the following are required API endpoints

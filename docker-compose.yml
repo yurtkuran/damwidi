@@ -3,6 +3,8 @@ services:
         build: ./docker
         image: yurtkuran/damwidi_v2
         container_name: php
+        environment:
+            DAMWIDI_PLATFORM: local
         ports:
             - '8080:80'
         volumes:
