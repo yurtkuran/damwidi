@@ -43,6 +43,49 @@ Scheduled update records also contain:
 
 The four scheduled updates emit the lifecycle events `job.started`, `job.completed`, and `job.failed`. Completion records include job-specific counts such as retrieved records, written records, processed symbols, and reconciliation notices.
 
+## Cron runner and aggregate outcome
+
+`RunDatabaseUpdates.sh` resolves its own directory, changes to that directory, and runs the four scheduled jobs synchronously in dependency order:
+
+1. `updateBivioTransactions`
+2. `updatePerformanceData`
+3. `updateValueTable`
+4. `updateHistoryTable`
+
+The next job does not start until the current PHP process exits successfully. If a job returns a nonzero exit code, the script records the job and its exit code, stops immediately, and does not run any dependent jobs that follow it. It then calls the CLI-only `logDatabaseUpdateSummary` mode with the failed job name.
+
+Before starting the pipeline, the script verifies that the configured PHP CLI executable is available and that `damwidiMain.php` exists in the script directory. A preflight failure is written to standard error and exits immediately because the PHP summary endpoint is not available in that situation.
+
+The script does not create or maintain a filesystem log. Start, completion, and end messages are written to standard output. Job failures, preflight failures, and summary-publication failures are written to standard error for the cron or container runtime to handle.
+
+After all jobs succeed, or after the first job failure, the script attempts to publish one aggregate summary through Monolog:
+
+- `Database updates successful`
+- `Database updates fail: updateBivioTransactions`
+
+The outcome and failed job name are part of the log message so they are visible in the Better Stack event list without opening the structured context. The record also contains:
+
+| Field | Description |
+| --- | --- |
+| `event` | Always `database_updates.summary` |
+| `status` | `successful` or `fail` |
+| `jobs` | The complete ordered list of scheduled jobs |
+| `failed_jobs` | Empty on success; contains the first failed job on failure |
+| `duration_seconds` | Total pipeline duration before summary publication |
+
+The failed command's numeric exit code is printed to standard error but is not currently included in the Better Stack summary. The script exits `0` only when all jobs and the summary command succeed. A failed job or failed summary command produces exit status `1`.
+
+The runner supports these optional environment variables:
+
+- `DAMWIDI_PLATFORM`: one of the supported platform values.
+- `DAMWIDI_PHP_BINARY`: PHP CLI path; defaults to `/usr/local/bin/php`.
+
+Example DigitalOcean cron entry for a daily 7:00 AM run:
+
+```cron
+0 7 * * * cd /opt/damwidi && /usr/bin/docker compose run --rm --no-deps --entrypoint /bin/bash php /var/www/RunDatabaseUpdates.sh
+```
+
 ## Migration monitoring
 
 During the HostGator-to-DigitalOcean transition, use the same Better Stack source and filter or group records by `platform`, `job`, and `run_id`.

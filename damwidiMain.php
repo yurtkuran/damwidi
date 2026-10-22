@@ -93,6 +93,48 @@ switch($mode){
         if (!$success && $stdin) exit(1);
         break;
 
+    case 'logDatabaseUpdateSummary':
+        if (!$stdin) {
+            http_response_code(403);
+            echo 'logDatabaseUpdateSummary is available from the command line only';
+            break;
+        }
+
+        $status = isset($argv[2]) ? $argv[2] : '';
+        $failedJobs = isset($argv[3]) && $argv[3] !== '' ? explode(',', $argv[3]) : array();
+        $durationSeconds = isset($argv[4]) ? filter_var($argv[4], FILTER_VALIDATE_INT) : false;
+        $scheduledJobs = array(
+            'updateBivioTransactions',
+            'updatePerformanceData',
+            'updateValueTable',
+            'updateHistoryTable',
+        );
+
+        $validStatus = $status === 'successful' || $status === 'fail';
+        $validFailedJobs = empty(array_diff($failedJobs, $scheduledJobs));
+        $validOutcome = ($status === 'successful' && empty($failedJobs))
+            || ($status === 'fail' && !empty($failedJobs));
+
+        if (!$validStatus || !$validFailedJobs || !$validOutcome || $durationSeconds === false || $durationSeconds < 0) {
+            fwrite(STDERR, 'Invalid database update summary arguments'.PHP_EOL);
+            exit(1);
+        }
+
+        $logContext = array(
+            'event' => 'database_updates.summary',
+            'status' => $status,
+            'jobs' => $scheduledJobs,
+            'failed_jobs' => $failedJobs,
+            'duration_seconds' => $durationSeconds,
+        );
+
+        if ($status === 'successful') {
+            Logs::$logger->info('Database updates successful', $logContext);
+        } else {
+            Logs::$logger->error('Database updates fail: '.implode(', ', $failedJobs), $logContext);
+        }
+        break;
+
     // the following are required API endpoints
 
     case 'returnAboveBelow':
