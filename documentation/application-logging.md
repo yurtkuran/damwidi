@@ -41,7 +41,7 @@ Scheduled update records also contain:
 | `run_id` | Random identifier shared by all records from one execution |
 | `duration_ms` | Numeric elapsed time on completion or failure |
 
-The four scheduled updates emit the lifecycle events `job.started`, `job.completed`, and `job.failed`. Completion records include job-specific counts such as retrieved records, written records, processed symbols, and reconciliation notices.
+The four scheduled updates emit lifecycle messages with the job name included: `job.started - <job>`, `job.completed - <job>`, and `job.failed - <job>`. For example, a successful Bivio update emits `job.completed - updateBivioTransactions`. Completion records include job-specific counts such as retrieved records, written records, processed symbols, and reconciliation notices.
 
 ## Cron runner and aggregate outcome
 
@@ -92,8 +92,8 @@ During the HostGator-to-DigitalOcean transition, use the same Better Stack sourc
 
 Recommended alerts and saved queries include:
 
-1. A `job.failed` event on either production platform.
-2. No `job.completed` event after the expected daily update window.
+1. A message beginning with `job.failed -` on either production platform.
+2. No message beginning with `job.completed -` after the expected daily update window.
 3. A `logging.platform.defaulted` event from a production environment.
 4. Material differences in completion counts between HostGator and DigitalOcean.
 5. Abnormally high `duration_ms` values.
