@@ -70,9 +70,9 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
                 ));
 
                 $chartData = retrievePriceDataPolygon(
-                    $sector['sector'],
-                    'daily',
-                    $startDate,
+                    sector: $sector['sector'],
+                    interval: 'daily',
+                    startDate: $startDate,
                     splitAdjusted: true,
                     saveData: false,
                     verbose: $verbose,

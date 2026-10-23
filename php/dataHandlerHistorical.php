@@ -41,7 +41,16 @@ function getHistory($symbols, $startDate, $endDate, $verbose = false, $debug = f
                         $historicalData  = retrievePriceEodHistorical($symbol, 'D', $startDate, true, false, false, false);  // loadNewData, saveData, verbose, debug
                         break;
                     case 'polygon':
-                        $historicalData  = retrievePriceDataPolygon($symbol, 'daily', $startDate, false, false, false, 30);  // saveData, verbose, debug, cacheAge
+                        $historicalData  = retrievePriceDataPolygon(
+                            symbol: $symbol,
+                            interval: 'daily',
+                            startDate: $startDate,
+                            splitAdjusted: false,
+                            saveData: false,
+                            verbose: false,
+                            debug: false,
+                            cacheAge: 30
+                        );  // saveData, verbose, debug, cacheAge
 
                         // if not cached, sleep for a random amount of time to prevent rate limiting from AlphaVantage
                         // if(!$historicalData['cached']) rateLimit();
