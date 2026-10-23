@@ -63,12 +63,23 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
                 $lastRefreshed = array_keys($priceData)[0];
                 $chartData['cached'] = true;
                 break;
-            default: 
+            default:
                 Logs::$logger->debug('market_data.retrieval.started', array(
                     'provider' => 'polygon',
                     'symbol' => $sector['sector'],
                 ));
-                $chartData     = retrievePriceDataPolygon($sector['sector'], 'daily', $startDate, true, false, $verbose, true, 30);  // splitAdjusted, saveData, verbose, debug, cacheAge
+
+                $chartData = retrievePriceDataPolygon(
+                    $sector['sector'],
+                    'daily',
+                    $startDate,
+                    splitAdjusted: true,
+                    saveData: false,
+                    verbose: $verbose,
+                    debug: $debug,
+                    cacheAge: 30
+                );
+
                 $priceData     = $chartData['seriesData'];
                 $lastRefreshed = $chartData['lastRefreshed'];
                 break;
@@ -94,7 +105,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
             if ($timeFrame['relative']) {
                 $performanceData[$sector['sector']][$timeFrame['period']] = priceGain($priceData, 0, $timeFrame['lengthDays'], 3)['gain'];
             } else {
-                $candle = array_slice($priceData, $timeFrame['lengthDays']-1, 1); 
+                $candle = array_slice($priceData, $timeFrame['lengthDays']-1, 1);
                 $closePrice = $candle[key($candle)]['close'];
                 $performanceData[$sector['sector']][$timeFrame['period']] = $closePrice;
             }
@@ -128,7 +139,7 @@ function updatePerformanceData($verbose, $debug, $stdin = false){
 
     if ($verbose) show($performanceData);
 
-    save("./data/performanceData.json", array(
+    if ($debug) save("./data/performanceData.json", array(
         'lastRefreshed'  => $lastRefreshed,
         'performanceData' => $performanceData,
     ));
