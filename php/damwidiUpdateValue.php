@@ -167,7 +167,10 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
     }
 
     // save unstick log data
-    if(!empty($dataLog)) save(UNSTICK_LOG, $dataLog);
+
+    if (!empty($dataLog) && getenv('DAMWIDI_PLATFORM') !== 'digitalocean') {
+        save(UNSTICK_LOG, $dataLog);
+    }
 
     // close cURL session
     curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 1);
