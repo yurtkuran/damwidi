@@ -54,7 +54,7 @@ class Logs
         self::$jobResult = array();
 
         $startedAt = hrtime(true);
-        self::$logger->info('job.started');
+        self::$logger->info('job.started - '.$job);
 
         return $startedAt;
     }
@@ -66,7 +66,7 @@ class Logs
 
     public static function completeJob($startedAt)
     {
-        self::$logger->info('job.completed', array_merge(
+        self::$logger->info('job.completed - '.self::$jobContext['job'], array_merge(
             array('duration_ms' => self::durationMilliseconds($startedAt)),
             self::$jobResult
         ));
@@ -75,7 +75,7 @@ class Logs
 
     public static function failJob($startedAt, $exception)
     {
-        self::$logger->error('job.failed', array(
+        self::$logger->error('job.failed - '.self::$jobContext['job'], array(
             'duration_ms' => self::durationMilliseconds($startedAt),
             'exception_class' => get_class($exception),
             'error_code' => $exception->getCode(),
