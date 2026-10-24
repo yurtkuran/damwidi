@@ -142,7 +142,16 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
                 ));
                 $reconciliationNotices++;
 
-                if(ENV == 'PROD') sendSMS('damwidi unstick: '.$unstickDeltaMsg, $date); // send SMS via IFTTT web service, only for production
+                if(ENV == 'PROD') {
+                    try {
+                        sendNotification('damwidi unstick: '.$unstickDeltaMsg.' on '.$date, 'warning');
+                    } catch (Throwable $exception) {
+                        Logs::$logger->error('notification.failed', array(
+                            'notification_type' => 'warning',
+                            'error' => $exception->getMessage(),
+                        ));
+                    }
+                }
 
             } else {
                 if (array_key_exists($date, $dataLog)){

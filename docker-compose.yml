@@ -6,6 +6,8 @@ services:
         environment:
             DAMWIDI_PLATFORM: local
             TZ: America/New_York
+            PUSHOVER_USER_KEY: ${PUSHOVER_USER_KEY:?Pushover user key is required}
+            PUSHOVER_DAMWIDI_APP_TOKEN: ${PUSHOVER_DAMWIDI_APP_TOKEN:?Pushover app token is required}
         ports:
             - '8080:80'
         volumes:
@@ -13,6 +15,7 @@ services:
             - ./:/var/www
         extra_hosts:
             - host.docker.internal:host-gateway
+
     db-mysql:
         image: mysql:8.0.33
         container_name: mySQL
