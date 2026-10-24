@@ -36,7 +36,7 @@ function retrievePriceDataPolygon($symbol, $interval, $startDate, $splitAdjusted
         $dataArray        = array();
 
         do {
-            Logs::$logger->info(str_pad($symbol, 6)." - retrieve ".$source." data, attempt ".$attempts);
+            Logs::$logger->debug(str_pad($symbol, 6)." - retrieve ".$source." data, attempt ".$attempts);
 
             try {
                 $json = file_get_contents($url);  //retrieve data
