@@ -38,9 +38,10 @@ jobs:
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='php-includes/definedConstants.php' \
-            --exclude='documentation/' \
+            --exclude='/documentation/' \
+            --exclude='/data/' \
+            --exclude='/tmp/' \
             ./ "$DO_USER@$DO_HOST:/opt/damwidi-php/"
-
       - name: Verify deployment
         env:
           DO_HOST: ${{ secrets.DO_HOST }}
