@@ -130,8 +130,26 @@ switch($mode){
 
         if ($status === 'successful') {
             Logs::$logger->info('Database updates successful', $logContext);
+            $notificationType = 'success';
+            $notificationMessage = 'Database updates succeeded at '.date('Y-m-d H:i:s T')
+                .' ('.$durationSeconds.'s).';
         } else {
             Logs::$logger->error('Database updates fail: '.implode(', ', $failedJobs), $logContext);
+            $notificationType = 'failure';
+            $notificationMessage = 'Database updates failed at '.date('Y-m-d H:i:s T')
+                .': '.implode(', ', $failedJobs).' ('.$durationSeconds.'s).';
+        }
+
+        try {
+            sendNotification($notificationMessage, $notificationType, 'Damwidi Database Updates');
+        } catch (Throwable $exception) {
+            Logs::$logger->error('database_updates.notification_failed', array(
+                'status' => $status,
+                'notification_type' => $notificationType,
+                'error' => Logs::sanitizeMessage($exception->getMessage()),
+            ));
+            fwrite(STDERR, 'Failed to send database update notification'.PHP_EOL);
+            exit(1);
         }
         break;
 
