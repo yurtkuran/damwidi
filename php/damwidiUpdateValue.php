@@ -168,7 +168,7 @@ function updateValueTable($verbose = false, $debug = false, $stdin = false){
 
     // save unstick log data
 
-    if (!empty($dataLog) && getenv('DAMWIDI_PLATFORM') !== 'digitalocean') {
+    if (!empty($dataLog)) {
         save(UNSTICK_LOG, $dataLog);
     }
 
