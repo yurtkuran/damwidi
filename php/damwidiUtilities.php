@@ -130,10 +130,27 @@ function sendPushoverNotification($message, $title = 'Damwidi', $type = 'normal'
     );
 }
 
-function readSecretFromEnvironment($variableName){
-    $secret = getenv($variableName);
+function readSecretFromEnvironment($variableName) {
+    // Prefer a Docker Compose secret file when configured.
+    $filePath = getenv($variableName . '_FILE');
+
+    if ($filePath !== false && trim($filePath) !== '') {
+        if (!is_readable($filePath)) {
+            throw new RuntimeException(
+                $variableName . '_FILE is not readable'
+            );
+        }
+
+        $secret = trim(file_get_contents($filePath));
+    } else {
+        // Fall back to a direct environment variable.
+        $secret = getenv($variableName);
+    }
+
     if ($secret === false || trim($secret) === '') {
-        throw new RuntimeException($variableName.' is not configured');
+        throw new RuntimeException(
+            $variableName . ' is not configured'
+        );
     }
 
     return trim($secret);
